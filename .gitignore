@@ -1,0 +1,16 @@
+.snakemake
+
+
+data/*
+auspice/
+
+*errors.csv
+
+ingest/.snakemake/
+ingest/benchmarks/
+
+*/results/
+*/temp/
+*/data/
+
+*.code-workspace
