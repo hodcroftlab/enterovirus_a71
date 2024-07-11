@@ -3,7 +3,7 @@
   "maintainers": [
     {"name": "Nadia Neuner-Jehle", "url": "https://www.swisstph.ch/en/staff/profile/people/nadia-neuner-jehle"}
   ],
-  "build_url": "",
+  "build_url": "https://github.com/hodcroftlab/enterovirus_a71/tree/master",
   "colorings": [
     {
       "key": "gt",
@@ -71,11 +71,6 @@
       "key": "gender"
     },
     {
-      "title": "Age available",
-      "type": "categorical",
-      "key": "has_age"
-    },
-    {
       "title": "RIVM Subgenogroup",
       "type": "categorical",
       "key": "RIVM_subgenogroup"
@@ -87,7 +82,7 @@
     "region"
   ],
   "panels": [
-     "tree",
+    "tree",
     "map",
     "entropy"
   ],

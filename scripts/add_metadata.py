@@ -269,7 +269,7 @@ if __name__ == '__main__':
 
     # write new metadata file to output
     new_meta= new_meta.loc[:,['accession', 'genbank_accession_rev', 'strain', 'date', 'region', 'place',
-        'country', 'host', 'gender', 'age_yrs','age_range', 'med_diagnosis_all','med_diagnosis_major',
+        'country', 'host', 'gender', 'age_yrs','age_range',"has_age", 'med_diagnosis_all','med_diagnosis_major',
         'isolation_source', 'length','date_submitted',
         'sra_accession', 'abbr_authors', 'reverse', 'authors', 'institution',
         'index','qc.overallScore', 'qc.overallStatus',

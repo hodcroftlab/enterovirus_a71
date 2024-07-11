@@ -33,8 +33,10 @@ C3	3A	12	M
 C3	3D	137	N
 C3	nuc	4193	C
 
-C1	nuc	4946	A
-C1	nuc	6491	G
+C1	nuc	1334	G
+C1	nuc	2555	G
+C1	nuc	4262	C
+C1	2B	10	G
 
 C5	nuc	280	A
 C5	nuc	3399	T

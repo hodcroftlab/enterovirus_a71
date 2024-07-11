@@ -30,7 +30,7 @@ The `config`, `vp1/config`, and `whole_genome/config` directories contain necess
 - `reference_sequence.gb`: Reference sequence
 - `auspice_config.json`: Auspice configuration file
 
-The reference sequence used is [BrCr, accession number U22521](https://www.genome.jp/dbget-bin/www_bget?genbank-vrl:U22521), sequenced in 1970.
+The reference sequence used is [BrCr, accession number U22521](https://www.genome.jp/dbget-bin/www_bget?genbank-vrl:U22521), sampled in 1970.
 
 ## Quickstart
 
@@ -83,4 +83,4 @@ The ingest pipeline is based on the Nextstrain [RSV ingest workflow](https://git
 This repository uses [`git subrepo`](https://github.com/ingydotnet/git-subrepo) to manage copies of ingest scripts in `ingest/vendored`. To pull new changes from the central ingest repository, first install `git subrepo` and then follow the instructions in [ingest/vendored/README.md](./ingest/vendored/README.md#vendoring).
 
 ## Feedback
-For questions or comments, contact me via GitHub at [nadia.neuner-jehle@swisstph.ch](mailto:nadia.neuner-jehle@swisstph.ch).
+For questions or comments, contact me via GitHub or [nadia.neuner-jehle@swisstph.ch](mailto:nadia.neuner-jehle@swisstph.ch).

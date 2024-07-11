@@ -23,7 +23,7 @@ if __name__ == '__main__':
                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument('--add', help="tsv file with new data, format: 'column1 value1 column2 value2'. Column1 needs to be strain or accession")
     parser.add_argument('--input', help="input meta file")
-    parser.add_argument('--rivm', help="input meta file")
+    parser.add_argument('--rivm', help="input rivm subgenotype file")
     parser.add_argument('--id', help="id: strain or accession", choices=["strain","accession"],default="accession")
     parser.add_argument('--output', help="output meta file")
     args = parser.parse_args()
@@ -33,7 +33,7 @@ if __name__ == '__main__':
     rivm_subtypes = pd.read_csv(args.rivm, index_col=False)
     id_field = args.id
     
-#     ipdb.set_trace()
+    # ipdb.set_trace()
     
 
     if id_field not in new_data.columns:
@@ -45,7 +45,7 @@ if __name__ == '__main__':
     rivm_subtypes = rivm_subtypes.drop_duplicates(subset="name")
     
     # Select only the relevant columns from new_data
-    new_data= new_data.loc[:,[id_field,"subgenogroup"]]
+    new_data= new_data.loc[:,[id_field,"subgenogroup"]] # kept in case the RIVM subgenotypes are NA
 
     # Merge the dataframes on id_field
     new_meta = pd.merge(meta, new_data, 
@@ -53,7 +53,7 @@ if __name__ == '__main__':
                         how='left')
 
     # Add subgenotypes from RIVM
-    mask = (rivm_subtypes["VP1 subgenogroup support"]>80) & (rivm_subtypes["VP1 subgenogroup"]!="Could not assign")& (rivm_subtypes["type"]=="EV-A71")
+    mask = (rivm_subtypes["VP1 subgenogroup"]!="Could not assign")& (rivm_subtypes["type"]=="EV-A71")
     rivm_subtypes= rivm_subtypes.loc[mask, ["name","VP1 subgenogroup"]]
 
     # Change the colnames
@@ -62,7 +62,7 @@ if __name__ == '__main__':
     # Merge the dataframes on id_field
     final_meta = pd.merge(new_meta, rivm_subtypes, on=id_field, how='left')
 
-#     ipdb.set_trace()
+    # ipdb.set_trace()
 
     # save it to the new metadata file
     final_meta.to_csv(args.output, sep='\t', index=False)

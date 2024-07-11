@@ -38,13 +38,18 @@ C5	nuc	132	C
 C1	nuc	15	G
 C1	nuc	57	T
 C1	nuc	246	T
-C4	nuc	21	A
-C4	nuc	63	T
-C4	nuc	102	G
 
-G	VP1	39	X
-G	VP1	44	X
-G	nuc	648	A
+C4	nuc	408	T
+C4	nuc	120	C
+C4	nuc	309	A
+C4	nuc	723	C
+C4	nuc	666	T
+C4	VP1	249	V
+
+
+G	VP1	164	N
+G	nuc	870	T
+G	nuc	238	C
 
 D	nuc	360	G
 D	nuc	78	T
@@ -66,7 +71,3 @@ A	nuc	525	G
 
 B	VP1	58	T
 B	VP1	240	S
-
-C	VP1	240	T
-C	VP1	289	A
-C	nuc	30	T

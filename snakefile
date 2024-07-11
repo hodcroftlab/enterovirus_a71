@@ -51,6 +51,18 @@ rule fetch:
             cd ../
         """
 
+# if you have sequences that are not on NCBI Virus
+rule add_sequences:
+    input:
+        sequences = rules.fetch.output.sequences,
+        add = "data/add_sequences_SM.fasta"
+    output:
+        sequences="data/sequences_added.fasta"
+    shell:
+        """
+            cat {input.sequences} {input.add} > {output.sequences}
+        """
+
 
 #####################################################################################################
 # BLAST
@@ -58,7 +70,7 @@ rule fetch:
 rule blast:
     input: 
         blast_db_file = "data/references/reference_vp1_blast.fasta",
-        seqs_to_blast = rules.fetch.output.sequences  # download from NCBI Virus
+        seqs_to_blast = rules.add_sequences.output.sequences  # download from NCBI Virus
     output:
         blast_out = "vp1/temp/blast_out.csv"
     params:
@@ -312,7 +324,7 @@ rule refine:
     params:
         coalescent = "opt",
         date_inference = "marginal",
-        clock_filter_iqd = 6, # was 3
+        clock_filter_iqd = 3, # originally 3; set to 6 if you want more control over outliers
         strain_id_field ="accession",
         clock_rate = 0.004,
         clock_std_dev = 0.0015
@@ -341,9 +353,7 @@ rule ancestral:
         alignment = rules.align.output.alignment,
         reference = rules.reference_gb_to_fasta.output.reference
     output:
-        node_data = "{seg}/results/nt_muts.json",
-        # reconstructed = "{seg}/results/nt_muts.json",
-        # amino_acids = "{seg}/results/aa_muts.json"
+        node_data = "{seg}/results/nt_muts.json"
     params:
         inference = "joint"
     shell:
@@ -354,8 +364,7 @@ rule ancestral:
             --output-node-data {output.node_data} \
             --inference {params.inference}
         """
-# --output-node-data {output.reconstructed} {output.amino_acids}\
-# 
+ 
 rule translate:
     message: "Translating amino acid sequences"
     input:
@@ -416,7 +425,7 @@ rule clade_published:
     input:
         metadata = rules.curate.output.metadata,
         new_data = "data/clade_assign_publications.tsv",
-        rivm_data = "{seg}/data/{seg}_subgenotypes_rivm.csv"
+        rivm_data = "data/rivm/subgenotypes_rivm.csv"
     params:
         strain_id_field= "accession"
     output:
@@ -488,8 +497,12 @@ rule clean:
 
 
 rule rename_whole_genome:
-    message: "Removing directories: {params}"
+    message: "Rename whole-genome built"
+    input: 
+        json="auspice/ev_a71_whole_genome.json"
+    output:
+        json="auspice/ev_a71_whole-genome.json"
     shell:
         """
-        mv auspice/ev_a71_whole_genome.json auspice/ev_a71_whole-genome.json
+        mv {input.json} {output.json}
         """
