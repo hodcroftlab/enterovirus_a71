@@ -53,8 +53,8 @@ rule nextclade:
         nextclade = "data/references/nextclade.tsv"
     params:
         dataset = "data/references/",
-        output_columns = "clade qc.overallScore qc.overallStatus alignmentScore  alignmentStart  alignmentEnd  coverage dynamic"
-    threads: 8
+        output_columns = "seqName clade qc.overallScore qc.overallStatus alignmentScore  alignmentStart  alignmentEnd  coverage dynamic"
+    threads: 9
     shell:
         """
         nextclade3 run -D {params.dataset}  -j {threads} \
@@ -65,7 +65,7 @@ rule nextclade:
 
 rule extend_metadata: ## virus type: what is it?
     input:
-        nextclade = "data/references/nextclade.tsv",
+        nextclade = rules.nextclade.output.nextclade,
         metadata = "data/metadata_raw.tsv"
     output:
         metadata = "data/metadata.tsv"

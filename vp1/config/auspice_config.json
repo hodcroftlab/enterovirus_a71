@@ -1,18 +1,26 @@
 {
-  "title": "Genomic epidemiology of Enterovirus A71 VP1",
+  "title": "Genomic Epidemiology of Enterovirus A71 VP1",
   "maintainers": [
-    {"name": "Nadia Neuner-Jehle", "url": "https://www.swisstph.ch/en/staff/profile/people/nadia-neuner-jehle"}
+    {
+      "name": "Nadia Neuner-Jehle",
+      "url": "https://www.swisstph.ch/en/staff/profile/people/nadia-neuner-jehle"
+    }
   ],
   "build_url": "https://github.com/hodcroftlab/enterovirus_a71/tree/master",
   "colorings": [
     {
       "key": "gt",
-      "title": "Genotype",
+      "title": "Subgenotype",
       "type": "categorical"
     },
     {
       "key": "subgenogroup",
-      "title": "Subgenotype",
+      "title": "Subgenotype: Publications",
+      "type": "categorical"
+    },
+    {
+      "key": "RIVM_subgenogroup",
+      "title": "Subgenogroup: RIVM",
       "type": "categorical"
     },
     {
@@ -23,16 +31,16 @@
     {
       "key": "age_range",
       "title": "Age range",
-      "type": "categorical"
+      "type": "ordinal"
     },
     {
       "key": "med_diagnosis_all",
-      "title": "Medical diagnosis (detailed)",
+      "title": "Medical Diagnosis: detailed",
       "type": "categorical"
     },
     {
       "key": "med_diagnosis_major",
-      "title": "Major medical diagnosis",
+      "title": "Medical Diagnosis: major",
       "type": "categorical"
     },
     {
@@ -52,53 +60,63 @@
     },
     {
       "key": "region",
-      "title": "Region",
-      "type": "categorical"
-    },
-    {
-      "key": "place",
-      "title": "Location",
+      "title": "Global Regions",
       "type": "categorical"
     },
     {
       "key": "isolation_source",
-      "title": "Isolation source",
+      "title": "Isolation Source",
       "type": "categorical"
     },
     {
+      "key": "gender",
       "title": "Gender",
-      "type": "categorical",
-      "key": "gender"
+      "type": "categorical"
     },
     {
-      "title": "RIVM Subgenogroup",
-      "type": "categorical",
-      "key": "RIVM_subgenogroup"
+      "key": "length_VP1",
+      "title": "Length of VP1",
+      "type": "ordinal"
+    },
+    {
+      "key": "length",
+      "title": "Total Length",
+      "type": "continuous"
     }
   ],
   "geo_resolutions": [
-    "country",
-    "place",
-    "region"
+    {
+      "key": "country",
+      "title": "Country"
+    },
+    {
+      "key": "place",
+      "title": "Areas"
+    },
+    {
+      "key": "region",
+      "title": "Global Regions"
+    }
   ],
   "panels": [
     "tree",
-    "map",
-    "entropy"
+    "map"
   ],
   "display_defaults": {
+    "color_by": "country",
+    "geo_resolution": "region",
+    "distance_measure": "time",
     "map_triplicate": true
   },
   "filters": [
-    "country",
     "RIVM_subgenogroup",
-    "region",
+    "subgenogroup",
+    "country",
     "author",
-    "subgenogroup", 
-    "length",
+    "length_VP1",
     "med_diagnosis_major",
     "has_age",
-    "collab_country",
+    "has_diagnosis",
     "date_added"
   ]
-  }
+}

@@ -6,8 +6,9 @@ KEYWORDS    .
 SOURCE      Enterovirus A71 (EV-A71)
   ORGANISM  Enterovirus A71
             Viruses; Riboviria; Orthornavirae; Pisuviricota; Pisoniviricetes;
-            Picornavirales; Picornaviridae; Enterovirus; Enterovirus A.
-REFERENCE   1  (sites)
+            Picornavirales; Picornaviridae; Ensavirinae; Enterovirus;
+            Enterovirus A.
+REFERENCE   1
   AUTHORS   Brown,B.A. and Pallansch,M.A.
   TITLE     Complete nucleotide sequence of enterovirus 71 is distinct from
             poliovirus
@@ -16,9 +17,9 @@ REFERENCE   1  (sites)
 REFERENCE   2  (bases 1 to 7408)
   AUTHORS   Brown,B.A.
   TITLE     Direct Submission
-  JOURNAL   Submitted (14-MAR-1995) Betty A. Brown., Centers for Disease
-            Control and Prevention, CID/REVB/Enterovirus unit, 1600 Clifton Rd,
-            Atlanta, GA 30333, USA
+  JOURNAL   Submitted (14-MAR-1995) Betty A. Brown., Centers for Disease Control
+            and Prevention, CID/REVB/Enterovirus unit, 1600 Clifton Rd, Atlanta,
+            GA 30333, USA
 FEATURES             Location/Qualifiers
      source          1..7408
                      /organism="Enterovirus A71"
@@ -26,80 +27,77 @@ FEATURES             Location/Qualifiers
                      /strain="BrCr"
                      /host="Homo sapiens"
                      /db_xref="taxon:39054"
-                     /country="USA: CA"
-                     /collection_date="XX-XX-1970"
-     5'UTR           1..743
-     CDS             744..7325
-                     /codon_start=1
-                     /product="polyprotein"
-                     /protein_id="AAB39968.1"
-                     /translation="MGSQVSTQRSGSHENSNSATEGSTINYTTINYYKDSYAATAGKQ
-                     SLKQDPDKFANPVKDIFTEMAAPLKSPSAEACGYSDRVAQLTIGNSTITTQEAANIIV
-                     GYGEWPSYCSDNDATAVDKPTRPDVSVNRFYTLDTKLWEKSSKGWYWKFPDVLTETGV
-                     FGPNAQFHYLYRSGFCIHVQCNASKFHQGALLVAVLPEYVIGTVAGGTGTENSHPPYK
-                     QTQPGADGFELQHPYVLDAGIPISQLTVCPHQWINLRTNNCATIIVPYMNTLPFDSAL
-                     NHCNFGLLVVPISPLDFDQGATPVIPITITLAPMCSEFAGLRQAVTQGFPTELKPGTN
-                     QFLTTDDGVSAPILPNFHPTPCIHIPGEVRNLLELCQVETILEVNNVPTNATSLMERL
-                     RFPVSAQAGKGELCAVFRADPGRDGPWQSTMLGQLCGYYTQWSGSLEVTFMFTGSFMA
-                     TGKMLIAYTPPGGPLPKDRATAMLGTHVIWDFGLQSSVTLVIPWISNTHYRAHARDGV
-                     FDYYTTGLVSIWYQTNYVVPIGAPNTAYIIALAAAQKNFTMKLCKDTSDILETATIQG
-                     DRVADVIESSIGDSVSKALTPALPAPTGPDTQVSSHRLDTGKVPALQAAEIGASSNAS
-                     DESMIETRCVLNSHSTAETTLDSFFSRAGLVGEIDLPLKGTTNPNGYANWDIDITGYA
-                     QMRRKVELFTYMRFDAEFTFVACTPTGRVVPQLLQYMFVPPGAPKPDSRDSLAWPTAT
-                     NPSVFVKSSDPPAQVSVPFMSPASAYQWFYDGYPTFGEHKQEKDLEYGACPNNMMGTF
-                     SVRTVGSSKSEYSLVIRIYMRMKHVRAWIPRPMRNQNYLFKSNPNYAGDSIKPTGTSR
-                     TAITTLGKFGQQSGAIYVGNFRVVNRHLATHTDWANLVWEDSSRDLLVSSTTAQGCDT
-                     IARCNCQTGVYYCNSRRKHYPVSFSKPSLVFVEASEYYPARYQSHLMLAEGHSEPGDC
-                     GGILRCQHGVVGIVSTGGSGLVGFADVRDLLWLDEEAMEQGVSDYIKGLGRAFGTGFT
-                     DAVSREVEALKNHLIGSEGAVEKILKNLVKLISALVIVIRSDYDMVTLTATLALIGCH
-                     GSPWAWIKSKTASILGIPMAQKQSASWLKKFNDMANAAKGLEWIFNKISKFIDWLKEK
-                     IIPAAKEKVEFLNNLKQLPLLENQVSNLEQSAASQEDLEAMFGNVIYLAHFCRKFQPL
-                     YATEAKRVYALEKRMNNYMQFKSKHRIEPVCLIIRGSPGTGKSLATGIIARAIADKYR
-                     SSVYSLPPDPDHFDGYKQQVVAVMDDLCQNPDGKDMSLFCQMVSTVDFVPPMASLEEK
-                     GVSFTSKFVIASTNASNIIVPTVSDSDAIRRRFYMDCDIEVTDSYKTDLGRLDAGRAA
-                     KLCTENNTANFKRCSPLVCGKAIQLRDRKSKVRYSVDTVVSELIREYNNRSAIGNTIE
-                     ALFQGPPKFRPIRISLEEKPAPDAISDLLASVDSEEVRQYCREQGWIIPETPTNVERH
-                     LNRAVLVMQSIATVVAVVSLVYVIYKLFAGFQGAYSGAPKPILKKPVLRTATVQGPSL
-                     DFALSLLRRNIRQAQTDQGHFTMLGVRDRLAILPRHSQPGKTIWVEHKLINVLDAVEL
-                     VDEQGVNLELTLVTLDTNEKFRDITKCIPEVITGASDATLVINTEHIPSMFVPVGDVV
-                     QYGFLNLSGKPTHRTMMYNFPTKPGQCGGVVTSVGKIIGIHIGGNGRQAFCAGLKRSY
-                     FASEQGEIQWMKPNRETGRLNINGPTRTKLEPSVFHDVFEGNKEPAVLTSKDPRLEVD
-                     FEQALFSKYVGNTLHEPDEYVTQAALHYANQLKQLDINTSKMSMEEACYGTEYLEAID
-                     LHTSAGYPYSALGIKKRDILDPVTRDTSRMKLYMDKYGLDLPNSTYVKDELSSLDKIR
-                     KGESRLIEASSLNDPVYPRLTFGHLYEVFHANPGTVTGSAVGCNPDVFWSKLPILLPG
-                     SLFAFDYSGYDASLSPVWFRALELVLREIGYSEEAVSLIEGINHTHHVYRNKTYCVLG
-                     GMPSGCSGTSIFNSMINNIIIRTLLIKTFKGIDLDELKMVAYGDDVLASYPFPIDCLE
-                     WGKTGKEYGLTMTPADKSPCFNEVTWENATFLKRGFLPDHQFPFLIHPTMPMREIHES
-                     IRWTKDARNTQDHVRSLCLLAWHNGKEEYEKFVSTIRSVPIGRALAIPNLENLRRNWL
-                     ELF"
      CDS             744..950
-                     /gene="VP4"
-                     /note="capsid protein"
+                     /ID="id-AAB39968.1:1..69"
+                     /Note="capsid protein"
+                     /gbkey="Prot"
+                     /product="VP4 (1A)"
+                     /Name="VP4__1A_"
+                     /locus_tag="VP4__1A_"
      CDS             951..1712
-                     /gene="VP2"
-                     /note="capsid protein"
+                     /ID="id-AAB39968.1:70..323"
+                     /Note="capsid protein"
+                     /gbkey="Prot"
+                     /product="VP2"
+                     /Name="VP2"
+                     /locus_tag="VP2"
      CDS             1713..2438
-                     /gene="VP3"
-                     /note="capsid protein"
+                     /ID="id-AAB39968.1:324..565"
+                     /Note="capsid protein"
+                     /gbkey="Prot"
+                     /product="VP3"
+                     /Name="VP3"
+                     /locus_tag="VP3"
      CDS             2439..3329
-                     /gene="VP1"
-                     /note="capsid protein"
+                     /ID="id-AAB39968.1:566..862"
+                     /Note="capsid protein"
+                     /gbkey="Prot"
+                     /product="VP1"
+                     /Name="VP1"
+                     /locus_tag="VP1"
      CDS             3330..3779
-                     /gene="2A"
+                     /ID="id-AAB39968.1:863..1012"
+                     /gbkey="Prot"
+                     /product="2A"
+                     /Name="2A"
+                     /locus_tag="2A"
      CDS             3780..4076
-                     /gene="2B"
+                     /ID="id-AAB39968.1:1013..1111"
+                     /gbkey="Prot"
+                     /product="2B"
+                     /Name="2B"
+                     /locus_tag="2B"
      CDS             4077..5063
-                     /gene="2C"
+                     /ID="id-AAB39968.1:1112..1440"
+                     /gbkey="Prot"
+                     /product="2C"
+                     /Name="2C"
+                     /locus_tag="2C"
      CDS             5064..5321
-                     /gene="3A"
+                     /ID="id-AAB39968.1:1441..1526"
+                     /gbkey="Prot"
+                     /product="3A"
+                     /Name="3A"
+                     /locus_tag="3A"
      CDS             5322..5387
-                     /gene="3B"
+                     /ID="id-AAB39968.1:1527..1548"
+                     /gbkey="Prot"
+                     /product="3B"
+                     /Name="3B"
+                     /locus_tag="3B"
      CDS             5388..5936
-                     /gene="3C"
+                     /ID="id-AAB39968.1:1549..1731"
+                     /gbkey="Prot"
+                     /product="3C"
+                     /Name="3C"
+                     /locus_tag="3C"
      CDS             5937..7322
-                     /gene="3D"
-     3'UTR           7326..7408
-ORIGIN      
+                     /ID="id-AAB39968.1:1732..2193"
+                     /gbkey="Prot"
+                     /product="3D"
+                     /Name="3D"
+                     /locus_tag="3D"
+ORIGIN
         1 ttaaaacagc tgtgggttgt cacccaccca cagggtccac tgggcgctag tacactggta
        61 tctcggtacc tttgtacgcc tgttttatac cccctccctg atttgcaact tagaagcaac
       121 gcaaaccaga tcaatagtag gtgtgacata ccagtcgcat cttgatcaag cacttctgta
@@ -225,4 +223,3 @@ ORIGIN
      7321 tttaaactta cagctcaatg ctgaacccca ccagaaatct ggtcgtgtca atgactggtg
      7381 ggggtaaatt tgttataacc agaatagc
 //
-

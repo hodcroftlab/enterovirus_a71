@@ -65,9 +65,8 @@ if __name__ == '__main__':
 
     ## Keep the one with less XX
     new_meta['date'] = new_meta.apply(
-        lambda row: row['date_y'] if (pd.notna(row['date_y']) and count_unknowns(row['date_y']) < count_unknowns(row['date_x'])) else row['date_x'], 
-        axis=1
-    )
+        lambda row: row['date_y'] if (pd.notna(row['date_y']) and count_unknowns(row['date_y']) <= count_unknowns(row['date_x'])) else row['date_x'], 
+        axis=1)
 
     # Region: keep to most detailed one (longest string)
     new_meta['region'] = new_meta['region_x'].mask(new_meta['region_x'].isna(), new_meta['region_y'])
@@ -180,27 +179,50 @@ if __name__ == '__main__':
         # Update the 'region' column in the new_meta DataFrame with the new region values
         new_meta['region'] = newregion
 
+
+    ## Diagnosis
+    # ipdb.set_trace()
+
+    new_meta['has_diagnosis'] =~new_meta['diagnosis'].isna()
+    
     # Define a mapping for full terms to their abbreviations and standardized names
     short_versions = {
-        'acute flaccid paralysis': 'AFP',
-        'Hand-foot-and-mouth disease': 'HFMD',
-        'central nervous system':'CNS',
-        'Guillain-Barré syndrome': 'GBS',
-        'Febrile Illness': 'Fever',
-        'Febrile illness': 'Fever',
-        'Cns symptoms': "CNS Symptoms",
-        'Opsomyoclonus Syndrome': "OMS",
-        'Myoclonic Jerk':'OMS',
-        'Cns Involvement': "CNS Symptoms",
-        'Cns Disorder': "CNS Symptoms",
-        'Poliomyelitis-Like Disease': 'AFP',
-        'Poliomyelitis-Like paralysis': 'AFP',
-        'death': 'Fatality',
-        'fatal': 'Fatality'
+        'Poliomyelitis-like disease': 'AFP','acute flaccid paralysis': 'AFP',
+        'Paralysis': 'AFP','Poliomyelitis-like paralysis': 'AFP',
+        'Upper Respiratory Tract Infection':'URTI',
+        'asthmatic bronchitis':"Respiratory Symptoms",
+        'Guillain-Barré syndrome': 'GBS','Guillain-Barrésyndrome':'GBS',
+        'Febrile illness': 'Fever','Pyrexia': 'Fever',
+        'V&D':'Vomiting; Diarrhea',
+        'Diarrhoea':'Diarrhea',
+        '(death)': 'Fatality','fatal': 'Fatality','death': 'Fatality',
+        "Myoclonic jerk":'Myoclonus',
+        'CNS symptoms': 'CNS','CNS involvement': 'CNS','Cns Disorder':'CNS',
+        'Neurological':'CNS','severe neurological involvement': 'CNS',
+        'polio': 'AFP','Difficulty Walking': 'AFP',
+        'hand-foot and mouth disease': 'HFMD',
+        'Neck Stiffness; Vomiting':'Meningitis',
+        'Meningoencephalitis': 'Encephalitis','Encephalytis': 'Encephalitis',
+        'Skin Rash':'Rash'
     }
+
     short_forms = set(short_versions.values())
 
-    def clean_diagnosis(diagnosis, threshold=80):
+    major_versions = {
+        'Encephalitis': 'CNS',
+        'Aseptic Meningitis': 'CNS',
+        'Meningitis': 'CNS',
+        'Opsomyoclonus Syndrome': 'CNS',
+        'Acute Cardiogenic Shock': 'Fatality',
+        'AFP':'AFP',
+        'HFMD':'HFMD',
+        'Fatality':'Fatality',
+        'CNS':'CNS',
+    }
+
+    major_forms = set(major_versions.values())
+
+    def clean_diagnosis(diagnosis, threshold=75):
         if pd.isna(diagnosis):
             return np.nan
         
@@ -209,7 +231,7 @@ if __name__ == '__main__':
             return diagnosis
         
         # Remove punctuation and split multiple diagnoses
-        clean_diag = diagnosis.replace(',', ';').replace('/', ';').replace('  ', ' ').strip()
+        clean_diag = diagnosis.replace(',', ';').replace(' or ', ';').replace('/', ';').replace('  ', ' ').strip()
         diagnoses = [diag.strip() for diag in clean_diag.split(';')]
 
         # Standardize diagnoses and replace full terms with abbreviations
@@ -230,21 +252,35 @@ if __name__ == '__main__':
         # Join the cleaned and standardized diagnoses back into a string
         return '; '.join(sorted(set(standardized_diagnoses)))
 
-    def extract_major_diagnosis(cleaned_diagnosis):
-        if pd.isna(cleaned_diagnosis):
+    def extract_major_diagnosis(cleaned_diagnosis, threshold=80):
+        if pd.isna(cleaned_diagnosis) or cleaned_diagnosis == "":
             return np.nan
-        major_terms = {'AFP', 'HFMD', 'Encephalitis' ,'Fatality'}
+        
+        # Check if the diagnosis is already a major category
+        if cleaned_diagnosis in major_forms:
+            return cleaned_diagnosis
+        
+        # Remove punctuation and split multiple diagnoses
         diagnoses = cleaned_diagnosis.split('; ')
-        major_diagnoses = [diag for diag in diagnoses if diag in major_terms]
+
+        # Standardize diagnoses and replace full terms with major categories
+        major_diagnoses = []
+        for diag in diagnoses:
+            if diag in major_versions:
+                major_diagnoses.append(major_versions[diag])
+        
+        # Join the cleaned and standardized diagnoses back into a string
         return '; '.join(sorted(set(major_diagnoses)))
 
-    # Apply the function to the 'Diagnosis' column
-    new_meta['med_diagnosis_all'] = new_meta['diagnosis'].apply(lambda x: clean_diagnosis(x))
 
-    # Apply the function to the 'Diagnosis' column
+    # All the diagnosis
+    new_meta['med_diagnosis_all'] = new_meta['diagnosis'].apply(lambda x: clean_diagnosis(x))
+    
+    # only the major diagnosis
     new_meta['med_diagnosis_major'] = new_meta['med_diagnosis_all'].apply(lambda x: extract_major_diagnosis(x))
     
     # Add filter for age and add age ranges
+    new_meta['age_yrs'] = pd.to_numeric(new_meta['age_yrs'], errors='coerce')
     new_meta["has_age"] = ~new_meta["age_yrs"].isna()
 
     # parse gender
@@ -254,7 +290,7 @@ if __name__ == '__main__':
 
     #Define age bins and labels for years
     bins_years = [-np.inf, 1, 6, 11, 18, np.inf]
-    labels_years = ['<1 y/o', '1-5 y/o', '6-10 y/o', '11-17 y/o', '18+ y/o']
+    labels_years = ['<=1 y/o', '1-5 y/o', '6-10 y/o', '11-17 y/o', '18+ y/o']
 
     # Define age bins and labels for months
     bins_months = [-np.inf, 0.25, 0.5, 1]
@@ -267,11 +303,23 @@ if __name__ == '__main__':
     mask_months = new_meta['age_yrs'] < 1
     new_meta.loc[mask_months, 'age_range'] = pd.cut(new_meta.loc[mask_months, 'age_yrs'], bins=bins_months, labels=labels_months, right=False).astype(str)
 
+    # add VP1 length as continuous variable
+    ## read in blast output length
+    blast_results=pd.read_csv("vp1/results/blast_vp1_length.csv",names=["accession","l_vp1"])
+    new_meta2=pd.merge(new_meta,blast_results, on="accession", how='left')
+
+    bins_length = [-np.inf, 599, 699,799,899, np.inf]
+    labels_length = ['<600nt', '600-700nt', '700-800nt','800-900nt','>900nt']
+
+    # Create length_range column using pd.cut for length
+    new_meta2['length_VP1'] = pd.cut(new_meta2['l_vp1'], bins=bins_length, labels=labels_length, right=False).astype(str)
+
+    # ipdb.set_trace()
     # write new metadata file to output
-    new_meta= new_meta.loc[:,['accession', 'genbank_accession_rev', 'strain', 'date', 'region', 'place',
-        'country', 'host', 'gender', 'age_yrs','age_range',"has_age", 'med_diagnosis_all','med_diagnosis_major',
-        'isolation_source', 'length','date_submitted',
+    new_meta2= new_meta2.loc[:,['accession', 'genbank_accession_rev', 'strain', 'date', 'region', 'place',
+        'country', 'host', 'gender', 'age_yrs','age_range',"has_age", 'has_diagnosis','med_diagnosis_all','med_diagnosis_major',
+        'isolation_source', 'length','length_VP1','date_submitted',
         'sra_accession', 'abbr_authors', 'reverse', 'authors', 'institution',
-        'index','qc.overallScore', 'qc.overallStatus',
+        'qc.overallScore', 'qc.overallStatus',
         'alignmentScore', 'alignmentStart', 'alignmentEnd', 'genome_coverage']]
-    new_meta.to_csv(output_csv_meta, sep='\t', index=False)
+    new_meta2.to_csv(output_csv_meta, sep='\t', index=False)

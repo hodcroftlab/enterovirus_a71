@@ -42,25 +42,30 @@ rule fetch:
     output:
         sequences="data/sequences.fasta",
         metadata="data/metadata.tsv"
+        
+    params:
+        seq="ingest/data/sequences.fasta",
+        meta="ingest/data/metadata.tsv"
     shell:
         """
-            cd {input.dir} 
-            snakemake --cores 5 all 
-            cp {output.sequences} "../data/" 
-            cp {output.metadata} "../data/" 
-            cd ../
+        cd {input.dir} 
+        snakemake --cores 9 all
+        cd ../
+        cp -u {params.seq} {output.sequences}
+        cp -u {params.meta} {output.metadata}
         """
 
 # if you have sequences that are not on NCBI Virus
-rule add_sequences:
+rule add_sequences: #TODO add a step that will create a new "local" accession that will be used if the sequence is not in genbank
     input:
-        sequences = rules.fetch.output.sequences,
-        add = "data/add_sequences_SM.fasta"
+        sequences = "data/sequences.fasta",
     output:
         sequences="data/sequences_added.fasta"
+    params:
+        file_ending="data/*.fas*"
     shell:
         """
-            cat {input.sequences} {input.add} > {output.sequences}
+            cat {params.file_ending} > {output.sequences}
         """
 
 
@@ -84,7 +89,7 @@ rule blast:
 rule blast_sort:
     input:
         blast_result = rules.blast.output.blast_out, # output blast (vp1)
-        input_seqs = rules.fetch.output.sequences  # download from NCBI Virus
+        input_seqs = "data/sequences.fasta"  # download from NCBI Virus
     output:
         sequences = "{seg}/results/sequences.fasta"
         
@@ -219,7 +224,7 @@ rule filter:
         sequences = "{seg}/results/filtered.fasta"
     params:
         group_by = "country",
-        sequences_per_group = 2000,
+        sequences_per_group = 15000, # 2000 originally
         strain_id_field= "accession",
         min_date = 1965  # BrCr was collected in 1970
     shell:
@@ -297,10 +302,12 @@ rule tree:
         alignment = rules.fix_align_codon.output.alignment
     output:
         tree = "{seg}/results/tree_raw.nwk"
+    threads: 9
     shell:
         """
         augur tree \
             --alignment {input.alignment} \
+            --nthreads {threads}\
             --output {output.tree}
         """
 
@@ -361,6 +368,7 @@ rule ancestral:
         augur ancestral \
             --tree {input.tree} \
             --alignment {input.alignment} \
+            --keep-ambiguous \
             --output-node-data {output.node_data} \
             --inference {params.inference}
         """
