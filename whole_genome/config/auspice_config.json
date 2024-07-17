@@ -82,6 +82,18 @@
       "key": "length",
       "title": "Total Length",
       "type": "continuous"
+    },
+    {
+      "key": "has_age",
+      "title": "Age available"
+    },
+    {
+      "key": "has_diagnosis",
+      "title": "Diagnosis available"
+    },
+    {
+      "key": "author",
+      "title": "Authors"
     }
   ],
   "geo_resolutions": [
@@ -100,12 +112,13 @@
   ],
   "panels": [
     "tree",
-    "map"
+    "map",
+    "entropy"
   ],
   "display_defaults": {
     "color_by": "country",
-    "geo_resolution": "region",
-    "distance_measure": "div",
+    "geo_resolution": "country",
+    "distance_measure": "num_date",
     "map_triplicate": true
   },
   "filters": [

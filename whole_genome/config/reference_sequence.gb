@@ -1,5 +1,5 @@
 LOCUS       ETU22521                7408 bp    RNA     linear   VRL 30-APR-2001
-DEFINITION  Human enterovirus 71 polyprotein gene, complete cds.
+DEFINITION  Human enterovirus 71 polyprotein gene, complete CDS.
 ACCESSION   U22521
 VERSION     U22521.1
 KEYWORDS    .
@@ -28,71 +28,60 @@ FEATURES             Location/Qualifiers
                      /host="Homo sapiens"
                      /db_xref="taxon:39054"
      CDS             744..950
-                     /ID="id-AAB39968.1:1..69"
                      /Note="capsid protein"
                      /gbkey="Prot"
                      /product="VP4 (1A)"
                      /Name="VP4__1A_"
-                     /locus_tag="VP4__1A_"
+                     /locus_tag="VP4"
      CDS             951..1712
-                     /ID="id-AAB39968.1:70..323"
                      /Note="capsid protein"
                      /gbkey="Prot"
                      /product="VP2"
                      /Name="VP2"
                      /locus_tag="VP2"
      CDS             1713..2438
-                     /ID="id-AAB39968.1:324..565"
                      /Note="capsid protein"
                      /gbkey="Prot"
                      /product="VP3"
                      /Name="VP3"
                      /locus_tag="VP3"
      CDS             2439..3329
-                     /ID="id-AAB39968.1:566..862"
                      /Note="capsid protein"
                      /gbkey="Prot"
                      /product="VP1"
                      /Name="VP1"
                      /locus_tag="VP1"
      CDS             3330..3779
-                     /ID="id-AAB39968.1:863..1012"
                      /gbkey="Prot"
                      /product="2A"
                      /Name="2A"
                      /locus_tag="2A"
      CDS             3780..4076
-                     /ID="id-AAB39968.1:1013..1111"
                      /gbkey="Prot"
                      /product="2B"
                      /Name="2B"
                      /locus_tag="2B"
      CDS             4077..5063
-                     /ID="id-AAB39968.1:1112..1440"
                      /gbkey="Prot"
                      /product="2C"
                      /Name="2C"
                      /locus_tag="2C"
      CDS             5064..5321
-                     /ID="id-AAB39968.1:1441..1526"
                      /gbkey="Prot"
                      /product="3A"
                      /Name="3A"
                      /locus_tag="3A"
      CDS             5322..5387
-                     /ID="id-AAB39968.1:1527..1548"
                      /gbkey="Prot"
                      /product="3B"
                      /Name="3B"
                      /locus_tag="3B"
      CDS             5388..5936
-                     /ID="id-AAB39968.1:1549..1731"
                      /gbkey="Prot"
                      /product="3C"
                      /Name="3C"
                      /locus_tag="3C"
      CDS             5937..7322
-                     /ID="id-AAB39968.1:1732..2193"
                      /gbkey="Prot"
                      /product="3D"
                      /Name="3D"

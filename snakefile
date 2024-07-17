@@ -435,7 +435,8 @@ rule clade_published:
         new_data = "data/clade_assign_publications.tsv",
         rivm_data = "data/rivm/subgenotypes_rivm.csv"
     params:
-        strain_id_field= "accession"
+        strain_id_field= "accession",
+        rerun=True
     output:
         meta = "{seg}/results/final_metadata_added_subgenotyp.tsv"
     shell:

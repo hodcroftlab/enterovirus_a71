@@ -6,50 +6,71 @@ B1	nuc	237	T
 B1	nuc	258	A
 B1	nuc	282	C
 B1	nuc	384	T
+
 B3	nuc	201	G
 B3	nuc	231	A
 B3	nuc	243	T
 B3	nuc	297	C
 B3	nuc	309	G
 B3	nuc	373	T
+
 B4	nuc	814	C
 B4	nuc	9	A
 B4	nuc	321	T
 B4	nuc	675	C
+
 B5	nuc	153	G
 B5	nuc	156	C
 B5	nuc	238	C
 B5	nuc	642	C
 B5	nuc	711	C
+
 C3	nuc	222	T
 C3	nuc	612	C
 C3	nuc	660	C
 C3	nuc	726	A
 C3	nuc	852	C
 C3	nuc	867	T
+
 C2	nuc	42	C
 C2	nuc	81	T
 C2	nuc	93	T
 C2	nuc	264	A
+
 C5	nuc	6	C
 C5	nuc	27	A
 C5	nuc	120	C
 C5	nuc	132	C
+
 C1	nuc	15	G
 C1	nuc	57	T
 C1	nuc	246	T
 
-C4	nuc	408	T
-C4	nuc	120	C
-C4	nuc	309	A
-C4	nuc	723	C
-C4	nuc	666	T
-C4	VP1	249	V
+C4	nuc	21	A
+C4	nuc	63	T
+C4	nuc	108	T
+C4	nuc	528	C
+C4	nuc	741	A
 
+C4a	nuc	123	A
+C4a	nuc	396	T
+C4a	nuc	636	A
+C4a	nuc	762	A
+C4a	nuc	795	G
 
-G	VP1	164	N
-G	nuc	870	T
-G	nuc	238	C
+C4b	nuc	147	T
+C4b	nuc	177	C
+C4b	nuc	492	T
+C4b	nuc	534	A
+C4b	nuc	852	T
+C4b	nuc	885	T
+
+G	nuc	285	T
+G	nuc	531	A
+G	nuc	547	C
+G	nuc	696	G
+G	nuc	777	G
+G	nuc	864	T
 
 D	nuc	360	G
 D	nuc	78	T

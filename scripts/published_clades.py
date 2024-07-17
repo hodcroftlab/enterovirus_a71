@@ -13,9 +13,6 @@ import ipdb
 #column 1: 'strain' or 'accession' to indicate how to indicate the record to be changed
 
 
-#EX: to modify a strain called "SE02-21-01" so that the column 'symptom' has the value 'TM':
-#strain	SE02-21-01	symptom	TM
-
 if __name__ == '__main__':
     import argparse
 
@@ -47,6 +44,9 @@ if __name__ == '__main__':
     # Select only the relevant columns from new_data
     new_data= new_data.loc[:,[id_field,"subgenogroup"]] # kept in case the RIVM subgenotypes are NA
 
+    # remove spaces from subgenogroup column
+    new_data["subgenogroup"]=new_data["subgenogroup"].str.strip()
+
     # Merge the dataframes on id_field
     new_meta = pd.merge(meta, new_data, 
                         on=id_field, 
@@ -61,7 +61,9 @@ if __name__ == '__main__':
 
     # Merge the dataframes on id_field
     final_meta = pd.merge(new_meta, rivm_subtypes, on=id_field, how='left')
-
+    
+    # remove spaces from subgenogroup column
+    final_meta["RIVM_subgenogroup"]=final_meta["RIVM_subgenogroup"].str.strip()
     # ipdb.set_trace()
 
     # save it to the new metadata file

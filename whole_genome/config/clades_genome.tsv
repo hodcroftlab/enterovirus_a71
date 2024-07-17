@@ -47,17 +47,10 @@ C5	2A	24	S
 C5	3A	56	G
 C5	3D	138	I
 
-C4	nuc	67	T
-C4	nuc	308	A
-C4	nuc	500	G
-C4	nuc	5906	C
-C4	3D	57	X
-
-C4a	nuc	3917	T
-C4a	nuc	4514	C
-C4a	nuc	4598	G
-C4a	nuc	6932	C
-C4b	nuc	5729	A
+C4	nuc	4301	C
+C4	nuc	4514	C
+C4	nuc	5834	A
+C4	nuc	6869	A
 
 F	VP1	167	E
 F	VP1	275	T

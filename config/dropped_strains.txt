@@ -65,6 +65,12 @@ DQ341368
 OP585372 	# mouse
 MW298156 	# passaged 10 times in the brain of AG129 mice;mouse-adapted virus
 
+# mouse-adapted strains:
+#KF514878	# clinical isolate
+KF514879
+KF514880
+KM508794
+
 # monkey study (cold-adapted virus)
 MT241237
 MT241236
@@ -86,7 +92,21 @@ KT354875
 JQ950555
 JX025559 	# temperature-resistant
 
+
+## eight viruses constructed with reverse genetics
+KT354866	# DOI: https://doi.org/10.1128/jvi.02035-15
+KT354867
+KT354868
+KT354869
+KT354870
+KT354871
+KT354872
+KT354873
+KT354874
+KT354875
+
 ## other EVs 
 LC506516	#CV-A16
 LC506515	#CV-A16
 JF420566	#CV-A16
+
