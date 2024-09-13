@@ -8,7 +8,7 @@ SOURCE      Enterovirus A71 (EV-A71)
             Viruses; Riboviria; Orthornavirae; Pisuviricota; Pisoniviricetes;
             Picornavirales; Picornaviridae; Ensavirinae; Enterovirus;
             Enterovirus A.
-REFERENCE   1
+REFERENCE   1 (bases 1 to 7408)
   AUTHORS   Brown,B.A. and Pallansch,M.A.
   TITLE     Complete nucleotide sequence of enterovirus 71 is distinct from
             poliovirus
@@ -27,11 +27,17 @@ FEATURES             Location/Qualifiers
                      /strain="BrCr"
                      /host="Homo sapiens"
                      /db_xref="taxon:39054"
+     CDS             1..743
+                     /Note="untranslated region"
+                     /gbkey="Prot"
+                     /product="5'UTR"
+                     /Name="5UTR"
+                     /locus_tag="5UTR"
      CDS             744..950
                      /Note="capsid protein"
                      /gbkey="Prot"
-                     /product="VP4 (1A)"
-                     /Name="VP4__1A_"
+                     /product="VP4"
+                     /Name="VP4"
                      /locus_tag="VP4"
      CDS             951..1712
                      /Note="capsid protein"
@@ -86,6 +92,12 @@ FEATURES             Location/Qualifiers
                      /product="3D"
                      /Name="3D"
                      /locus_tag="3D"
+     CDS             7323..7408
+                     /Note="untranslated region"
+                     /gbkey="Prot"
+                     /product="3'UTR"
+                     /Name="3UTR"
+                     /locus_tag="3UTR"                     
 ORIGIN
         1 ttaaaacagc tgtgggttgt cacccaccca cagggtccac tgggcgctag tacactggta
        61 tctcggtacc tttgtacgcc tgttttatac cccctccctg atttgcaact tagaagcaac
