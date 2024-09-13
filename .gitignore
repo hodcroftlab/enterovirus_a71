@@ -8,9 +8,16 @@ auspice/
 
 ingest/.snakemake/
 ingest/benchmarks/
+ingest/logs/
 
 */results/
 */temp/
 */data/
 
+scripts/__pycache__/
+
 *.code-workspace
+
+scripts/bin
+
+.env
