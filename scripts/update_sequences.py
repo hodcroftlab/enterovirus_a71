@@ -5,6 +5,7 @@ import os
 import re
 import time
 from datetime import datetime
+import ipdb
 
 # Function to check if an accession number is real: it uses the entrez functionality of ncbi
 from check_accession import extract_accession
@@ -60,7 +61,7 @@ if __name__ == '__main__':
     else:
         df_local_accn = pd.DataFrame(columns=['internal_accession', 'sample_name', 'gb_accession', 'date_added'])
 
-
+    # ipdb.set_trace()
 
     # Add entries for accessions or strain names present in the extended_meta
     for index, row in extended_meta.iterrows():

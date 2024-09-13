@@ -2,96 +2,97 @@
 
 # Input and output file paths from arguments
 input_file="$1"
+temp_output_file="data/strain_names"
 output_file="$2"
 
-# Define the columns to keep in the output file
-required_columns=("accession" "strain")
+# Define the positions of accession and strain columns based on the header (1-based index)
+accession_col=$(head -n 1 "$input_file" | awk -F'\t' '{for(i=1;i<=NF;i++){if($i=="accession") print i}}')
+strain_col=$(head -n 1 "$input_file" | awk -F'\t' '{for(i=1;i<=NF;i++){if($i=="strain") print i}}')
 
-# Read the header line from the input file
-header_line=$(head -n 1 "$input_file")
+# Check if the required columns are found
+if [[ -z "$accession_col" || -z "$strain_col" ]]; then
+    echo "Error: Could not find accession or strain column in the header."
+    exit 1
+fi
 
-# Extract header names into an array
-IFS=$'\t' read -r -a headers <<< "$header_line"
+# Cut out the accession and strain columns and save to a temporary file
+cut -f"$accession_col","$strain_col" "$input_file" > "$temp_output_file"
 
-# Create a mapping of header names to their indices
-declare -A header_indices
-for i in "${!headers[@]}"; do
-    header_indices[${headers[$i]}]=$i
-done
-
-# Identify the indices of the required columns
-for col in "${required_columns[@]}"; do
-    if [[ -z "${header_indices[$col]}" ]]; then
-        echo "Error: Required column '$col' not found in the header."
-        exit 1
-    fi
-done
+# Check if the temp output file was created and is not empty
+if [[ ! -s "$temp_output_file" ]]; then
+    echo "Error: Temp output file $temp_output_file is empty or could not be created."
+    exit 1
+fi
 
 # Create a temporary output file for new entries
-temp_output_file="$output_file.tmp"
+temp_file="$temp_output_file.tmp"
 
 # Create or clear the output file if it doesn't exist and write the header
 if [[ ! -f "$output_file" ]]; then
-    required_indices=$(for col in "${required_columns[@]}"; do echo -n "${header_indices[$col]} "; done)
-    echo -e "$(for idx in $required_indices; do echo -n "${headers[$idx]}\t"; done | sed 's/\t$//')" > "$output_file"
+    echo -e "accession\tstrain" > "$output_file"
 fi
 
 # Load existing accessions from the output file into a set
 declare -A existing_accessions
-while IFS=$'\t' read -r -a fields; do
-    accession="${fields[0]}"  # Assumes accession is the first column
+while IFS=$'\t' read -r accession strain; do
     existing_accessions["$accession"]=1
 done < <(tail -n +2 "$output_file")
 
-# Process the input file and append new entries to the temp file
-while IFS=$'\t' read -r -a fields; do
-    # Skip empty lines
-    if [[ -z "${fields[${header_indices[accession]}]}" ]]; then
-        continue
-    fi
-
-    # Extract values based on header indices
-    accession="${fields[${header_indices[accession]}]}"
-    strain="${fields[${header_indices[strain]}]}"
-
-    # Check if accession is already in the output file
-    if [[ -n "${existing_accessions[$accession]}" ]]; then
-        echo "Skipping $accession, already present in the output file."
-        continue
-    fi
-
-    # Fetch and update the strain if needed
-    if [ "$accession" == "$strain" ]; then
-        # Fetch the GenBank record
-        gb_entry=$(efetch -db nucleotide -id "$accession" -format gb 2>/dev/null)
-        
-        if [ $? -eq 0 ]; then
-            # Extract the strain from the FEATURES section
-            strain_from_gb=$(echo "$gb_entry" | grep -oP '/strain="\K[^"]+')
-            
-            if [ -n "$strain_from_gb" ]; then
-                strain=$strain_from_gb
-            else
-                strain="UNKNOWN"
-            fi
-        else
-            strain="UNKNOWN"
+# Process the temp file and append new entries to the temp file
+{
+    # Skip the header line from the temp file
+    read -r
+    while IFS=$'\t' read -r accession strain; do
+        # Skip lines where accession is empty
+        if [[ -z "$accession" ]]; then
+            continue
         fi
-    fi
 
-    # Replace the strain value in the fields array
-    fields[${header_indices[strain]}]=$strain
+        # Check if accession is already in the output file
+        if [[ -n "${existing_accessions[$accession]}" ]]; then
+            echo "Skipping $accession, already present in the output file."
+            continue
+        fi
 
-    # Write the selected fields to the temp output file
-    updated_row=$(for idx in $required_indices; do echo -n "${fields[$idx]}\t"; done | sed 's/\t$//')
-    echo -e "$updated_row" >> "$temp_output_file"
-done < <(tail -n +2 "$input_file")
+        # Fetch and update the strain if needed
+        if [ "$accession" == "$strain" ]; then
+            # Fetch the GenBank record
+            gb_entry=$(efetch -db nucleotide -id "$accession" -format gb 2>/dev/null)
+            
+            if [ $? -eq 0 ]; then
+                # Extract the strain from the FEATURES section
+                strain_from_gb=$(echo "$gb_entry" | grep -oP '/strain="\K[^"]+')
+                
+                if [ -n "$strain_from_gb" ]; then
+                    strain=$strain_from_gb
+                else
+                    strain="$accession"
+                fi
+            else
+                strain="$accession"
+            fi
+        fi
+
+        # Write the selected fields to the temp output file
+        echo -e "$accession\t$strain" >> "$temp_file"
+    done
+} < "$temp_output_file"
+
+# Check if the temp file was created and is not empty
+if [[ ! -s "$temp_file" ]]; then
+    echo "Error: Temp file $temp_file is empty or could not be created."
+    exit 1
+fi
 
 # Append the temp output to the main output file and remove duplicates
-if [[ -f "$temp_output_file" ]]; then
-    cat "$temp_output_file" >> "$output_file"
-    sort -u "$output_file" -o "$output_file"
-    rm "$temp_output_file"
+cat "$temp_file" >> "$output_file"
+sort -u "$output_file" -o "$output_file"
+rm "$temp_file"
+
+# Add the header at the end if not already present
+if ! head -n 1 "$output_file" | grep -qP '^accession\s+strain'; then
+    # Prepend the header to the output file
+    echo -e "accession\tstrain" | cat - "$output_file" > temp && mv temp "$output_file"
 fi
 
 # Report completion
