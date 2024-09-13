@@ -11,7 +11,7 @@ It produces output files as
 
 rule sort:
     input:
-        sequences = rules.transform.output.sequences
+        sequences = rules.curate.output.sequences
     output:
         "data/sequences.fasta",
     shell:
@@ -21,7 +21,7 @@ rule sort:
 
 rule metadata:
     input:
-        metadata = rules.transform.output.metadata,
+        metadata = rules.curate.output.metadata,
         sequences = "data/sequences.fasta"
     output:
         metadata = "data/metadata_raw.tsv"
@@ -33,18 +33,6 @@ rule metadata:
         d = pd.read_csv(input.metadata, sep='\t', index_col='accession').loc[strains].drop_duplicates()
         d.to_csv(output.metadata, sep='\t')
 
-# rule nextclade_dataset:
-#     output:
-#         ref = "data/references/reference.fasta" ## follow up
-
-#     params:
-#         dataset = "references" ## follow up
-        
-#     shell: ## follow up
-#         """
-#         nextclade3 dataset get -n {params.dataset} --output-dir references 
-#         """
-
 rule nextclade:
     input:
         sequences = "data/sequences.fasta",
@@ -54,7 +42,7 @@ rule nextclade:
     params:
         dataset = "data/references/",
         output_columns = "seqName clade qc.overallScore qc.overallStatus alignmentScore  alignmentStart  alignmentEnd  coverage dynamic"
-    threads: 9
+    threads: 8
     shell:
         """
         nextclade3 run -D {params.dataset}  -j {threads} \
@@ -63,9 +51,9 @@ rule nextclade:
                           {input.sequences}
         """
 
-rule extend_metadata: ## virus type: what is it?
+rule extend_metadata: 
     input:
-        nextclade = rules.nextclade.output.nextclade,
+        nextclade = "data/references/nextclade.tsv",
         metadata = "data/metadata_raw.tsv"
     output:
         metadata = "data/metadata.tsv"
