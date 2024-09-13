@@ -52,18 +52,31 @@ C4	nuc	108	T
 C4	nuc	528	C
 C4	nuc	741	A
 
-C4a	nuc	123	A
-C4a	nuc	396	T
-C4a	nuc	636	A
-C4a	nuc	762	A
-C4a	nuc	795	G
+C4.1	nuc	147	T
+C4.1	nuc	177	C
+C4.1	nuc	492	T
+C4.1	nuc	534	A
+C4.1	nuc	852	T
+C4.1	nuc	885	T
 
-C4b	nuc	147	T
-C4b	nuc	177	C
-C4b	nuc	492	T
-C4b	nuc	534	A
-C4b	nuc	852	T
-C4b	nuc	885	T
+C4.2	nuc	42	T
+C4.2	nuc	240	T
+C4.2	nuc	477	A
+C4.2	nuc	603	C
+C4.2	nuc	865	A
+C4.2	VP1	289	T
+
+C4.3	clade	C4.2
+C4.3	nuc	255	T
+
+C4.4	nuc	265	C
+C4.4	nuc	606	G
+C4.4	nuc	847	A
+C4.4	nuc	882	T
+
+C4.5	nuc	877	T
+C4.5	VP1	283	T
+C4.5	VP1	293	S
 
 G	nuc	285	T
 G	nuc	531	A
