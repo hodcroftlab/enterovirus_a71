@@ -88,20 +88,11 @@ if __name__ == '__main__':
     new_meta['strain'] = new_meta['strain'].fillna(new_meta['strain_x'])  # Take strain_x if strain_y is NaN
 
     # Keep only the dates from assign_publications.tsv table - except if they're NA
-    new_meta['date'] = new_meta['collection_date'].mask(sum([(new_meta['collection_date'].isna()),(new_meta['collection_date'] == "XXXX-XX-XX")])>=1, new_meta['date'])  # If date_y is unknown, keep date_x
+    new_meta['date'] = new_meta['collection_date'].mask(sum([(new_meta['collection_date'].isna()),
+                                                             (new_meta['collection_date'] == "XXXX-XX-XX")])>=1, new_meta['date'])  # If date_y is unknown, keep date_x
 
-    # # Pick the row with the most accurate date
-    # new_meta['date'] = new_meta['date'].mask(new_meta['date'] == "XXXX-XX-XX", new_meta['collection_date'])  # If date is unknown, replace with known
-    # new_meta['date'] = new_meta['date'].mask(new_meta['collection_date'].isna(), new_meta['date'])  # If date_y is unknown, keep date_x
-
-    # # Function to count the number of 'XX' components in a date string
-    # def count_unknowns(date_str):
-    #     return date_str.count('XX') if pd.notna(date_str) else float('inf')
-
-    # ## Keep the one with less XX
-    # new_meta['date'] = new_meta.apply(
-    #     lambda row: row['collection_date'] if (pd.notna(row['collection_date']) and count_unknowns(row['collection_date']) <= count_unknowns(row['date'])) else row['date'], 
-    #     axis=1)
+    # Keep date_y if date_correction specified in origin
+    new_meta['date'] = new_meta['collection_date'].mask(new_meta['origin'].str.contains('date_correction', case=False, na=False), new_meta['date'])
 
     # Region: keep to most detailed one (longest string)
     new_meta['region'] = new_meta['region_x'].mask(new_meta['region_x'].isna(), new_meta['region_y'])
