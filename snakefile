@@ -1,10 +1,10 @@
 ###############
 # Snakemake execution templates:
 
-# To run a default VP1 run(<600bp):
+# To run a default VP1 run:
 # snakemake  vp1/auspice/ev_a71_vp1.json --cores 1
 
-# To run a default whole genome run ( <6400bp):
+# To run a default whole genome run (>6400bp):
 # snakemake whole_genome/auspice/ev_a71_whole_genome.json --cores 1
 
 ###############
@@ -12,8 +12,6 @@ wildcard_constraints:
     seg="vp1|whole_genome",
     gene="|-5utr|-vp4|-vp2|-vp3|-vp1|-2A|-2B|-2C|-3A|-3B|-3C|-3D|-3utr"
    
-#     #from: https://bitbucket.org/snakemake/snakemake/issues/910/empty-wildcard-assignment-works-only-if
-
 # Define segments to analyze
 segments = ['vp1', 'whole-genome']
 GENES=["-5utr","-vp4", "-vp2", "-vp3", "-vp1", "-2A", "-2B", "-2C", "-3A", "-3B", "-3C", "-3D","-3utr"]
