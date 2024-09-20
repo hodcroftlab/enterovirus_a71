@@ -556,7 +556,8 @@ rule clade_published:
     input:
         metadata = rules.curate.output.metadata,
         new_data = "data/clade_assign_publications.tsv",
-        rivm_data = "data/rivm/subgenotypes_rivm.csv"
+        rivm_data = "data/rivm/subgenotypes_rivm.csv",
+        alignment= "vp1/results/aligned_fixed.fasta"
     params:
         strain_id_field= "accession",
         rerun=True
@@ -565,7 +566,7 @@ rule clade_published:
     shell:
         """
         python scripts/published_clades.py --input {input.metadata} --add {input.new_data} --rivm {input.rivm_data}\
-        --id {params.strain_id_field} --output {output.meta}
+        --alignment {input.alignment} --id {params.strain_id_field} --output {output.meta}
         """
 
 rule export:

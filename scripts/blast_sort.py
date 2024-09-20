@@ -28,20 +28,19 @@ def main():
 
     # Process sequences based on the specified length range
     if args.range == "vp1":
-        r=(600, 900)
+        r=(600, 891)
+        blast_results=blast_results[(blast_results.diff_length_ref >= r[0]) & (blast_results.diff_length_ref <= r[1])]
         for seq_record in sequences:
-            if (seq_record.id in blast_results.qseqid.unique()) and (r[0] <= len(seq_record)):
+            if (seq_record.id in blast_results.qseqid.unique()):
                 # Get the relevant BLAST result
                 blast_hit = blast_results[blast_results.qseqid == seq_record.id].iloc[0]
-                
                 # Extract region from sequence
                 reg_seq = seq_record.seq[blast_hit["qstart"] - 1:blast_hit["qend"]]
-                
                 # Create new sequence record
                 new_seq_record = seq_record[:0]  # Copy metadata
                 new_seq_record.seq = reg_seq
-                selected_seqs.append(new_seq_record)
-    
+                if (r[0] <= len(reg_seq) <= r[1]):
+                    selected_seqs.append(new_seq_record)
     elif args.range == "whole_genome":
         r=(6400, 8000)
         for seq_record in sequences:
