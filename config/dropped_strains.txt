@@ -59,6 +59,7 @@ JN992283
 JN992284
 JN992285
 JQ724182 	# mouse-adapted
+EU376005	# mouse-adapted
 
 AB777928
 DQ341368
@@ -92,6 +93,8 @@ KT354875
 JQ950555
 JX025559 	# temperature-resistant
 
+## passage in mouse muscle
+HQ188292
 
 ## eight viruses constructed with reverse genetics
 KT354866	# DOI: https://doi.org/10.1128/jvi.02035-15
