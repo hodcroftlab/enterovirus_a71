@@ -88,11 +88,12 @@ if __name__ == '__main__':
     new_meta['strain'] = new_meta['strain'].fillna(new_meta['strain_x'])  # Take strain_x if strain_y is NaN
 
     # Keep only the dates from assign_publications.tsv table - except if they're NA
-    new_meta['date'] = new_meta['collection_date'].mask(sum([(new_meta['collection_date'].isna()),
-                                                             (new_meta['collection_date'] == "XXXX-XX-XX")])>=1, new_meta['date'])  # If date_y is unknown, keep date_x
+    new_meta['date_new'] = new_meta['collection_date'].mask(sum([(new_meta['collection_date'].isna()),(new_meta['collection_date'] == "XXXX-XX-XX")])>=1, new_meta['date'])  # If date_y is unknown, keep date_x
 
     # Keep date_y if date_correction specified in origin
-    new_meta['date'] = new_meta['collection_date'].mask(new_meta['origin'].str.contains('date_correction', case=False, na=False), new_meta['date'])
+    new_meta['date_new'] = new_meta['date_new'].mask(new_meta['origin']=='date_correction', new_meta['collection_date'])
+
+    new_meta['date'] = new_meta['date_new']
 
     # Region: keep to most detailed one (longest string)
     new_meta['region'] = new_meta['region_x'].mask(new_meta['region_x'].isna(), new_meta['region_y'])
@@ -203,10 +204,6 @@ if __name__ == '__main__':
         
         # Update the 'region' column in the new_meta DataFrame with the new region values
         new_meta['region'] = newregion
-
-
-    ## Diagnosis
-    # ipdb.set_trace()
 
     new_meta['has_diagnosis'] =~new_meta['diagnosis'].isna()
 
@@ -336,20 +333,22 @@ if __name__ == '__main__':
 
     # add VP1 length as continuous variable
     ## read in blast output length
-    blast_results=pd.read_csv("vp1/results/blast_vp1_length.csv",names=["accession","l_vp1"])
-    new_meta2=pd.merge(new_meta,blast_results, on="accession", how='left')
+    ##TODO: change to counting the length of the sequence after alignment and without gaps - done after tree building
+    # blast_results=pd.read_csv("vp1/results/blast_vp1_length.csv",names=["accession","l_vp1"])
+    # new_meta2=pd.merge(new_meta,blast_results, on="accession", how='left')
 
-    bins_length = [-np.inf, 599, 699,799,899, np.inf]
-    labels_length = ['<600nt', '600-700nt', '700-800nt','800-900nt','>900nt']
+    # bins_length = [-np.inf, 599, 699,799,899, np.inf]
+    # labels_length = ['<600nt', '600-700nt', '700-800nt','800-900nt','>900nt']
 
-    # Create length_range column using pd.cut for length
-    new_meta2['length_VP1'] = pd.cut(new_meta2['l_vp1'], bins=bins_length, labels=labels_length, right=False).astype(str)
+    # # Create length_range column using pd.cut for length
+    # new_meta2['length_VP1'] = pd.cut(new_meta2['l_vp1'], bins=bins_length, labels=labels_length, right=False).astype(str)
 
     # ipdb.set_trace()
     # write new metadata file to output
-    new_meta2= new_meta2.loc[:,['accession', 'accession_version', 'strain', 'date', 'region', 'place',
+    new_meta2= new_meta.loc[:,['accession', 'accession_version', 'strain', 'date', 'region', 'place',
         'country', 'host', 'gender', 'age_yrs','age_range',"has_age", 'has_diagnosis','med_diagnosis_all','med_diagnosis_major',
-        'isolation_source', 'length','length_VP1','subgenogroup','date_released',
+        'isolation_source', 'length',#'length_VP1',
+        'subgenogroup','date_released',
          'abbr_authors', 'authors', 'institution','doi',
         'qc.overallScore', 'qc.overallStatus',
         'alignmentScore', 'alignmentStart', 'alignmentEnd', 'genome_coverage','date_added']]
