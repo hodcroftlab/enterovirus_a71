@@ -23,12 +23,13 @@ def main():
     
     # Filter blast results and remove duplicates
     blast_results=blast_results.sort_values(['length','evalue'],ascending=[False,True]).drop_duplicates(subset='qseqid', keep='first')
-    blast_results.loc[:,["qseqid","length"]].to_csv("vp1/results/blast_vp1_length.csv",index=False,header=False) # needed later for adding to metadata
+    blast_results["diff_length_ref"]=abs(blast_results["send"]-blast_results["sstart"])
+    blast_results.loc[:,["qseqid","diff_length_ref"]].to_csv("vp1/results/blast_vp1_length.csv",index=False,header=False) # needed later for adding to metadata
     selected_seqs = []
 
     # Process sequences based on the specified length range
     if args.range == "vp1":
-        r=(600, 891)
+        r=(600, 900)
         blast_results=blast_results[(blast_results.diff_length_ref >= r[0]) & (blast_results.diff_length_ref <= r[1])]
         for seq_record in sequences:
             if (seq_record.id in blast_results.qseqid.unique()):
