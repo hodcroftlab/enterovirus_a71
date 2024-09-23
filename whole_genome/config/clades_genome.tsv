@@ -22,6 +22,12 @@ B3	nuc	2768	T
 B3	nuc	3296	G
 B3	nuc	6968	G
 
+B	nuc	2561	T
+B	nuc	605	C
+
+C	nuc	2738	A
+C	nuc	5774	C
+
 C2	nuc	2972	A
 C2	nuc	2981	G
 C2	nuc	4061	G
@@ -52,23 +58,11 @@ C4	nuc	4514	C
 C4	nuc	5834	A
 C4	nuc	6869	A
 
+C4.1	clade	C4
+C4.1	nuc	4943	C
+C4.1	nuc	5318	T
+
 F	VP1	167	E
 F	VP1	275	T
 F	VP1	289	S
 F	nuc	3065	C
-
-B	nuc	3575	A
-B	nuc	3617	G
-B	nuc	3662	G
-B	nuc	7100	A
-B	nuc	7262	T
-B	nuc	7330	G
-B	nuc	7369	T
-B	2B	36	D
-B	2C	48	T
-B	3B	10	M
-B	3C	93	T
-B	3D	74	X
-B	3D	75	N
-B	3D	197	V
-
