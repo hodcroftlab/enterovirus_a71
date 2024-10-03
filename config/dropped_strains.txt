@@ -76,6 +76,8 @@ KM508794
 MT241237
 MT241236
 MT241235
+MT241239    
+MT241238    
 #MT188611 	#parental strain
 
 #strain H: Lab strain to buy
