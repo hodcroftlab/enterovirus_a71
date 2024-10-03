@@ -38,7 +38,7 @@ rule files:
         clades =            "{seg}/config/clades_genome.tsv",
         regions=            "config/geo_regions.tsv",
         meta=               "data/metadata.tsv",
-        extended_metafile=  "data/clade_assign_publications.tsv",
+        extended_metafile=  "data/meta_manual_publications_genbank.tsv",
         last_updated_file = "data/date_last_updated.txt",
         local_accn_file =   "data/local_accn.txt"
 
@@ -165,10 +165,10 @@ rule curate_meta_dates:
     params:
         strain_id_field="accession",
         date_column="collection_date",
-        format=['%Y-%m-%d','%Y','XX-%m-%Y', 'XX-XX-%Y', 'XX-XX-XXXX','%m.%Y', '%d.%m.%Y', "%b-%Y"], 
+        format=['%Y-%m-%d','%Y','XX-%m-%Y', 'XX-XX-%Y', 'XX-XX-XXXX','%m.%Y', '%d.%m.%Y', "%b-%Y", "%d-%b-%Y"], 
         temp_metadata="data/temp_curated.tsv"  # Temporary file
     output:
-        metadata="data/assign_publications_curated.tsv",  # Final output file for metadata
+        metadata="data/meta_manual_publications_genbank_curated.tsv",  # Final output file for metadata
     shell:
         """
         # Normalize strings for metadata

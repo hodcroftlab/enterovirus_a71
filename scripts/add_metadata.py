@@ -101,6 +101,8 @@ if __name__ == '__main__':
 
     # Country: keep the non-missing ones
     new_meta['country'] = new_meta['country_y'].mask(new_meta['country_y'].isna(), new_meta['country_x'])
+    new_meta['country'] = new_meta['country'].replace("Viet Nam", "Vietnam")
+    new_meta['country'] = new_meta['country'].replace("UK", "United Kingdom")
 
     # Country: keep the non-missing ones
     new_meta['place'] = new_meta['place'].mask(new_meta['place'].isna(), new_meta['location'])
@@ -211,22 +213,29 @@ if __name__ == '__main__':
     short_versions = {
         'Poliomyelitis-like disease': 'AFP','acute flaccid paralysis': 'AFP',
         'Paralysis': 'AFP','Poliomyelitis-like paralysis': 'AFP',
+        'Acute flaccid myelitis': 'AFP','AFM': 'AFP',
         'Upper Respiratory Tract Infection':'URTI',
         'asthmatic bronchitis':"Respiratory Symptoms",
         'Guillain-Barré syndrome': 'GBS','Guillain-Barrésyndrome':'GBS',
         'Febrile illness': 'Fever','Pyrexia': 'Fever',
         'V&D':'Vomiting; Diarrhea',
+        'transverse myelitis': 'Myelitis',
         'Diarrhoea':'Diarrhea',
         'Severe':"Severe HFMD",
         'Light':"Light HFMD",
         'mild':"Mild HFMD",
         'Atypical HFMD':"Atypical HFMD",
         'herpangina': 'Herpangina',
-        'vesicular': 'vesicular papules','Rash with vesicles': 'vesicular papules',
+        'hypotension': 'Hypotension',
+        'hyperglycemia': 'Hyperglycemia',
+        'severe pulmonary hemorrhage': 'Cardiopulmonary failure',
+        'vesicular': 'vesicular rash','Rash with vesicles': 'vesicular rash',
         '(death)': 'Fatality','fatal': 'Fatality','death': 'Fatality',
-        "Myoclonic jerk":'Myoclonus',
+        'oral ulcers':'Oral Ulcers',
         'CNS symptoms': 'CNS','CNS involvement': 'CNS','Cns Disorder':'CNS',
+        'Myoclonic jerk':'Myoclonic jerk','Myoclonus':'Myoclonic jerk',
         'Neurological':'CNS','severe neurological involvement': 'CNS',
+        'Lethargy':'Lethargy','lethargic':'Lethargy',
         'polio': 'AFP','Difficulty Walking': 'AFP',
         'hand-foot and mouth disease': 'HFMD',
         'Neck Stiffness; Vomiting':'Meningitis',
@@ -241,7 +250,12 @@ if __name__ == '__main__':
         'Aseptic Meningitis': 'CNS',
         'Meningitis': 'CNS',
         'Opsomyoclonus Syndrome': 'CNS',
+        'Myoclonic jerk':'CNS','Myoclonus':'CNS', 'ataxia':'CNS',
+        'lethargy':'CNS',
         'Acute Cardiogenic Shock': 'Fatality',
+        'GBS': 'AFP',
+        'transverse myelitis': 'AFP',
+        'paralyses': 'AFP',
         'AFP':'AFP',
         'HFMD':'HFMD',
         'Atypical HFMD':"Atypical HFMD",
