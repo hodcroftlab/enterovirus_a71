@@ -6,6 +6,12 @@
       "url": "https://www.swisstph.ch/en/staff/profile/people/nadia-neuner-jehle"
     }
   ],
+  "data_provenance": [
+    {
+      "name": "GenBank",
+      "url": "https://www.ncbi.nlm.nih.gov/genbank/"
+    }
+  ],
   "build_url": "https://github.com/hodcroftlab/enterovirus_a71/tree/master",
   "colorings": [
     {
