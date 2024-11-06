@@ -378,11 +378,11 @@ place	Nordrhein-Westfalen	51.4332	7.6616
 place	North Carolina	35.7596	-79.0193
 place	North Dakota	47.5515	-101.0020
 place	Novosibirsk	55.0084	82.9357
-place	Odienné	9.5088	-7.5636
+place	Odienne	9.5088	-7.5636
 place	Ohio	40.4173	-82.9071
 place	Oklahoma	35.4676	-97.5164
 place	Oregon	43.8041	-120.5542
-place	Ouémé	6.6378	2.4845
+place	Oueme	6.6378	2.4845
 place	Pacasmayo	-7.4167	-79.5667
 place	Pennsylvania	41.2033	-77.1945
 place	Perak	4.5975	101.0901
@@ -655,7 +655,7 @@ place	Jilin	43.8379	126.5496
 place	Bentre	10.2317	106.3755
 place	Saint-Petersburg	59.9343	30.3351
 place	Phuyen	13.0882	109.0929
-place	Labé	11.3182	-12.2833
+place	Labe	11.3182	-12.2833
 place	Fujian Province	26.1929	117.9249
 place	Soctrang	9.6039	105.9806
 place	Jiangjin	29.2939	106.2596
@@ -664,3 +664,67 @@ place	Gailai	13.8071	108.1094
 place	Binhthuan	11.0907	108.0707
 place	Jurong	31.9570	119.1673
 place	Baria	10.4961	107.1734
+
+place	Clermont-Ferrand	45.7775	3.0819
+place	Puteaux	48.8842	2.2369
+place	Bischheim	48.6148	7.7524
+place	Pont-l'Eveque	49.2860	0.1842
+place	Villeneuve-les-Avignon	43.9637	4.7969
+place	Paris	48.8589	2.3200
+place	Toulouse	43.6045	1.4442
+place	Versailles	48.8035	2.1267
+place	Brest	48.3905	-4.4860
+place	Verrieres-le-Buisson	48.7468	2.2654
+place	Bordeaux	44.8412	-0.5800
+place	Aubagne	43.2924	5.5703
+place	Montpellier	43.6112	3.8767
+place	Chamilly	46.8674	4.6838
+place	Charnay-les-Macon	46.3098	4.7845
+place	Soyaux	45.6416	0.1926
+place	Marquette-lez-Lille	48.8799	2.4206
+place	Orleans	47.9027	1.9086
+place	Bayonne	43.4945	-1.4737
+place	Saverne	48.7420	7.3626
+place	Vichy	46.1239	3.4204
+place	Besançon	47.2380	6.0244
+place	Fuveau	43.4539	5.5608
+place	Montesson	48.9076	2.1493
+place	Plerin	48.5349	-2.7696
+place	Essey-les-Nancy	48.7053	6.2221
+place	Nogent-sur-Marne	48.8388	2.4917
+place	Metz	49.1197	6.1764
+place	Paris (Cochin)	48.8315	2.3328
+place	Craponne	45.7465	4.7439
+place	Poitiers	46.5803	0.3402
+place	Saint-Sebastien	44.8477	5.7982
+place	Clamart	48.8004	2.2630
+place	Liberec	50.7703	15.0584
+place	Olomouc	49.5941	17.2511
+place	Plzeň	49.7477	13.3775
+place	Barcelona	41.3829	2.1774
+place	Riga	56.9494	24.1052
+place	Rijnstate	51.9835	5.8975
+place	Bialystok	53.1325	23.1688
+place	Ljubljana	46.0500	14.5069
+place	Copenhagen	55.6867	12.5701
+place	Limassol	34.6853	33.0333
+
+place	LongAn	10.7452	106.4869
+place	CaMau	9.1788	105.1903
+place	Ha Noi	21.0324	105.8516
+place	Tainan	23.1481	120.3014
+place	Shaanxi	34.2649	108.9531
+place	TayNinh	11.3095	106.1294
+place	Taoyuan	24.9935	121.3057
+place	VinhLong	10.2534	105.9701
+place	Yunlin	23.6994	120.4248
+place	BacLieu	9.2242	105.7495
+place	Wenzhou	28.0169	120.6993
+place	DongNai	11.2895	107.2061
+place	AnGiang	10.3105	105.4123
+place	Bialystok	53.1325	23.1688
+place	Liberec	50.7703	15.0584
+place	LamDong	11.5753	107.8326
+place	Labé	11.3187	-12.2833
+place	Taizhou, Jiangsu	32.4847	119.9124
+place	Taichung	24.1477	120.6736

@@ -315,7 +315,6 @@ if __name__ == '__main__':
         # Join the cleaned and standardized diagnoses back into a string
         return '; '.join(sorted(set(major_diagnoses)))
 
-
     # All the diagnosis
     new_meta['med_diagnosis_all'] = new_meta['diagnosis'].apply(lambda x: clean_diagnosis(x))
 
@@ -345,6 +344,9 @@ if __name__ == '__main__':
     mask_months = new_meta['age_yrs'] < 1
     new_meta.loc[mask_months, 'age_range'] = pd.cut(new_meta.loc[mask_months, 'age_yrs'], bins=bins_months, labels=labels_months, right=False).astype(str)
 
+    # if ENPEN in origin, set ENPEN to True
+    new_meta = new_meta.assign(ENPEN=new_meta['origin'].str.contains('ENPEN', case=False, na=False))
+
     # add VP1 length as continuous variable
     ## read in blast output length
     ##TODO: change to counting the length of the sequence after alignment and without gaps - done after tree building
@@ -357,13 +359,19 @@ if __name__ == '__main__':
     # # Create length_range column using pd.cut for length
     # new_meta2['length_VP1'] = pd.cut(new_meta2['l_vp1'], bins=bins_length, labels=labels_length, right=False).astype(str)
 
+    ## dropping replicated sequences from the Netherlands
+    # new_meta2=new_meta.loc[(new_meta.duplicated(subset="strain",keep=False) & (new_meta.country == "Netherlands"))].sort_values(["length","length_VP1"],ascending=False)
+    # keeps=new_meta2.drop_duplicates(subset="strain",keep="first")
+    # new_meta2[~new_meta2.accession.isin(keeps.accession.unique())]
+    ## for now dropped with dropped_strains.txt file
+
     # ipdb.set_trace()
     # write new metadata file to output
     new_meta2= new_meta.loc[:,['accession', 'accession_version', 'strain', 'date', 'region', 'place',
         'country', 'host', 'gender', 'age_yrs','age_range',"has_age", 'has_diagnosis','med_diagnosis_all','med_diagnosis_major',
         'isolation_source', 'length',#'length_VP1',
         'subgenogroup','date_released',
-         'abbr_authors', 'authors', 'institution','doi',
+         'abbr_authors', 'authors', 'institution','ENPEN','doi',
         'qc.overallScore', 'qc.overallStatus',
         'alignmentScore', 'alignmentStart', 'alignmentEnd', 'genome_coverage','date_added']]
     new_meta2.to_csv(output_csv_meta, sep='\t', index=False)

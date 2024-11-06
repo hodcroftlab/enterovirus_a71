@@ -2,10 +2,10 @@
 # Snakemake execution templates:
 
 # To run a default VP1 run:
-# snakemake  vp1/auspice/ev_a71_vp1.json --cores 1
+# snakemake  auspice/ev_a71_vp1.json --cores 9
 
 # To run a default whole genome run (>6400bp):
-# snakemake whole_genome/auspice/ev_a71_whole_genome.json --cores 1
+# snakemake auspice/ev_a71_whole-genome.json --cores 9
 
 ###############
 wildcard_constraints:
@@ -94,7 +94,7 @@ rule update_sequences:
     input:
         sequences = "data/sequences.fasta",
         metadata=files.meta,
-        add_metadata = "data/add_metadata_SM.tsv"
+        add_metadata = files.extended_metafile
     output:
         sequences = "data/sequences_added.fasta"
     params:
@@ -300,7 +300,7 @@ rule filter:
         group_by = "country",
         sequences_per_group = 15000, # 2000 originally
         strain_id_field= "accession",
-        min_date = 1965  # BrCr was collected in 1970
+        min_date = 1960  # BrCr was collected in 1970
     shell:
         """
         augur filter \

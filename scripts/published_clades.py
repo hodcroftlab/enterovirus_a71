@@ -53,6 +53,10 @@ if __name__ == '__main__':
     new_meta = pd.merge(meta, new_data, 
                         on=id_field, 
                         how='left')
+    
+    # Replace missing subgenogroup
+    new_meta["subgenogroup"]=new_meta["subgenogroup_x"].fillna(new_meta["subgenogroup_y"])
+    new_meta.drop(columns=["subgenogroup_x","subgenogroup_y"], inplace=True)
 
     # Add subgenotypes from RIVM
     mask = (rivm_subtypes["VP1 subgenogroup"]!="Could not assign")& (rivm_subtypes["type"]=="EV-A71")

@@ -61,7 +61,7 @@ if __name__ == '__main__':
     else:
         df_local_accn = pd.DataFrame(columns=['internal_accession', 'sample_name', 'gb_accession', 'date_added'])
 
-    # ipdb.set_trace()
+    
 
     # Add entries for accessions or strain names present in the extended_meta
     for index, row in extended_meta.iterrows():
@@ -77,7 +77,6 @@ if __name__ == '__main__':
     df_local_accn = df_local_accn.drop_duplicates(subset=['internal_accession', 'sample_name'], keep='last')
     df_dates = df_dates.drop_duplicates(subset='accession', keep='last')
 
-
     # Step 1: Update date_last_updated.txt
     # Extract sequence names from the input FASTA file
     sequence_names = set()
@@ -90,12 +89,14 @@ if __name__ == '__main__':
                 # Check if the sequence is new
                 if sequence_name in df_dates['accession'].values or sequence_name in df_local_accn['sample_name'].values:
                     continue  # Skip this sequence if it's already in either the date or local accession files
-
+                print(sequence_name)
+                if sequence_name in extended_meta.strain:
+                    continue
                 # Proceed with processing for new sequences
                 if '|' in sequence_name:
                     local_accn_dic[sequence_name] = get_accession(sequence_name)
                     sequence_name = get_accession(sequence_name)
-                    
+
                 # Directly consider it a real accession if it matches the pattern
                 elif re.match(r'^[A-Z]{2}\d{6}$', sequence_name): 
                     pass

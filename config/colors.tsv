@@ -56,14 +56,14 @@ country	South Africa	#79EF8B
 
 country	Denmark	#FF5A5A
 country	Estonia	#FF4A4A
-country	Finland	#FF3A3A
+country	Finland	#C08180
 country	Iceland	#FF2A2A
 country	Ireland	#FFBAB8
 country	Latvia	#FF6969
 country	Lithuania	#FF5959
 country	Norway	#FF4949
 country	Sweden	#FF3939
-country	United Kingdom	#FF2929
+country	United Kingdom	#900C3F
 
 country	Albania	#FF7F4D
 country	Andorra	#FF6F4D
@@ -78,7 +78,7 @@ country	Portugal	#FF9F4D
 country	San Marino	#FF8F4D
 country	Serbia	#FF7F4D
 country	Slovenia	#FF6F4D
-country	Spain	#FF5F4D
+country	Spain	#A21815
 country	Vatican City	#FF4F4D
 
 country	Belarus	#A30000
@@ -94,8 +94,8 @@ country	Ukraine	#130000
 
 country	Austria	#FFAAAA
 country	Belgium	#FF9999
-country	France	#FF8888
-country	Germany	#FF7766
+country	France	#FF5733
+country	Germany	#C70039
 country	Liechtenstein	#FF6666
 country	Luxembourg	#FF5555
 country	Monaco	#FF4444
@@ -213,7 +213,7 @@ region	southern africa	#C8E6C9
 region	northern europe	#FD151B
 region	southern europe	#F53500
 region	eastern europe	#AC0006
-region	western europe	#FF8360
+region	western europe	#FF5733
 
 region	caribbean	#FFB326
 region	central america	#C99739
