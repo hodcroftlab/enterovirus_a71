@@ -58,5 +58,5 @@ This repository uses [`git subrepo`](https://github.com/ingydotnet/git-subrepo) 
 ### Steps to Update Vendored Scripts
 
 1. Install `git subrepo` by following the [installation guide](https://github.com/ingydotnet/git-subrepo#installation).
-2. Pull the latest changes from the central ingest repository by following the instructions in [`ingest/vendored/README.md`](./ingest/vendored/README.md#vendoring).
+2. Pull the latest changes from the central ingest repository by following the instructions in [`ingest/vendored/README.md`](vendored/README.md#vendoring).
 

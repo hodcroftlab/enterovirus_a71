@@ -41,7 +41,7 @@ Install the Nextstrain environment by following [these instructions](https://doc
 
 Activate the Nextstrain environment:
 ```bash
-conda activate nextstrain
+micromamba activate nextstrain
 ```
 
 To perform a build, run:
@@ -71,8 +71,8 @@ snakemake all_proteins --cores 9
 ```
 
 > [!NOTE]
-> Using version of <ins> augur</ins>: `augur 27.0.0`\
-> Using version of <ins> auspice</ins>: `auspice 2.59.1`
+> Version of <ins> augur</ins>: `augur 27.0.0`\
+> Version of <ins> auspice</ins>: `auspice 2.59.1`
 
 ## Ingest
 For more information on how to run the `ingest`, please refer to the [README](ingest/README.md) in the `ingest` folder.
