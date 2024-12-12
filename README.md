@@ -40,54 +40,50 @@ Install the Nextstrain environment by following [these instructions](https://doc
 ### Running a Build
 
 Activate the Nextstrain environment:
-```
+```bash
 conda activate nextstrain
 ```
 
 To perform a build, run:
-```
-snakemake --cores 1
+```bash
+snakemake --cores 9 all
 ```
 
 For specific builds:
 - VP1 build:
-    ```
-    snakemake auspice/ev_a71_vp1.json --cores 1
-    ```
+```bash
+snakemake auspice/ev_a71_vp1.json --cores 9
+```
 - Whole genome build:
-    ```
-    snakemake auspice/ev_a71_whole_genome.json --cores 1
-    ```
-### First steps
-To run the ingest, you will need some specific reference files, such as a `reference.fasta` or `annotation.gff3` file.
-1. In the `config` file: check that the taxid is correct
-2. To get these reference files you have to run the script [generate_from_genbank.py](ingest/generate_from_genbank.py) manually. 
+```bash
+snakemake auspice/ev_a71_whole-genome.json --cores 9
+```
 
-    ```
-    python3 ingest/generate_from_genbank.py --reference "U22521.1" --output-dir ingest/data/references/
-    ```
+For tanglegrams, we can run the build on sub-alignments of the whole genome alignment. 
+You can either run it for the specific genes or for the proteins P1, P2, P3.
+- gene build:
+```bash
+snakemake all_genes --cores 9
+```
+- Whole genome build:
+```bash
+snakemake all_proteins --cores 9
+```
 
-    - While the code runs, you will need to specify a few things: 
-        1. `[0]`
-        2. `[product]` or `[leave empty for manual choice]` if you want to specify the proteins
-        3. `[2]`.
+> [!NOTE]
+> Using version of <ins> augur</ins>: `augur 27.0.0`\
+> Using version of <ins> auspice</ins>: `auspice 2.59.1`
 
-    - It will create the files in the subdirectory `data/references`. 
-
-    - These files will be used by the `ingest` snakefile.
-
-3. Check that the `attributes` in `data/references/pathogen.json` are up to date.
-4. Run the `ingest' snakefile (either manually or using the main snakefile).
-    - Depending on your system you may need to run `chmod +x ./vendored/*;chmod +x ./bin/*` first.
-5. Run the main snakefile.
+## Ingest
+For more information on how to run the `ingest`, please refer to the [README](ingest/README.md) in the `ingest` folder.
 
 ### Visualizing the Build
 To visualize the build, use Auspice:
-```
+```bash
 auspice view --datasetDir auspice
 ```
 To run two visualizations simultaneously, you may need to set the port:
-```
+```bash
 export PORT=4001
 ```
 
@@ -99,14 +95,20 @@ Sequences can be downloaded manually or automatically.
 
 The ingest pipeline is based on the Nextstrain [RSV ingest workflow](https://github.com/nextstrain/rsv.git). Running the **ingest** pipeline produces `data/metadata.tsv` and `data/sequences.fasta`.
 
-### Updating Vendored Scripts
-This repository uses [`git subrepo`](https://github.com/ingydotnet/git-subrepo) to manage copies of ingest scripts in `ingest/vendored`. To pull new changes from the central ingest repository, first install `git subrepo` and then follow the instructions in [ingest/vendored/README.md](./ingest/vendored/README.md#vendoring).
-
 ## Feedback
 For questions or comments, contact me via GitHub or [nadia.neuner-jehle@swisstph.ch](mailto:nadia.neuner-jehle@swisstph.ch)
 
 ## To Do:
-- [x] Use the latest version of Auspice (v25)
-- [ ] Overwrite NCBI virus metadata with "corrected" collection dates
-- [ ] Replace `parse_date` with `augur curate`
-- [ ] Provide a way to create and use "local" accession numbers for sequences not on Genbank yet.
+- [X] Overwrite NCBI virus metadata with "corrected" collection dates
+- [X] Replace `parse_date` with `augur curate`
+- [X] Provide a way to create and use "local" accession numbers for sequences not on Genbank yet.
+- [ ] Update symptom list
+
+
+## Acknowledgments
+- [Nextstrain](https://nextstrain.org/)
+- [Auspice](https://auspice.us/)
+- [Snakemake](https://snakemake.readthedocs.io/en/stable/)
+- [Biopython](https://biopython.org/)
+- [Genbank](https://www.ncbi.nlm.nih.gov/genbank/)
+- [NCBI](https://www.ncbi.nlm.nih.gov/)

@@ -7,14 +7,23 @@
 # To run a default whole genome run (>6400bp):
 # snakemake auspice/ev_a71_whole-genome.json --cores 9
 
+# To run specific genes for tanglegrams:
+# snakemake --cores 9 all_genes
+
+# To run specific proteins for tanglegrams:
+# snakemake --cores 9 all_proteins
+
+
 ###############
 wildcard_constraints:
     seg="vp1|whole_genome",
-    gene="|-5utr|-vp4|-vp2|-vp3|-vp1|-2A|-2B|-2C|-3A|-3B|-3C|-3D|-3utr"
+    gene="|-5utr|-vp4|-vp2|-vp3|-vp1|-2A|-2B|-2C|-3A|-3B|-3C|-3D|-3utr",
+    protein="|-P1|-P2|-P3"
    
 # Define segments to analyze
 segments = ['vp1', 'whole-genome']
 GENES=["-5utr","-vp4", "-vp2", "-vp3", "-vp1", "-2A", "-2B", "-2C", "-3A", "-3B", "-3C", "-3D","-3utr"]
+PROT = ["-P1", "-P2", "-P3"]
 
 # Expand augur JSON paths
 rule all:
@@ -24,6 +33,10 @@ rule all:
 rule all_genes:
     input:
         augur_jsons = expand("auspice/ev_a71_whole_genome{genes}.json", genes=GENES)
+
+rule all_proteins:
+    input:
+        augur_jsons = expand("auspice/ev_a71_whole_genome{proteins}.json", proteins=PROT)
 
 
 # Rule to handle configuration files
@@ -314,6 +327,7 @@ rule filter:
             --min-date {params.min_date} \
             --output {output.sequences}
         """
+# --exclude-where ENPEN="True"\
 
 rule reference_gb_to_fasta:
     message:
@@ -371,28 +385,35 @@ rule sub_alignments:
         reference=files.reference
     output:
         # alignment = "{seg}/results/aligned.fasta"
-        alignment = "{seg}/results/aligned_fixed{gene}.fasta"
+        alignment = "{seg}/results/aligned_fixed{gene}{protein}.fasta"
     run:
         from Bio import SeqIO
         from Bio.Seq import Seq
 
-        real_gene = wildcards.gene.replace("-", "", 1)
+        if wildcards.protein:
+            real_gene = wildcards.protein.replace("-", "", 1)
+            boundaries = {
+                'P1':(744,3329),  'P2':(3330,5063),
+                'P3':(5064,7322)}
+            b = boundaries[real_gene]
+        else:
+            real_gene = wildcards.gene.replace("-", "", 1)
 
-        # Extract boundaries from the reference GenBank file
-        gene_boundaries = {}
-        with open(input.reference) as handle:
-            for record in SeqIO.parse(handle, "genbank"):
-                for feature in record.features:
-                    if feature.type == "CDS" and 'Name' in feature.qualifiers:
-                        product = feature.qualifiers['Name'][0].upper()
-                        if product == real_gene.upper():
-                            # Corrected: Use .start and .end directly
-                            gene_boundaries[product] = (feature.location.start, feature.location.end)
+            # Extract boundaries from the reference GenBank file
+            gene_boundaries = {}
+            with open(input.reference) as handle:
+                for record in SeqIO.parse(handle, "genbank"):
+                    for feature in record.features:
+                        if feature.type == "CDS" and 'Name' in feature.qualifiers:
+                            product = feature.qualifiers['Name'][0].upper()
+                            if product == real_gene.upper():
+                                # Corrected: Use .start and .end directly
+                                gene_boundaries[product] = (feature.location.start, feature.location.end)
 
-        if real_gene.upper() not in gene_boundaries:
-            raise ValueError(f"Gene {real_gene} not found in reference file.")
+            if real_gene.upper() not in gene_boundaries:
+                raise ValueError(f"Gene {real_gene} not found in reference file.")
 
-        b = gene_boundaries[real_gene.upper()]
+            b = gene_boundaries[real_gene.upper()]
 
         alignment = SeqIO.parse(input.alignment, "fasta")
         with open(output.alignment, "w") as oh:
@@ -417,7 +438,7 @@ rule tree:
 
     output:
         # tree = "{seg}/results/tree_raw.nwk"
-        tree = "{seg}/results/tree_raw{gene}.nwk"
+        tree = "{seg}/results/tree_raw{gene}{protein}.nwk"
     threads: 9
     shell:
         """
@@ -445,8 +466,8 @@ rule refine:
     output:
         # tree = "{seg}/results/tree.nwk",
         # node_data = "{seg}/results/branch_lengths.json"
-        tree = "{seg}/results/tree{gene}.nwk",
-        node_data = "{seg}/results/branch_lengths{gene}.json"
+        tree = "{seg}/results/tree{gene}{protein}.nwk",
+        node_data = "{seg}/results/branch_lengths{gene}{protein}.json"
     params:
         coalescent = "opt",
         date_inference = "marginal",
@@ -481,7 +502,7 @@ rule ancestral:
         # alignment = rules.sub_alignments.output.alignment
     output:
         # node_data = "{seg}/results/nt_muts.json"
-        node_data = "{seg}/results/nt_muts{gene}.json"
+        node_data = "{seg}/results/nt_muts{gene}{protein}.json"
     params:
         inference = "joint"
     shell:
@@ -501,7 +522,7 @@ rule translate:
         node_data = rules.ancestral.output.node_data,
         reference = files.reference
     output:
-        node_data = "{seg}/results/aa_muts{gene}.json"
+        node_data = "{seg}/results/aa_muts{gene}{protein}.json"
         # node_data = "{seg}/results/aa_muts.json"
     shell:
         """
@@ -520,7 +541,7 @@ rule clades:
         clades = files.clades
     output:
         # clade_data = "{seg}/results/clades.json"
-        clade_data = "{seg}/results/clades{gene}.json"
+        clade_data = "{seg}/results/clades{gene}{protein}.json"
     shell:
         """
         augur clades --tree {input.tree} \
@@ -536,7 +557,7 @@ rule traits:
         metadata = rules.add_metadata.output.metadata
     output:
         # node_data = "{seg}/results/traits.json"
-        node_data = "{seg}/results/traits{gene}.json",
+        node_data = "{seg}/results/traits{gene}{protein}.json",
     params:
         traits = "country",
         strain_id_field= "accession"
@@ -585,7 +606,7 @@ rule export:
     params:
         strain_id_field= "accession"
     output:
-        auspice_json = "auspice/ev_a71_{seg}{gene}-accession.json"
+        auspice_json = "auspice/ev_a71_{seg}{gene}{protein}-accession.json"
         # auspice_json = "auspice/ev_a71_{seg}-accession.json"
         
     shell:
@@ -610,7 +631,7 @@ rule rename_json:
         metadata = rules.add_metadata.output.metadata,
     output:
         # auspice_json="auspice/ev_a71_{seg}.json"
-        auspice_json="auspice/ev_a71_{seg}{gene}.json"
+        auspice_json="auspice/ev_a71_{seg}{gene}{protein}.json"
     params:
         strain_id_field="accession",
         display_strain_field= "strain"
