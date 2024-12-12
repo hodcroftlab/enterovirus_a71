@@ -41,7 +41,7 @@ if __name__ == '__main__':
     local_accn_file= pd.read_csv(local_accn, keep_default_na=True, sep='\t', index_col=False)
     renamed_strains_df = pd.read_csv(renamed_strains, keep_default_na=True, sep='\t', index_col=False)
     last_updated=pd.read_csv(last_updated_file, keep_default_na=True, sep='\t', index_col=False,names=["accession","date_added"])
-
+    
     # Identify records that need updating
     needs_update = meta[~meta['accession'].isin(renamed_strains_df['accession'])]
     needs_update.to_csv("data/no_strain_correction.tsv", sep='\t', index=False)
@@ -148,13 +148,13 @@ if __name__ == '__main__':
 
         # Return the mapped value if it exists, otherwise return the original value
         return val
-
+    
     # Apply the standardization to both columns
-    new_meta['sample_type'] = new_meta['sample_type'].apply(standardize_isolation_source)
+    new_meta['isolate-lineage-source'] = new_meta['isolate-lineage-source'].apply(standardize_isolation_source)
     new_meta['isolation'] = new_meta['isolation'].apply(standardize_isolation_source)
 
     # Combine the two columns, prioritizing the standardized values
-    new_meta['combined_isolation_source'] = new_meta['isolation'].mask(new_meta['isolation'].isna(), new_meta['sample_type'])
+    new_meta['combined_isolation_source'] = new_meta['isolation'].mask(new_meta['isolation'].isna(), new_meta['isolate-lineage-source'])
 
     # Replace the original isolation_source column
     new_meta['isolation_source'] = new_meta['combined_isolation_source']
@@ -346,6 +346,11 @@ if __name__ == '__main__':
 
     # if ENPEN in origin, set ENPEN to True
     new_meta = new_meta.assign(ENPEN=new_meta['origin'].str.contains('ENPEN', case=False, na=False))
+
+    # if ENPEN=TRUE; Authors in doi should be moved to 'authors'
+    # e.g. Private: ....
+    # remove Private from authors, keep private in doi
+    
 
     # add VP1 length as continuous variable
     ## read in blast output length

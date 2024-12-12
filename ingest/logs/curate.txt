@@ -1,0 +1,2 @@
+WARNING: Asked to rename field 'sex' (to 'sex') but it doesn't exist in the input data.
+WARNING: Asked to rename field 'genotype' (to 'genotype') but it doesn't exist in the input data.

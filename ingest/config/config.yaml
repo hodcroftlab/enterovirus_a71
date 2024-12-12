@@ -6,7 +6,7 @@ conda_environment: "workflow/envs/nextstrain.yaml"
 entrez_search_term: "Enterovirus A71"
 
 # Required to fetch from NCBI Datasets
-ncbi_taxon_id: "39054" # taxid for EV-A71
+ncbi_taxon_id: 39054 # taxid for EV-A71
 
 ncbi_datasets_fields:
   - accession
@@ -51,6 +51,8 @@ curate:
     update-date: date_updated
     length: length
     host-name: host
+    sex: sex
+    genotype: genotype
     isolate-lineage-source: sample_type
     biosample-acc: biosample_accessions
     submitter-names: authors
@@ -95,7 +97,7 @@ curate:
   # The field in the NDJSON record that contains the actual genomic sequence
   output_sequence_field: "sequence"
   # The list of metadata columns to keep in the final output of the curation pipeline.
-metadata_columns: [
+  metadata_columns: [
     "accession",
     "accession_version",
     "strain",
@@ -107,6 +109,7 @@ metadata_columns: [
     "length",
     "host",
     "sex",
+    "genotype",
     "date_released",
     "date_updated",
     "sra_accessions",
