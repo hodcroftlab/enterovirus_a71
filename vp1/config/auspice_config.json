@@ -34,6 +34,11 @@
       "type": "categorical"
     },
     {
+      "key": "clade_assignment",
+      "title": "VP1 Subgenogroup",
+      "type": "categorical"
+    },
+    {
       "key": "num_date",
       "title": "Date",
       "type": "continuous"
@@ -89,8 +94,8 @@
       "type": "ordinal"
     },
     {
-      "key": "length",
-      "title": "Total Length",
+      "key": "NCBI_length_genome",
+      "title": "NCBI-reported Length",
       "type": "continuous"
     },
     {

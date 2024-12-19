@@ -23,6 +23,7 @@ if __name__ == '__main__':
     parser.add_argument('--regions', help="file to specify regions: format = country region")
     parser.add_argument('--id', help="id: strain or accession", choices=["strain","accession"],default="accession")
     parser.add_argument('--rename', help="copy of updated_metadata.tsv")
+    parser.add_argument('--C1like', help="accessions to C1-like subgenotypes")
     parser.add_argument('--update', help="date when sequences were added")
     args = parser.parse_args()
 
@@ -33,6 +34,7 @@ if __name__ == '__main__':
     con_reg_table = args.regions
     local_accn = args.local
     renamed_strains = args.rename
+    C1like_accn = args.C1like
     last_updated_file = args.update
 
     # load data
@@ -344,39 +346,47 @@ if __name__ == '__main__':
     mask_months = new_meta['age_yrs'] < 1
     new_meta.loc[mask_months, 'age_range'] = pd.cut(new_meta.loc[mask_months, 'age_yrs'], bins=bins_months, labels=labels_months, right=False).astype(str)
 
+    # rename length to NCBI_length_genome
+    new_meta.rename(columns={"length": "NCBI_length_genome"}, inplace=True)
+
     # if ENPEN in origin, set ENPEN to True
     new_meta = new_meta.assign(ENPEN=new_meta['origin'].str.contains('ENPEN', case=False, na=False))
 
     # if ENPEN=TRUE; Authors in doi should be moved to 'authors'
-    # e.g. Private: ....
-    # remove Private from authors, keep private in doi
-    
+    # e.g. Private: .... remove Private from authors, keep private in doi
+    new_meta['authors'] = new_meta.apply(
+        lambda row: row['doi'].replace("Private: ", "") if row['ENPEN'] else row['authors'],
+        axis=1
+    )
+    new_meta['doi'] = new_meta.apply(
+        lambda row: "Private" if row['ENPEN'] else row['doi'],
+        axis=1
+    )
 
-    # add VP1 length as continuous variable
-    ## read in blast output length
-    ##TODO: change to counting the length of the sequence after alignment and without gaps - done after tree building
-    # blast_results=pd.read_csv("vp1/results/blast_vp1_length.csv",names=["accession","l_vp1"])
-    # new_meta2=pd.merge(new_meta,blast_results, on="accession", how='left')
-
-    # bins_length = [-np.inf, 599, 699,799,899, np.inf]
-    # labels_length = ['<600nt', '600-700nt', '700-800nt','800-900nt','>900nt']
-
-    # # Create length_range column using pd.cut for length
-    # new_meta2['length_VP1'] = pd.cut(new_meta2['l_vp1'], bins=bins_length, labels=labels_length, right=False).astype(str)
-
-    ## dropping replicated sequences from the Netherlands
-    # new_meta2=new_meta.loc[(new_meta.duplicated(subset="strain",keep=False) & (new_meta.country == "Netherlands"))].sort_values(["length","length_VP1"],ascending=False)
-    # keeps=new_meta2.drop_duplicates(subset="strain",keep="first")
-    # new_meta2[~new_meta2.accession.isin(keeps.accession.unique())]
-    ## for now dropped with dropped_strains.txt file
-
-    # ipdb.set_trace()
     # write new metadata file to output
-    new_meta2= new_meta.loc[:,['accession', 'accession_version', 'strain', 'date', 'region', 'place',
+    new_meta= new_meta.loc[:,['accession', 'accession_version', 'strain', 'date', 'region', 'place',
         'country', 'host', 'gender', 'age_yrs','age_range',"has_age", 'has_diagnosis','med_diagnosis_all','med_diagnosis_major',
-        'isolation_source', 'length',#'length_VP1',
+        'isolation_source', 'NCBI_length_genome',
         'subgenogroup','date_released',
          'abbr_authors', 'authors', 'institution','ENPEN','doi',
         'qc.overallScore', 'qc.overallStatus',
         'alignmentScore', 'alignmentStart', 'alignmentEnd', 'genome_coverage','date_added']]
+
+
+    accn = pd.read_csv(C1like_accn, sep = "\t")
+
+    # merge the two dataframes. Replace the subgenotype in meta with the subgenotype in accn
+    new_meta2 = pd.merge(new_meta, accn, on="accession", how="outer")
+
+    # Replace the subgenogroup and doi in meta with the subgenogroup and doi in accn if they are not NA
+    new_meta2['subgenogroup'] = new_meta2['subgenogroup_y'].combine_first(new_meta2['subgenogroup_x'])
+
+    # Replace the doi in meta with the doi in accn if they are not part of ENPEN
+    new_meta2["doi"] = new_meta2["doi_x"].mask(new_meta2["ENPEN"] !=True, new_meta2["doi_y"])
+
+    # Drop the temporary columns
+    new_meta2.drop(columns=['subgenogroup_x', 'subgenogroup_y', 'doi_x', 'doi_y'], inplace=True)
+    new_meta2 = new_meta2.drop_duplicates(subset="accession",keep="first")
+
+
     new_meta2.to_csv(output_csv_meta, sep='\t', index=False)

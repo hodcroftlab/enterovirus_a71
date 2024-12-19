@@ -103,6 +103,7 @@ For questions or comments, contact me via GitHub or [nadia.neuner-jehle@swisstph
 - [X] Replace `parse_date` with `augur curate`
 - [X] Provide a way to create and use "local" accession numbers for sequences not on Genbank yet.
 - [ ] Update symptom list
+- [ ] Get [update_strain.sh](scripts/update_strain.sh) to work
 
 
 ## Acknowledgments

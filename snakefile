@@ -84,19 +84,21 @@ rule fetch:
 # Update strain names
 ###############################
 
-# rule update_strain_names:
-#     message:
-#         """
-#         Updating strain information in metadata.
-#         """
-#     input:
-#         file_in =  files.meta
-#     output:
-#         file_out = "data/updated_strain_names.tsv"
-#     shell:
-#         """
-#         time bash scripts/update_strain.sh {input.file_in} {output.file_out}
-#         """
+rule update_strain_names:
+    message:
+        """
+        Updating strain information in metadata.
+        """
+    input:
+        file_in =  files.meta
+    params:
+        backup = "strain_names_previous_run.tsv"
+    output:
+        file_out = "data/updated_strain_names.tsv"
+    shell:
+        """
+        time bash scripts/update_strain.sh {input.file_in} {params.backup} {output.file_out}
+        """
 
 ##############################
 # Add additional sequences
@@ -119,7 +121,9 @@ rule update_sequences:
         """
         touch {params.temp} && rm {params.temp}
         cat {params.file_ending} > {params.temp}
-        python scripts/update_sequences.py --in_seq {params.temp} --out_seq {output.sequences} --dates {params.date_last_updated} --local_accession {params.local_accn} --meta {input.metadata} --add {input.add_metadata}
+        python scripts/update_sequences.py --in_seq {params.temp} --out_seq {output.sequences} \
+            --dates {params.date_last_updated} --local_accession {params.local_accn} \
+            --meta {input.metadata} --add {input.add_metadata}
         rm {params.temp}
         awk '/^>/{{if (seen[$1]++ == 0) print; next}} !/^>/{{print}}' {output.sequences} > {params.temp} && mv {params.temp} {output.sequences}
         """
@@ -168,7 +172,7 @@ rule blast_sort:
 # Attention: ```augur curate``` only accepts iso 8 formats; please make sure that you save e.g. Excel files in the correct format
 ###############################
 
-rule curate_meta_dates:
+rule curate:
     message:
         """
         Cleaning up metadata with augur curate
@@ -178,8 +182,8 @@ rule curate_meta_dates:
     params:
         strain_id_field="accession",
         date_column="collection_date",
-        format=['%Y-%m-%d','%Y','XX-%m-%Y', 'XX-XX-%Y', 'XX-XX-XXXX','%m.%Y', '%d.%m.%Y', "%b-%Y", "%d-%b-%Y"], 
-        temp_metadata="data/temp_curated.tsv"  # Temporary file
+        format=['%Y-%m-%d','%Y','XX-%m-%Y','%Y-%m-%dT%H:%M:%SZ', 'XX-XX-%Y', 'XX-XX-XXXX','%m.%Y', '%d.%m.%Y', "%b-%Y", "%d-%b-%Y"], 
+        temp_metadata="data/temp_curated.tsv",  # Temporary file
     output:
         metadata="data/meta_manual_publications_genbank_curated.tsv",  # Final output file for metadata
     shell:
@@ -213,13 +217,14 @@ rule add_metadata:
         """
     input:
         metadata=files.meta,
-        new_data=rules.curate_meta_dates.output.metadata,
+        new_data=rules.curate.output.metadata,
         regions=ancient(files.regions),
         renamed_strains="data/updated_strain_names.tsv"
     params:
         strain_id_field="accession",
         last_updated = files.last_updated_file,
         local_accn = files.local_accn_file,
+        C1like_accn = "data/list_C1like_accn.txt"
     output:
         metadata="data/added_metadata.tsv"
     shell:
@@ -229,53 +234,37 @@ rule add_metadata:
             --add {input.new_data} \
             --rename {input.renamed_strains} \
             --local {params.local_accn} \
+            --C1like {params.C1like_accn} \
             --update {params.last_updated}\
             --regions {input.regions} \
             --id {params.strain_id_field} \
             --output {output.metadata}
         """
 
-# # old way of cleaning up dates
-# rule curate: 
+# use augur curate for formatting dates and others
+# rule curate:
 #     message:
 #         """
-#         Cleaning dates in metadata
+#         Cleaning up metadata
 #         """
 #     input:
-#         metadata = rules.add_metadata.output.metadata
+#         metadata =  rules.add_metadata.output.metadata
+        
+#     params:
+#         strain_id_field= "accession",
+#         date_column = ['date', 'date_released','date_added'],
+#         format=['%Y', '%Y-%m', '%Y-%m-%d', '%Y-%m-%dT%H:%M:%SZ','%Y-XX-XX','%Y-%m-XX','XXXX-XX-XX','%d-%m-%Y']
 #     output:
-#         metadata = "{seg}/results/cleaned_metadata.tsv"
+#         metadata = "data/final_metadata.tsv"
 #     shell:
 #         """
-#         python scripts/parse_date.py \
-#             --input {input.metadata} \
-#             --output {output.metadata}
+#         augur curate format-dates \
+#             --metadata {input.metadata} \
+#             --date-fields {params.date_column}\
+#             --expected-date-formats {params.format}\
+#             --id-column {params.strain_id_field}\
+#             --output-metadata {output.metadata}
 #         """
-
-# use augur curate for formatting dates and others
-rule curate:
-    message:
-        """
-        Cleaning up metadata
-        """
-    input:
-        metadata =  rules.add_metadata.output.metadata
-        
-    params:
-        strain_id_field= "accession",
-        date_column = ['date', 'date_released','date_added'],
-        format=['%Y', '%Y-%m', '%Y-%m-%d', '%Y-%m-%dT%H:%M:%SZ','%Y-XX-XX','%Y-%m-XX','XXXX-XX-XX','%d-%m-%Y']
-    output:
-        metadata = "data/final_metadata.tsv"
-    shell:
-        """
-        augur curate format-dates \
-            --metadata {input.metadata} \
-            --date-fields {params.date_column}\
-            --expected-date-formats {params.format}\
-            --id-column {params.strain_id_field}\
-            --output-metadata {output.metadata}
-        """
 
 
 rule index_sequences:
@@ -305,7 +294,7 @@ rule filter:
     input:
         sequences = rules.blast_sort.output.sequences,
         sequence_index = rules.index_sequences.output.sequence_index,
-        metadata = rules.curate.output.metadata,
+        metadata = rules.add_metadata.output.metadata,
         exclude = files.dropped_strains
     output:
         sequences = "{seg}/results/filtered.fasta"
@@ -461,7 +450,7 @@ rule refine:
         tree = rules.tree.output.tree,
         # alignment = rules.fix_align_codon.output.alignment,
         alignment = rules.sub_alignments.output.alignment,
-        metadata =  rules.curate.output.metadata,
+        metadata =  rules.add_metadata.output.metadata,
         reference = rules.reference_gb_to_fasta.output.reference
     output:
         # tree = "{seg}/results/tree.nwk",
@@ -575,7 +564,8 @@ rule traits:
 rule clade_published:
     message: "Assigning clades from publications"
     input:
-        metadata = rules.curate.output.metadata,
+        metadata = rules.add_metadata.output.metadata,
+        subgenotypes = "data/clades_vp1.tsv",
         new_data = "data/clade_assign_publications.tsv",
         rivm_data = "data/rivm/subgenotypes_rivm.csv",
         alignment= "vp1/results/aligned_fixed.fasta"
@@ -587,7 +577,7 @@ rule clade_published:
     shell:
         """
         python scripts/published_clades.py --input {input.metadata} --add {input.new_data} --rivm {input.rivm_data}\
-        --alignment {input.alignment} --id {params.strain_id_field} --output {output.meta}
+        --sgt {input.subgenotypes} --alignment {input.alignment} --id {params.strain_id_field} --output {output.meta}
         """
 
 rule export:
