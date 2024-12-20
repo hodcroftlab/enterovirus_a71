@@ -9,6 +9,8 @@ auspice/
 ingest/.snakemake/
 ingest/benchmarks/
 ingest/logs/
+ingest/vendored-old/
+
 
 */results/
 */temp/
@@ -23,3 +25,5 @@ scripts/bin
 .env
 
 Simplot
+
+strain_accession.txt
