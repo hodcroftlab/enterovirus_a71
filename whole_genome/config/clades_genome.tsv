@@ -40,9 +40,17 @@ C3	3D	137	N
 C3	nuc	4193	C
 
 C1	nuc	1334	G
-C1	nuc	2555	G
-C1	nuc	4262	C
-C1	2B	10	G
+C1	nuc	4265	T
+C1	nuc	6941	T
+C1	nuc	7271	G
+
+C1-like	nuc	2741	G
+C1-like	nuc	5687	G
+C1-like	5UTR	92	Q
+
+C2-like	nuc	505	G
+C2-like	nuc	2855	C
+C2-like	nuc	6884	T
 
 C5	nuc	280	A
 C5	nuc	3399	T

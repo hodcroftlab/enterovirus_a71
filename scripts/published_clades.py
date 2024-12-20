@@ -19,7 +19,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='add additional metadata',
                 formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument('--add', help="tsv file with new data, format: 'column1 value1 column2 value2'. Column1 needs to be strain or accession")
+    parser.add_argument('--add', help="tsv file with new data, format: 'column1 value1 column2 value2'. Column1 needs to be strain or accession",required=False)
     parser.add_argument('--input', help="input meta file")
     parser.add_argument('--rivm', help="input rivm subgenotype file")
     parser.add_argument('--sgt', help="VP1 subgenotypes")
@@ -28,28 +28,31 @@ if __name__ == '__main__':
     parser.add_argument('--output', help="output meta file")
     args = parser.parse_args()
 
-    new_data = pd.read_csv(args.add, sep='\t')
     meta = pd.read_csv(args.input, sep='\t', index_col=False)
     rivm_subtypes = pd.read_csv(args.rivm, index_col=False)
     id_field = args.id
     vp1_subgenotypes = pd.read_csv(args.sgt, sep='\t')
     
-    if id_field not in new_data.columns:
-            sys.exit(f"{id_field} was not in new dataframe.")
-            
     # Remove duplicates based on id_field
-    new_data = new_data.drop_duplicates(subset=id_field)
     meta = meta.drop_duplicates(subset=id_field)
     rivm_subtypes = rivm_subtypes.drop_duplicates(subset="name")
 
     meta = pd.merge(meta, vp1_subgenotypes, on=id_field, how="left")
     
     # Select only the relevant columns from new_data
-    new_data= new_data.loc[:,[id_field,"subgenogroup"]] # kept in case the RIVM subgenotypes are NA
+    # args.add == None
+    if args.add:
+        new_data = pd.read_csv(args.add, sep='\t')
+        if id_field not in new_data.columns:
+                sys.exit(f"{id_field} was not in new dataframe.")
+        new_data= new_data.loc[:,[id_field,"subgenogroup"]] # kept in case the RIVM subgenotypes are NA
 
-    # remove spaces from subgenogroup column
-    new_data["subgenogroup"]=new_data["subgenogroup"].str.strip()
+        # remove spaces from subgenogroup column
+        new_data["subgenogroup"]=new_data["subgenogroup"].str.strip()
 
+    else:
+        new_data = pd.DataFrame(columns=[id_field, "subgenogroup"])
+                   
     # Merge the dataframes on id_field
     new_meta = pd.merge(meta, new_data, 
                         on=id_field, 

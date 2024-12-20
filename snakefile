@@ -335,7 +335,7 @@ rule reference_gb_to_fasta:
 rule align: 
     message:
         """
-        Aligning sequences to {input.reference} using Nextalign
+        Aligning sequences to {input.reference} using Nextalign.
         """
     input:
         sequences = rules.filter.output.sequences,
@@ -460,7 +460,7 @@ rule refine:
     params:
         coalescent = "opt",
         date_inference = "marginal",
-        clock_filter_iqd = 3, # originally 3; set to 6 if you want more control over outliers
+        clock_filter_iqd = 6, # originally 3; set to 6 if you want more control over outliers
         strain_id_field ="accession",
         # clock_rate = 0.004, # remove for estimation
         # clock_std_dev = 0.0015
@@ -566,7 +566,6 @@ rule clade_published:
     input:
         metadata = rules.add_metadata.output.metadata,
         subgenotypes = "data/clades_vp1.tsv",
-        new_data = "data/clade_assign_publications.tsv",
         rivm_data = "data/rivm/subgenotypes_rivm.csv",
         alignment= "vp1/results/aligned_fixed.fasta"
     params:
@@ -576,7 +575,7 @@ rule clade_published:
         meta = "data/final_metadata_added_subgenotyp.tsv"
     shell:
         """
-        python scripts/published_clades.py --input {input.metadata} --add {input.new_data} --rivm {input.rivm_data}\
+        python scripts/published_clades.py --input {input.metadata} --rivm {input.rivm_data}\
         --sgt {input.subgenotypes} --alignment {input.alignment} --id {params.strain_id_field} --output {output.meta}
         """
 
@@ -639,8 +638,9 @@ rule rename_json:
 rule clean:
     message: "Removing directories: {params}"
     params:
-        # "results ",
-        "auspice"
+        "results/*",
+        # "auspice/*",
+        "temp/*"
     shell:
         "rm -rfv {params}"
 
