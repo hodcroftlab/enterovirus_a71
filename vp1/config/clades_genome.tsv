@@ -45,6 +45,11 @@ C5	nuc	132	C
 C1	nuc	264	G
 C1	nuc	888	T
 
+C1-like	nuc	57	C
+C1-like	nuc	372	A
+C1-like	nuc	579	G
+C1-like	nuc	885	T
+
 C4	nuc	21	A
 C4	nuc	63	T
 C4	nuc	108	T
