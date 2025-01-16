@@ -8,9 +8,11 @@ AB204853
 # host: Gorilla
 KF700265		
 KF700264
+KF614505
 
 # showing unreasonably high genetic divergence		
-KY115200		
+KY115200
+AF116805		
 
 # mix up
 MG367591 	# DK07-01 metadata mixup?
