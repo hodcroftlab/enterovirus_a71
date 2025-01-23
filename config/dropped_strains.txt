@@ -22,6 +22,11 @@ MG367591 	# DK07-01 metadata mixup?
 # JQ315074	# is more diverged than the date suggests
 # KC954664	# highly underdiverged
 
+# too short
+LR027526 # nextalign error message
+
+# higher diversity
+LR027545
 
 ## exclude sequences that pull to the front
 JQ766155

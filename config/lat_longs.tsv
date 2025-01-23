@@ -355,74 +355,75 @@ country	laos	19.8563	102.4955
 place	Savannakhet	16.5501	104.7500
 
 country	china	35.000074	104.999927
-place	Shaanxi	34.2646	108.9462
-place	Wuhan	30.5928	114.3055
-place	Yunnan	24.3570	102.7090
-place	Yunnan Province	24.3570	102.7090
-place	Dong Nai	10.9725	106.9487
+place	Anhnui	31.8612	117.2830
+place	Anhui	31.8612	117.2830
+place	Bei Jing	39.9042	116.4074
 place	Beijing	39.9042	116.4074
-place	Jiangjin	29.4200	106.9075
-place	Shan’xi	35.0992	110.0400
-place	Guizhou	26.6000	106.7000
-place	Yancheng	33.3851	120.1492
-place	Shenzhen	22.5431	114.0579
-place	Fujian Province	26.1000	119.3000
+place	Beijng	39.9042	116.4074
+place	Changchun	43.8799	125.3245
 place	Changsha	28.2282	112.9388
-place	Chongqing	29.5630	106.5516
-place	Wenzhou	27.9949	120.6990
-place	DongNai	10.9400	106.8100
-place	Zhaotong Prefecture	27.3105	106.9225
-place	Lanzhou	36.0611	103.8343
-place	Ningxia	38.4710	106.2740
-place	Shenzhen	22.5431	114.0579
-place	Shan’xi	35.0992	110.0400
-place	Chongqing	29.5630	106.5516
-place	Nantong	32.0660	120.8740
-place	Beijing	39.9042	116.4074
 place	Chengdu	30.5728	104.0668
+place	Chongqing	29.5630	106.5516
+place	Dong Nai	10.9725	106.9487
+place	DongNai	10.9400	106.8100
 place	Fujian	26.2324	117.6331
+place	Fujian Province	26.1000	119.3000
+place	Fuyang	32.8901	115.8142
+place	Gaogang	32.0413	119.5227
 place	Guangdong	23.3790	113.7633
 place	Guangxi	23.8337	108.7881
+place	Guizhou	26.6000	106.7000
+place	Haikou	20.0440	110.1999
 place	Hainan	19.5664	109.9497
+place	Hangzhou	30.2741	120.1551
+place	Harbin	45.8038	126.5355
 place	Hebei	37.8957	114.9042
 place	Heilongjiang	47.8620	127.7615
 place	Henan	34.2904	113.3824
+place	Hubei	30.9756	112.2707
+place	Huizhou	23.0974	114.4064
 place	Hunan	27.6102	111.7084
+place	Inner Mongolia	40.8211	111.7656
+place	Jiangjin	29.4200	106.9075
 place	Jiangsu	32.0617	118.7632
 place	Jiangxi	27.6092	115.7221
-place	Jilin	43.8379	126.5496
-place	Liaoning	41.8354	123.4376
-place	Ningbo	29.8696	121.5443
-place	Nanjing	32.0603	118.7969
-place	Shandong	36.3416	118.1498
-place	Shanxi	37.8699	113.3466
-place	Tianjin	39.3434	117.3616
-place	Xinjiang	42.5246	84.2484
-place	Zhejiang	29.1832	120.0934
-place	Sichuan	30.6532	104.0665
-place	Anhui	31.8612	117.2830
-place	Bei Jing	39.9042	116.4074
-place	Hubei	30.9756	112.2707
-place	Xiamen	24.4798	118.0894
-place	Hangzhou	30.2741	120.1551
-place	Inner Mongolia	40.8211	111.7656
-place	Huizhou	23.0974	114.4064
-place	Zhuhai	22.2760	113.5678
 place	Jidezheng	24.2933	109.4172
-place	Fuyang	32.8901	115.8142
-place	kunming	25.0389	102.7183
-place	Taixing	32.1687	120.0142
-place	Anhnui	31.8612	117.2830
-place	Xi’an	34.3416	108.9398
-place	Zhejiang	29.1832	120.1536
-place	Tianjin	39.0851	117.1994
-place	Qingdao	36.0683	120.3826
-place	Haikou	20.0440	110.1999
-place	Shanghai	31.2304	121.4737
-place	Changchun	43.8799	125.3245
-place	Shenyang	41.8057	123.4315
-place	Harbin	45.8038	126.5355
+place	Jilin	43.8379	126.5496
 place	Jinan	36.6512	118.1815
+place	kunming	25.0389	102.7183
+place	Lanzhou	36.0611	103.8343
+place	Liaoning	41.8354	123.4376
+place	Nanchang	28.6829	115.8582
+place	Nanjing	32.0603	118.7969
+place	Nantong	32.0660	120.8740
+place	Nanyang	32.9908	112.5283
+place	Ningbo	29.8696	121.5443
+place	Ningxia	38.4710	106.2740
+place	Qingdao	36.0683	120.3826
+place	Shaanxi	34.2646	108.9462
+place	Shandong	36.3416	118.1498
+place	Shanghai	31.2304	121.4737
+place	Shanxi	37.8699	113.3466
+place	Shan’xi	35.0992	110.0400
+place	Shenyang	41.8057	123.4315
+place	Shenzhen	22.5431	114.0579
+place	Sichuan	30.6532	104.0665
+place	Taixing	32.1687	120.0142
+place	Taizhou	32.4933	119.9017
+place	Tianjin	39.3434	117.3616
+place	Wenzhou	27.9949	120.6990
+place	Wuhan	30.5928	114.3055
+place	Xiamen	24.4798	118.0894
+place	Xi’an	34.3416	108.9398
+place	Xinhui	22.4560	113.0482
+place	Xinjiang	42.5246	84.2484
+place	Yancheng	33.3851	120.1492
+place	Yunnan	24.3570	102.7090
+place	Yunnan Province	24.3570	102.7090
+place	Zhaotong Prefecture	27.3105	106.9225
+place	Zhoutong Prefecture	27.3105	106.9225
+place	Zhejiang	29.1832	120.0934
+place	Zhuhai	22.2760	113.5678
 
 country	india	22.3511148	78.6677428
 place	Chennai	13.0827	80.2707
@@ -433,6 +434,7 @@ place	Kandaldal	17.5155	76.9571
 country	japan	35.68536	139.75309
 place	Osaka Prefecture	34.6937	135.5023
 place	Osaka City	34.6937	135.5023
+place	Osaka	34.6937	135.5023
 place	Isehara	35.3936	139.3149
 place	Hiroshima	34.3852	132.4553
 place	Hokkaido	43.2203	142.8635
@@ -446,21 +448,22 @@ place	Nagoya	35.1815	136.9066
 place	Toyama	36.6953	137.213
 
 country	malaysia	4.2105	101.9758
+place	GaiLai	13.3937	107.3136
 place	Johor	1.4854	103.7618
+place	Kaohsiung	22.6273	120.3014
+place	Kedah	6.1187	100.3607
+place	Kelantan	6.1253	102.2364
 place	Kuala Lumpur	3.1390	101.6869
+place	Melaka	2.1896	102.2500
 place	Pahang	3.9350	102.4410
 place	Penang	5.4164	100.3327
+place	Peninsular	4.2105	101.9758
+place	Pingtung County	22.4628	120.4971
+place	Pulau Pinang	5.4163932	100.3326799
 place	Sabah	5.9787	116.0753
+place	Sarawak	1.5533	110.3592
 place	Selangor	3.0738	101.5183
 place	Terengganu	5.3460	103.1409
-place	Pulau Pinang	5.4163932	100.3326799
-place	Sarawak	1.5533	110.3592
-place	Kedah	6.1187	100.3607
-place	GaiLai	13.3937	107.3136
-place	Kelantan	6.1253	102.2364
-place	Pingtung County	22.4628	120.4971
-place	Kaohsiung	22.6273	120.3014
-place	Melaka	2.1896	102.2500
 
 country	singapore	1.36667	103.8
 place	Jurong	31.9454	119.6020
@@ -498,12 +501,15 @@ place	An Giang	10.3834	105.4399
 place	AnGiang	10.5411	105.0926
 place	Bac Giang	21.2667	106.2000
 place	Bac Lieu	9.2850	105.7240
+place	BacLieu	9.2850	105.7240
 place	Bac Ninh	21.1861	106.0763
 place	Ba Ria-Vung Tau	10.3529	107.0943
 place	BaRia	10.3529	107.0943
 place	Ben Tre	10.2354	106.3753
+place	BenTre	10.2354	106.3753
 place	Binh Duong	11.1849	106.6016
 place	Binh Phuoc	11.7513	106.6750
+place	BinhPhuoc	11.7513	106.6750
 place	Binh Thuan	10.9333	108.1000
 place	BinhDuong	10.9833	106.7167
 place	BinhThuan	10.9289	108.1019
@@ -511,7 +517,10 @@ place	Ca Mau	9.1755	105.1910
 place	CaMau	9.1755	105.1910
 place	Cao Bang	22.8474	106.2894
 place	Can Tho	10.0452	105.7469
+place	CanTho	10.0452	105.7469
 place	DakLak	12.8700	108.1100
+place	Dak Lak	12.7100	108.2378
+place	DaNang	16.0544	108.2022
 place	DakNong	12.3754	107.6944
 place	Dong Thap	10.5169	105.6323
 place	DongThap	10.5353	105.7177
@@ -520,8 +529,10 @@ place	Ha Tinh	18.3333	105.9333
 place	Haiphong	20.8449	106.6881
 place	Hai Duong	20.9225	106.2740
 place	Hanoi	21.0285	105.8048
+place	Ha Noi	21.0285	105.8048
 place	Ho Chi Minh City	10.8231	106.6297
 place	Ho Chi Minh	10.8231	106.6297
+place	HoChiMinh	10.8231	106.6297
 place	Hoa Binh	20.4515	105.3450
 place	Hau Giang	9.7888	105.3562
 place	HauGiang	9.7663	105.3556
@@ -529,6 +540,7 @@ place	Hung Yen	21.1694	105.6059
 place	Kampot	10.6110	104.1827
 place	Kampong Chnang	11.4584	104.7217
 place	Khanh Hoa	12.2388	109.1967
+place	KhanhHoa	12.2388	109.1967
 place	Kien Giang	10.0092	104.7774
 place	KienGiang	10.0099	104.7958
 place	KonTum	14.3718	108.0298
@@ -538,6 +550,7 @@ place	Long An	10.7023	106.7066
 place	LongAn	10.7023	106.7066
 place	Luan	14.6349	108.1999
 place	Nghe An	19.0333	105.7569
+place	NinhThuan	11.6739	108.8645
 place	Phu Tho	21.3640	105.2170
 place	PhuYen	13.0952	109.3227
 place	Quang Binh	17.4686	106.6223
@@ -558,20 +571,24 @@ place	TienGiang	10.4032	106.3480
 place	TienGiang	10.4032	106.3480
 place	Tien Giang	10.3092	106.3374
 place	Tra Vinh	9.9347	106.3439
+place	TraVinh	9.9347	106.3439
 place	Tuyên Quang	21.8230	105.2152
 place	Vinh Long	10.2483	105.9577
 place	VinhLong	10.2537	105.9731
 place	Vinh Yen	21.3085	105.6048
 place	VinhPhuc	21.3204	105.6037
+place	Vinh Phuc	21.3204	105.6037
 place	Vung Tau	10.4114	107.1362
 place	Ximen	23.1352	113.2466
 place	Yunlin	23.7092	120.4317
 
 
-country	taiwan	23.5	121.0
+country	taiwan	23.6978	120.9605
 place	Tainan	22.9999	120.2270
 place	Taoyuan	24.9936	121.2961
 place	Taipei	25.0330	121.5654
+place	Taichung	24.1477	120.6736
+place	Taiwan	23.6978	120.9605
 
 country	australia	-24.7761085	134.755
 place	Auckland	-36.8485	174.7633
@@ -625,6 +642,8 @@ place	Rostov-Na-Donu	47.2357137	39.701505
 place	Saint-Petersburg	59.9342802	30.3350986
 place	St. Petersburg	59.9342802	30.3350986
 place	Surgut	61.2530	73.3960
+place	Pskov	57.8194	28.3318
+place	Pscov	57.8194	28.3318
 
 country	bulgaria	42.6073975	25.4856617
 place	Sofia	42.6977	23.3219
@@ -663,6 +682,7 @@ place	Annecy	45.8992	6.1294
 place	Amiens	49.8942	2.2957
 place	Aubagne	43.2924	5.5703
 place	Angers	47.478419	-0.563166
+place	Anger	47.478419	-0.563166
 place	Annonay	45.2415	4.6706
 place	Bayonne	43.4929	-1.4748
 place	Besançon	47.2379	6.0241
