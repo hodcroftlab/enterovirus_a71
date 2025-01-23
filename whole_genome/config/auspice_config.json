@@ -59,16 +59,6 @@
       "type": "categorical"
     },
     {
-      "key": "virus",
-      "title": "Virus",
-      "type": "categorical"
-    },
-    {
-      "key": "abbreviation",
-      "title": "Type",
-      "type": "categorical"
-    },
-    {
       "key": "country",
       "title": "Country",
       "type": "categorical"
@@ -100,10 +90,12 @@
     },
     {
       "key": "has_age",
+      "type": "boolean",
       "title": "Age available"
     },
     {
       "key": "has_diagnosis",
+      "type": "boolean",
       "title": "Diagnosis available"
     },
     {
@@ -131,7 +123,7 @@
     "entropy"
   ],
   "display_defaults": {
-    "color_by": "country",
+    "color_by": "clade_membership",
     "geo_resolution": "country",
     "distance_measure": "num_date",
     "map_triplicate": true

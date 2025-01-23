@@ -2,10 +2,10 @@
 # Snakemake execution templates:
 
 # To run a default VP1 run:
-# snakemake  auspice/ev_a71_vp1.json --cores 9
+# snakemake  auspice/enterovirus_A71_vp1.json --cores 9
 
 # To run a default whole genome run (>6400bp):
-# snakemake auspice/ev_a71_whole-genome.json --cores 9
+# snakemake auspice/enterovirus_A71_whole-genome.json --cores 9
 
 # To run specific genes for tanglegrams:
 # snakemake --cores 9 all_genes
@@ -28,15 +28,15 @@ PROT = ["-P1", "-P2", "-P3"]
 # Expand augur JSON paths
 rule all:
     input:
-        augur_jsons = expand("auspice/ev_a71_{segs}.json", segs=segments)
+        augur_jsons = expand("auspice/enterovirus_A71_{segs}.json", segs=segments)
 
 rule all_genes:
     input:
-        augur_jsons = expand("auspice/ev_a71_whole_genome{genes}.json", genes=GENES)
+        augur_jsons = expand("auspice/enterovirus_A71_gene_{genes}.json", genes=GENES)
 
 rule all_proteins:
     input:
-        augur_jsons = expand("auspice/ev_a71_whole_genome{proteins}.json", proteins=PROT)
+        augur_jsons = expand("auspice/enterovirus_A71_protein_{proteins}.json", proteins=PROT)
 
 
 # Rule to handle configuration files
@@ -311,6 +311,7 @@ rule filter:
             --metadata {input.metadata} \
             --metadata-id-columns {params.strain_id_field} \
             --exclude {input.exclude} \
+            --exclude-where ENPEN="True"\
             --group-by {params.group_by} \
             --sequences-per-group {params.sequences_per_group} \
             --min-date {params.min_date} \
@@ -579,6 +580,73 @@ rule clade_published:
         --sgt {input.subgenotypes} --alignment {input.alignment} --id {params.strain_id_field} --output {output.meta}
         """
 
+rule epitopes:
+    input:
+        anc_seqs = rules.ancestral.output.node_data, #"results/nt_muts_vp1.json",
+        tree = rules.refine.output.tree #"results/tree_vp1.nwk"
+    output:
+        node_data = "{seg}/results/epitopes{gene}{protein}.json"
+    params:
+        epitopes = {
+            # 'BC':[94, 96, 97, 98, 99, 100, 101, 102, 103, 104], 
+            # 'EF':{165, 167, 168},
+            # 'DE':[141,142,143,144,145,146,147,148,149],
+            # 'CTERM':[272, 273, 280, 281, 282, 283, 292,293], 
+            'Esc_CHN':[282, 292]}, # it is minus one!!!!
+        min_count = 6 # number of sequences?
+    run:
+        import json
+        from collections import defaultdict
+        from augur.translate import safe_translate
+        from Bio import Phylo
+
+        manyXList = ["XXXXXXXXXXXX", "KEXXXXXXXXXX", "KERANXXXXXXX", "KERXXXXXXXXX", "KERAXXXXXXXX"]
+        valid_esc_chn = {"SA", "TA", "TX", "TS", "SS", "XX"}  # Set of valid values for Esc_CHN
+        with open(input.anc_seqs) as fh:
+            anc = json.load(fh)["nodes"]
+
+        T = Phylo.read(input.tree, 'newick')
+        for node in T.find_clades(order='preorder'):
+            for child in node:
+                child.parent = node
+
+        nodes = {}
+        epitope_counts = {epi: defaultdict(int) for epi in params.epitopes}
+
+        for node in T.find_clades(order='preorder'):
+            n = node.name
+            aa = safe_translate(anc[n]["sequence"])
+
+            nodes[n] = {}
+            for epi,pos in params.epitopes.items():
+                nodes[n][epi] = "".join([aa[p] for p in pos])
+                if epi == 'CTERM':
+                    if nodes[n]['CTERM'] in manyXList:
+                        nodes[n]['CTERM'] = "many x"
+                    elif 'X' in nodes[n]['CTERM']:
+                        nodes[n]['CTERM'] = nodes[node.parent.name]['CTERM']
+                if epi == 'Esc_CHN':
+                    if nodes[n]['Esc_CHN'] not in valid_esc_chn:
+                        nodes[n]['Esc_CHN'] = "other"
+                if not n.startswith('NODE_'):
+                    epitope_counts[epi][nodes[n][epi]] += 1
+
+        for node in nodes:
+            for epi,seq in nodes[node].items():
+                min_count2 = params.min_count if epi != "CTERM" else 6
+                if epi == "CTERM" and seq in manyXList:
+                    nodes[node][epi]='many X'
+                elif epitope_counts[epi][seq]<min_count2:#params.min_count:
+                    nodes[node][epi]='other'
+
+        with open(output.node_data, 'w') as fh:
+            json.dump({"epitopes": params.epitopes, "nodes":nodes}, fh)
+
+
+
+#########################
+#  EXPORT
+#########################
 rule export:
     message: "Creating auspice JSONs"
     input:
@@ -591,12 +659,15 @@ rule export:
         clades = rules.clades.output.clade_data,
         colors = files.colors,
         lat_longs = files.lat_longs,
+        vaccine = "config/vaccine.json",
         auspice_config = files.auspice_config
     params:
-        strain_id_field= "accession"
+        strain_id_field= "accession",
+        epis = lambda wildcards: "vp1/results/epitopes{gene}{protein}.json" if wildcards.seg == "vp1" else "",
+
     output:
-        auspice_json = "auspice/ev_a71_{seg}{gene}{protein}-accession.json"
-        # auspice_json = "auspice/ev_a71_{seg}-accession.json"
+        auspice_json = "auspice/enterovirus_A71_{seg}{gene}{protein}-accession.json"
+        # auspice_json = "auspice/enterovirus_A71_{seg}-accession.json"
         
     shell:
         """
@@ -604,12 +675,14 @@ rule export:
             --tree {input.tree} \
             --metadata {input.metadata} \
             --metadata-id-columns {params.strain_id_field} \
-            --node-data {input.branch_lengths} {input.traits} {input.nt_muts} {input.aa_muts} {input.clades} \
+            --node-data {input.branch_lengths} {input.traits} {input.nt_muts} \
+                {input.aa_muts} {input.clades} {input.vaccine} {params.epis} \
             --colors {input.colors} \
             --lat-longs {input.lat_longs} \
             --auspice-config {input.auspice_config} \
             --output {output.auspice_json}
         """
+        # {input.epis} 
 # ##############################
 # # Change from accession to strain name view in tree
 # ###############################
@@ -619,8 +692,8 @@ rule rename_json:
         auspice_json= rules.export.output.auspice_json,
         metadata = rules.add_metadata.output.metadata,
     output:
-        # auspice_json="auspice/ev_a71_{seg}.json"
-        auspice_json="auspice/ev_a71_{seg}{gene}{protein}.json"
+        # auspice_json="auspice/enterovirus_A71_{seg}.json"
+        auspice_json="auspice/enterovirus_A71_{seg}{gene}{protein}.json"
     params:
         strain_id_field="accession",
         display_strain_field= "strain"
@@ -648,9 +721,37 @@ rule clean:
 rule rename_whole_genome:
     message: "Rename whole-genome built"
     input: 
-        json="auspice/ev_a71_whole_genome.json"
+        json="auspice/enterovirus_A71_whole_genome.json"
     output:
-        json="auspice/ev_a71_whole-genome.json" # easier view in auspice
+        json="auspice/enterovirus_A71_whole-genome.json" # easier view in auspice
+    shell:
+        """
+        mv {input.json} {output.json}
+        """
+
+
+rule rename_genes:
+    message: 
+        "Rename the single genome builts"
+    input: 
+        json="auspice/enterovirus_A71_whole_genome{gene}.json"
+
+    output:
+        json="auspice/enterovirus_A71_gene_{gene}.json" # easier view in auspice
+    shell:
+        """
+        mv {input.json} {output.json}
+        """
+
+
+rule rename_proteins:
+    message: 
+        "Rename the single genome builts"
+    input: 
+        json="auspice/enterovirus_A71_whole-genome{protein}.json"
+
+    output:
+        json="auspice/enterovirus_A71_protein_{protein}.json"
     shell:
         """
         mv {input.json} {output.json}

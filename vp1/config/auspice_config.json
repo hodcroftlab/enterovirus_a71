@@ -59,16 +59,6 @@
       "type": "categorical"
     },
     {
-      "key": "virus",
-      "title": "Virus",
-      "type": "categorical"
-    },
-    {
-      "key": "abbreviation",
-      "title": "Type",
-      "type": "categorical"
-    },
-    {
       "key": "country",
       "title": "Country",
       "type": "categorical"
@@ -99,11 +89,33 @@
       "type": "continuous"
     },
     {
+      "title": "Epitope at BC loop (94, 96, 97, 98, 99, 100, 101, 102, 103, 104)",
+      "type": "categorical",
+      "key": "BC"
+    },
+    {
+      "title": "Epitope at DE loop (141,142,143,144,145,146,147,148,149)",
+      "type": "categorical",
+      "key": "DE"
+    },
+    {
+      "title": "Epitope at C terminus (272, 273, 280, 281, 282, 283, 292,293,298)",
+      "type": "categorical",
+      "key": "CTERM"
+    },
+    {
+      "title": "Surface C terminus (282, 292)",
+      "type": "categorical",
+      "key": "Esc_CHN"
+    },
+    {
       "key": "has_age",
+      "type": "boolean",
       "title": "Age available"
     },
     {
       "key": "has_diagnosis",
+      "type": "boolean",
       "title": "Diagnosis available"
     },
     {
@@ -131,7 +143,7 @@
     "entropy"
   ],
   "display_defaults": {
-    "color_by": "country",
+    "color_by": "clade_membership",
     "geo_resolution": "country",
     "distance_measure": "num_date",
     "map_triplicate": true

@@ -1,0 +1,19 @@
+{
+    "nodes": {
+        "MK307344": {
+            "vaccine": {
+                "selection_date": "2011-06-20"
+            }
+        },
+        "JX025561": {
+            "vaccine": {
+                "selection_date": "2011-10-09"
+            }
+        },
+        "HQ328793": {
+            "vaccine": {
+                "selection_date": "2011-06-24"
+            }
+        }
+    }
+}
