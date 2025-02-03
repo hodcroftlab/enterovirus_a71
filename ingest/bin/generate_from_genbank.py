@@ -3,7 +3,6 @@ import os
 from Bio import SeqIO
 from collections import defaultdict
 
-
 def parse_args():
     import argparse
     parser = argparse.ArgumentParser(description='Annotate sequences using a genbank reference')
@@ -13,7 +12,10 @@ def parse_args():
 
 def get_reference_sequence(accession):
     from Bio import Entrez
-    Entrez.email = "hello@nextstrain.org"
+    from dotenv import load_dotenv, find_dotenv
+
+    load_dotenv(find_dotenv())
+    Entrez.email = os.environ.get("EMAIL")
     handle = Entrez.efetch(db="nucleotide", id=accession, rettype="gb", retmode="text")
     print(f"Fetching reference sequence {accession} from genbank")
     return SeqIO.read(handle, "genbank")
