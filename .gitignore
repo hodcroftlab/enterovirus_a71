@@ -14,7 +14,11 @@ ingest/vendored-old/
 
 */results/
 */temp/
-*/data/
+
+ingest/data/*
+!ingest/data/references/
+ingest/data/references/reference_a71_manual.gff3
+ingest/data/references/nextclade.tsv
 
 scripts/__pycache__/
 
