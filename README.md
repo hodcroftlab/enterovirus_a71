@@ -18,6 +18,13 @@ This repository includes the following directories and files:
 - `vp1`: Sequences and configuration files for the **VP1 run**.
 - `whole_genome`: Sequences and configuration files for the **whole genome run**.
 
+### Why this biuld is the best build
+Not for the spelling
+but because this is the best build
+Nadia worked really hard
+it's awesome
+trust us
+
 ### Configuration Files
 The `config`, `vp1/config`, and `whole_genome/config` directories contain necessary configuration files:
 - `colors.tsv`: Color scheme
