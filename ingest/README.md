@@ -30,19 +30,21 @@ To set up and run the ingest workflow, follow these steps:
    python3 bin/generate_from_genbank.py --reference "U22521.1" --output-dir data/references/
    ```
 
-During execution, you may be asked to provide CDS annotations. You can use the following codes to specify the CDS automatically:
-- `[0]`
-- `[product]` or `[leave empty for manual choice]` to select proteins.
-- `[2]`.
+   During execution, you may be asked to provide CDS annotations. You can use the following codes to specify the CDS automatically:
+   - `[0]`
+   - `[product]` or `[leave empty for manual choice]` to select proteins.
+   - `[2]`.
 
-Please note that for some pathogens, no common fields may be available in the set. In such cases, you will need to leave the input blank and manually assign CDS names.  
-The generated files will be saved in the `data/references` subdirectory and used by the `ingest` Snakefile.
+   > [!NOTE]
+   > Please note that for some pathogens, no common fields may be available in the set. In such cases, you will need to leave the input blank and manually assign CDS names.  
+   
+   The generated files will be saved in the `data/references` subdirectory and used by the `ingest` Snakefile.
 
 3. **Update Attributes**  
    Ensure that attributes in `data/references/pathogen.json` are up-to-date. Please consult the [Nextclade pathogen configuration documentation](https://docs.nextstrain.org/projects/nextclade/en/stable/user/input-files/05-pathogen-config.html#pathogen-configuration) for more optional attributes to add to the file.  
 
 
-## 2. Run the Ingest Workflow
+### 2. Run the Ingest Workflow
 
 Run the ingest workflow using the Snakefile. Depending on your system, you may need to make the scripts executable first:
 
@@ -57,10 +59,10 @@ snakemake --cores 9 all
 
 ## Updating Vendored Scripts
 
-This repository uses [`git subrepo`](https://github.com/ingydotnet/git-subrepo) to manage vendored scripts in `ingest/vendored`.
+This repository uses [`git subrepo`](https://github.com/ingydotnet/git-subrepo) to manage vendored scripts in `vendored`.
 
 ### Steps to Update Vendored Scripts
 
 1. Install `git subrepo` by following the [installation guide](https://github.com/ingydotnet/git-subrepo#installation).
-2. Pull the latest changes from the central ingest repository by following the instructions in [`ingest/vendored/README.md`](vendored/README.md#vendoring).
+2. Pull the latest changes from the central ingest repository by following the instructions in [`vendored/README.md`](vendored/README.md#vendoring).
 
