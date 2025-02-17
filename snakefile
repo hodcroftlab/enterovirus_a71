@@ -92,7 +92,7 @@ rule update_strain_names:
     input:
         file_in =  files.meta
     params:
-        backup = "strain_names_previous_run.tsv"
+        backup = "data/strain_names_previous_run.tsv"
     output:
         file_out = "data/updated_strain_names.tsv"
     shell:
