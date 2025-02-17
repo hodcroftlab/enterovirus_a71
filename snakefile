@@ -241,32 +241,9 @@ rule add_metadata:
             --output {output.metadata}
         """
 
-# use augur curate for formatting dates and others
-# rule curate:
-#     message:
-#         """
-#         Cleaning up metadata
-#         """
-#     input:
-#         metadata =  rules.add_metadata.output.metadata
-        
-#     params:
-#         strain_id_field= "accession",
-#         date_column = ['date', 'date_released','date_added'],
-#         format=['%Y', '%Y-%m', '%Y-%m-%d', '%Y-%m-%dT%H:%M:%SZ','%Y-XX-XX','%Y-%m-XX','XXXX-XX-XX','%d-%m-%Y']
-#     output:
-#         metadata = "data/final_metadata.tsv"
-#     shell:
-#         """
-#         augur curate format-dates \
-#             --metadata {input.metadata} \
-#             --date-fields {params.date_column}\
-#             --expected-date-formats {params.format}\
-#             --id-column {params.strain_id_field}\
-#             --output-metadata {output.metadata}
-#         """
-
-
+##############################
+# Create an index of sequence composition for filtering & filter
+###############################
 rule index_sequences:
     message:
         """
@@ -319,6 +296,10 @@ rule filter:
         """
 # --exclude-where ENPEN="True"\
 
+##############################
+# Reference sequence &
+# Alignment
+###############################
 rule reference_gb_to_fasta:
     message:
         """
@@ -417,6 +398,9 @@ rule sub_alignments:
                 record.seq = Seq(sequence)
                 SeqIO.write(record, oh, "fasta")
 
+##############################
+# Tree building
+###############################
 rule tree:
     message:
         """
@@ -438,6 +422,11 @@ rule tree:
             --output {output.tree}
         """
 
+##############################
+# Refine tree &
+# Ancestral sequence reconstruction
+# & Translation
+###############################
 rule refine:
     message:
         """
@@ -522,23 +511,6 @@ rule translate:
             --reference-sequence {input.reference} \
             --output-node-data {output.node_data}
         """
-rule clades: 
-    message: "Assigning clades according to nucleotide mutations"
-    input:
-        tree=rules.refine.output.tree,
-        aa_muts = rules.translate.output.node_data,
-        nuc_muts = rules.ancestral.output.node_data,
-        clades = files.clades
-    output:
-        # clade_data = "{seg}/results/clades.json"
-        clade_data = "{seg}/results/clades{gene}{protein}.json"
-    shell:
-        """
-        augur clades --tree {input.tree} \
-            --mutations {input.nuc_muts} {input.aa_muts} \
-            --clades {input.clades} \
-            --output-node-data {output.clade_data}
-        """
 
 rule traits:
     message: "Inferring ancestral traits for {params.traits!s}"
@@ -562,6 +534,28 @@ rule traits:
             --confidence
         """
 
+##############################
+# Clade assignment
+###############################
+
+rule clades: 
+    message: "Assigning clades according to nucleotide mutations"
+    input:
+        tree=rules.refine.output.tree,
+        aa_muts = rules.translate.output.node_data,
+        nuc_muts = rules.ancestral.output.node_data,
+        clades = files.clades
+    output:
+        # clade_data = "{seg}/results/clades.json"
+        clade_data = "{seg}/results/clades{gene}{protein}.json"
+    shell:
+        """
+        augur clades --tree {input.tree} \
+            --mutations {input.nuc_muts} {input.aa_muts} \
+            --clades {input.clades} \
+            --output-node-data {output.clade_data}
+        """
+
 rule clade_published:
     message: "Assigning clades from publications"
     input:
@@ -580,6 +574,9 @@ rule clade_published:
         --sgt {input.subgenotypes} --alignment {input.alignment} --id {params.strain_id_field} --output {output.meta}
         """
 
+##############################
+# Assign epitopes to the tree colors
+###############################
 rule epitopes:
     input:
         anc_seqs = rules.ancestral.output.node_data, #"results/nt_muts_vp1.json",
@@ -683,6 +680,7 @@ rule export:
             --output {output.auspice_json}
         """
         # {input.epis} 
+        
 # ##############################
 # # Change from accession to strain name view in tree
 # ###############################
