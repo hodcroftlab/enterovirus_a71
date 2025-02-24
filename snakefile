@@ -87,7 +87,7 @@ rule fetch:
 rule update_strain_names:
     message:
         """
-        Updating strain information in metadata.
+        Updating strain name in metadata.
         """
     input:
         file_in =  files.meta
@@ -98,6 +98,7 @@ rule update_strain_names:
     shell:
         """
         time bash scripts/update_strain.sh {input.file_in} {params.backup} {output.file_out}
+        cp -i {output.file_out} {params.backup}
         """
 
 ##############################
@@ -121,9 +122,9 @@ rule update_sequences:
         """
         touch {params.temp} && rm {params.temp}
         cat {params.file_ending} > {params.temp}
-        python scripts/update_sequences.py --in_seq {params.temp} --out_seq {output.sequences} \
-            --dates {params.date_last_updated} --local_accession {params.local_accn} \
-            --meta {input.metadata} --add {input.add_metadata}
+        python scripts/update_sequences.py --in_seq {params.temp} --out_seq {output.sequences} --dates {params.date_last_updated} \
+        --local_accession {params.local_accn} --meta {input.metadata} --add {input.add_metadata} \
+        --ingest_seqs {input.sequences}
         rm {params.temp}
         awk '/^>/{{if (seen[$1]++ == 0) print; next}} !/^>/{{print}}' {output.sequences} > {params.temp} && mv {params.temp} {output.sequences}
         """
@@ -168,8 +169,6 @@ rule blast_sort:
             --seqs {input.input_seqs} \
             --out_seqs {output.sequences} \
             --range {params.range}
-
-        rm -r temp
         """
 
 ##############################
@@ -224,7 +223,7 @@ rule add_metadata:
         metadata=files.meta,
         new_data=rules.curate.output.metadata,
         regions=ancient(files.regions),
-        renamed_strains="data/updated_strain_names.tsv"
+        renamed_strains=rules.update_strain_names.output.file_out
     params:
         strain_id_field="accession",
         last_updated = files.last_updated_file,
@@ -244,6 +243,10 @@ rule add_metadata:
             --regions {input.regions} \
             --id {params.strain_id_field} \
             --output {output.metadata}
+        
+        if [ -d "./temp/" ]; then
+        rm -r ./temp/
+        fi
         """
 
 ##############################
@@ -293,7 +296,6 @@ rule filter:
             --metadata {input.metadata} \
             --metadata-id-columns {params.strain_id_field} \
             --exclude {input.exclude} \
-            --exclude-where ENPEN="True"\
             --group-by {params.group_by} \
             --sequences-per-group {params.sequences_per_group} \
             --min-date {params.min_date} \
@@ -482,8 +484,8 @@ rule ancestral:
     message: "Reconstructing ancestral sequences and mutations"
     input:
         tree = rules.refine.output.tree,
-        alignment = rules.fix_align_codon.output.alignment,
-        # alignment = rules.sub_alignments.output.alignment
+        # alignment = rules.fix_align_codon.output.alignment,
+        alignment = rules.sub_alignments.output.alignment
     output:
         # node_data = "{seg}/results/nt_muts.json"
         node_data = "{seg}/results/nt_muts{gene}{protein}.json"
@@ -665,7 +667,7 @@ rule export:
         auspice_config = files.auspice_config
     params:
         strain_id_field= "accession",
-        epis = lambda wildcards: "vp1/results/epitopes{gene}{protein}.json" if wildcards.seg == "vp1" else "",
+        epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else "",
 
     output:
         auspice_json = "auspice/enterovirus_A71_{seg}{gene}{protein}-accession.json"

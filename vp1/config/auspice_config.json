@@ -121,6 +121,10 @@
     {
       "key": "author",
       "title": "Authors"
+    },
+    {
+      "key": "date_added",
+      "title": "Date when added to build"
     }
   ],
   "geo_resolutions": [

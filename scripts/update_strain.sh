@@ -83,7 +83,7 @@ for accession in "${accessions_to_process[@]}"; do
     fi
 
     # Append the updated entry to the output file
-    echo -e "$accession\t$strain" >> "$output_file"
+    echo -e "\n$accession\t$strain" >> "$output_file"
 done
 
 # Sort and remove duplicates in the output file
