@@ -41,12 +41,12 @@ if __name__ == '__main__':
     meta = pd.read_csv(input_csv_meta, keep_default_na=True, sep='\t', index_col=False)
     new_data = pd.read_csv(add_data, keep_default_na=True, sep='\t', index_col=False)
     local_accn_file= pd.read_csv(local_accn, keep_default_na=True, sep='\t', index_col=False)
-    renamed_strains_df = pd.read_csv(renamed_strains, keep_default_na=True, sep='\t', index_col=False)
+    renamed_strains_df = pd.read_csv(renamed_strains, keep_default_na=True, sep='\t', index_col=False,names=["accession","strain"])
     last_updated=pd.read_csv(last_updated_file, keep_default_na=True, sep='\t', index_col=False,names=["accession","date_added"])
     
-    # Identify records that need updating
-    needs_update = meta[~meta['accession'].isin(renamed_strains_df['accession'])]
-    needs_update.to_csv("data/no_strain_correction.tsv", sep='\t', index=False)
+    # # Identify records that need updating
+    # needs_update = meta[~meta['accession'].isin(renamed_strains_df['accession'])]
+    # needs_update.to_csv("data/no_strain_correction.tsv", sep='\t', index=False)
 
     # Create a lookup dictionary for strain updates
     lookup_strain = renamed_strains_df.set_index('accession')['strain'].to_dict()
@@ -165,49 +165,52 @@ if __name__ == '__main__':
     new_meta = new_meta.drop(['isolation', 'combined_isolation_source'], axis=1)
 
 
+    # Define a dictionary for old naming formats and spelling mistakes
+    corrections = {
+        'czech republic': 'czechia',
+        'hongkong': 'hong_kong',
+        'viet nam': 'vietnam',
+        'uk': 'united kingdom',
+        'south korea': 'republic of korea',
+        'russia': 'russian federation',
+        'ivory coast': 'côte d\'ivoire',
+        'laos': 'lao people\'s democratic republic',
+        'moldova': 'republic of moldova',
+        'syria': 'syrian arab republic',
+        'tanzania': 'united republic of tanzania',
+        'venezuela': 'bolivarian republic of venezuela'
+    }
+
+    # Function to correct country names
+    def correct_country_name(country):
+        if pd.notna(country):
+            country = country.strip().lower()
+            corrected_country = corrections.get(country, country).title().replace('_', ' ')
+            print(f"Correcting '{country}' to '{corrected_country}'")  # Debugging statement
+            return corrected_country
+        return country
+
+    # Apply the corrections to the 'country' column
+    new_meta['country'] = new_meta['country'].apply(correct_country_name)
+
     # Check if the regions file is supplied
     if con_reg_table:
-        # Dictionary to store country-region mappings
-        regions = {}
-        
-        # Read the regions file
+        # Read the regions file and create a dictionary for country-region mappings
         with open(con_reg_table) as f:
-            regs = f.readlines()
-        
-        # Remove the first line (header)
-        regs = regs[1:]
-        
-        # Populate the regions dictionary
-        for x in regs:
-            x = x.strip()
-            pair = x.split("\t")
-            if len(pair) > 1:
-                regions[pair[0].strip().lower()] = pair[1].strip()
-        
-        # List to store the new region values
-        newregion = []
-        
-        # Iterate over each country in the 'country' column of new_meta
-        for coun in new_meta['country']:
-            reg = "NA"  # Default value if no region is found
+            regions = {line.split("\t")[0].strip().lower(): line.split("\t")[1].strip() for line in f.readlines()[1:]}
+
+        # Function to get region from country
+        def get_region(coun):
             if pd.notna(coun):
                 coun = coun.strip().lower()
-                coun_with_underscores = coun.replace(' ', '_')
-                
-                if coun not in regions:
-                    if coun_with_underscores not in regions:
-                        print(f"No region found for {coun}! Setting to NA")
-                    else:
-                        reg = regions[coun_with_underscores]
-                else:
-                    reg = regions[coun]
-            
-            reg = reg.replace('_', ' ')
-            reg = reg.title()
-            newregion.append(reg)
-        
+                return regions.get(coun, regions.get(coun.replace(' ', '_'), "NA")).replace('_', ' ').title()
+            return "NA"
+
         # Update the 'region' column in the new_meta DataFrame with the new region values
-        new_meta['region'] = newregion
+        new_meta['region'] = new_meta['country'].apply(get_region)
+
+    # Debugging statement to check the unique values in the 'country' column after correction
+    print("Unique countries after correction:", new_meta['country'].unique())
 
     new_meta['has_diagnosis'] =~new_meta['diagnosis'].isna()
 
