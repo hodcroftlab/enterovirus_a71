@@ -284,8 +284,8 @@ rule filter:
     output:
         sequences = "{seg}/results/filtered.fasta"
     params:
-        group_by = "country",
-        sequences_per_group = 15000, # 2000 originally
+        group_by = "country month",
+        sequences_per_group = 2000, # 2000 originally
         strain_id_field= "accession",
         min_date = 1960  # BrCr was collected in 1970
     shell:
@@ -346,24 +346,15 @@ rule align:
         --output-fasta {output.alignment} 
         """
 
-rule fix_align_codon:
-    input:
-        sequences = rules.align.output.alignment
-    output:
-        alignment = "{seg}/results/aligned_fixed.fasta"
-    shell:
-        """
-        Rscript scripts/fixAlignmentGaps.R {input.sequences} {output.alignment}
-        """
 # potentially add one-by-one genes
 # use wildcards
 rule sub_alignments:
     input:
-        alignment=rules.fix_align_codon.output.alignment,
+        alignment=rules.align.output.alignment,
         reference=files.reference
     output:
         # alignment = "{seg}/results/aligned.fasta"
-        alignment = "{seg}/results/aligned_fixed{gene}{protein}.fasta"
+        alignment = "{seg}/results/aligned{gene}{protein}.fasta"
     run:
         from Bio import SeqIO
         from Bio.Seq import Seq
@@ -445,7 +436,6 @@ rule refine:
         """
     input:
         tree = rules.tree.output.tree,
-        # alignment = rules.fix_align_codon.output.alignment,
         alignment = rules.sub_alignments.output.alignment,
         metadata =  rules.add_metadata.output.metadata,
         reference = rules.reference_gb_to_fasta.output.reference
@@ -484,7 +474,6 @@ rule ancestral:
     message: "Reconstructing ancestral sequences and mutations"
     input:
         tree = rules.refine.output.tree,
-        # alignment = rules.fix_align_codon.output.alignment,
         alignment = rules.sub_alignments.output.alignment
     output:
         # node_data = "{seg}/results/nt_muts.json"
@@ -569,7 +558,7 @@ rule clade_published:
         metadata = rules.add_metadata.output.metadata,
         subgenotypes = "data/clades_vp1.tsv",
         rivm_data = "data/rivm/subgenotypes_rivm.csv",
-        alignment= "vp1/results/aligned_fixed.fasta"
+        alignment= "vp1/results/aligned.fasta"
     params:
         strain_id_field= "accession",
         rerun=True
