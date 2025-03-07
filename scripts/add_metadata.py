@@ -171,14 +171,7 @@ if __name__ == '__main__':
         'hongkong': 'hong_kong',
         'viet nam': 'vietnam',
         'uk': 'united kingdom',
-        'south korea': 'republic of korea',
-        'russia': 'russian federation',
         'ivory coast': 'côte d\'ivoire',
-        'laos': 'lao people\'s democratic republic',
-        'moldova': 'republic of moldova',
-        'syria': 'syrian arab republic',
-        'tanzania': 'united republic of tanzania',
-        'venezuela': 'bolivarian republic of venezuela'
     }
 
     # Function to correct country names
@@ -186,7 +179,7 @@ if __name__ == '__main__':
         if pd.notna(country):
             country = country.strip().lower()
             corrected_country = corrections.get(country, country).title().replace('_', ' ')
-            print(f"Correcting '{country}' to '{corrected_country}'")  # Debugging statement
+            # print(f"Correcting '{country}' to '{corrected_country}'")  # Debugging statement
             return corrected_country
         return country
 
@@ -216,56 +209,114 @@ if __name__ == '__main__':
 
     # Define a mapping for full terms to their abbreviations and standardized names
     short_versions = {
-        'Poliomyelitis-like disease': 'AFP','acute flaccid paralysis': 'AFP',
-        'Paralysis': 'AFP','Poliomyelitis-like paralysis': 'AFP',
-        'Acute flaccid myelitis': 'AFP','AFM': 'AFP',
-        'Upper Respiratory Tract Infection':'URTI',
-        'asthmatic bronchitis':"Respiratory Symptoms",
-        'Guillain-Barré syndrome': 'GBS','Guillain-Barrésyndrome':'GBS',
-        'Febrile illness': 'Fever','Pyrexia': 'Fever',
-        'V&D':'Vomiting; Diarrhea',
+        'poliomyelitis-like disease': 'AFP', 'acute flaccid paralysis': 'AFP',
+        'paralysis': 'AFP', 'poliomyelitis-like paralysis': 'AFP', 'afp': 'AFP',
+        'acute flaccid myelitis': 'AFP', 'afm': 'AFP', 'polio': 'AFP',
+        'difficulty walking': 'AFP','paralyses': 'AFP',
+        'Cerebellar ataxia': 'Ataxia',
+        'Cerebellitis': 'Ataxia',
+
+        'upper respiratory tract infection': 'Respiratory',
+        'acute respiratory disease': "Respiratory",
+        'asthmatic bronchitis': "Respiratory",
+        'Cough': "Respiratory",
+        'Influenza-like illness': "Respiratory",
+        'Respiratory Symptoms':'Respiratory',
+
+        'guillain-barré syndrome': 'GBS', 'guillain-barrésyndrome': 'GBS',
+
+        'febrile illness': 'Fever', 'pyrexia': 'Fever', 'fever': 'Fever',
+
+        'v&d': 'Vomiting; Diarrhea',
+
         'transverse myelitis': 'Myelitis',
-        'Diarrhoea':'Diarrhea',
-        'Severe':"Severe HFMD",
-        'Light':"Light HFMD",
-        'mild':"Mild HFMD",
-        'Atypical HFMD':"Atypical HFMD",
-        'herpangina': 'Herpangina',
-        'hypotension': 'Hypotension',
-        'hyperglycemia': 'Hyperglycemia',
-        'severe pulmonary hemorrhage': 'Cardiopulmonary failure',
-        'vesicular': 'vesicular rash','Rash with vesicles': 'vesicular rash',
-        '(death)': 'Fatality','fatal': 'Fatality','death': 'Fatality',
-        'oral ulcers':'Oral Ulcers',
-        'CNS symptoms': 'CNS','CNS involvement': 'CNS','Cns Disorder':'CNS',
-        'Myoclonic jerk':'Myoclonic jerk','Myoclonus':'Myoclonic jerk',
-        'Neurological':'CNS','severe neurological involvement': 'CNS',
-        'Lethargy':'Lethargy','lethargic':'Lethargy',
-        'polio': 'AFP','Difficulty Walking': 'AFP',
+
+        'diarrhoea': 'Diarrhea', 'diarrhea': 'Diarrhea',
+        'Gastroenteritis':'GI infection','Gastrointestinal':'GI infection',
+
+        'severe': "Severe HFMD", 
+        'light': "Light HFMD", 'mild': "Mild HFMD",
+        'Atypical hand foot and mouth disease': "Atypical HFMD",
+        'atypical hfmd': "Atypical HFMD",
+        'HFMD; Onychomadesis': "Atypical HFMD",
+        'HFMD, Onychomadesis': "Atypical HFMD",
+        'hfmd': 'HFMD', 'hand foot and mouth disease': 'HFMD',
         'hand-foot and mouth disease': 'HFMD',
-        'Neck Stiffness; Vomiting':'Meningitis',
-        'Meningoencephalitis': 'Encephalitis','Encephalytis': 'Encephalitis',
-        'Skin Rash':'Rash', 'exanthema':'Rash'
+        'Toe lesion':'Lesion',
+
+        'Gingivostomatitis ':'Stomatitis',
+
+        'sepsis': 'Sepsis','neonatal sepsis':'Sepsis',
+        'Seizure':'Seizure',
+
+        'herpangina': 'Herpangina', 'herpangine': 'Herpangina',
+
+        'hypotension': 'Hypotension', 'hyperglycemia': 'Hyperglycemia',
+
+        'severe pulmonary hemorrhage': 'Cardiopulmonary Collapse',
+        'pulmonary hemorrhage': 'Cardiopulmonary Collapse',
+        'Acute cardiogenic shock': 'Cardiogenic shock',
+        'Acute cardiogenic shock, fatal': 'Cardiogenic shock; Fatality',
+        'cardiopulmonary collapse': 'Cardiopulmonary Collapse',
+
+        'vesicular': 'vesicular rash', 'rash with vesicles': 'vesicular rash',
+
+        '(death)': 'Fatality', 'fatal': 'Fatality', 'death': 'Fatality', 'Died':'Fatality',
+        'Shock':'Shock',
+
+        'oral ulcers': 'Oral Ulcers',
+        'Onychomadesis':'Onychomadesis',
+
+        'cns symptoms': 'CNS', 'cns involvement': 'CNS', 'cns disorder': 'CNS',
+        'neurological': 'CNS', 'severe neurological involvement': 'CNS',
+
+        'myoclonic jerk': 'Myoclonic jerk', 'myoclonus': 'Myoclonic jerk',
+
+        'lethargy': 'Lethargy', 'lethargic': 'Lethargy',
+
+        'neck stiffness; vomiting': 'Meningitis',
+        'aseptic meningitis': 'Aseptic Meningitis',
+        'Benign intracranial hypertension':'Meningitis',
+
+        'meningoencephalitis': 'Encephalitis', 'encephalytis': 'Encephalitis',
+        'Encephalitis':'Encephalitis',
+        'Encéphalite':'Encephalitis',
+
+        'skin rash': 'Rash', 'exanthema': 'Rash', 'rash': 'Rash','Skin':'Rash',
+        'eczema': 'Rash',
     }
 
     short_forms = set(short_versions.values())
 
     major_versions = {
-        'Encephalitis': 'CNS',
-        'Aseptic Meningitis': 'CNS',
-        'Meningitis': 'CNS',
-        'Opsomyoclonus Syndrome': 'CNS',
-        'Myoclonic jerk':'CNS','Myoclonus':'CNS', 'ataxia':'CNS',
-        'lethargy':'CNS',
-        'Acute Cardiogenic Shock': 'Fatality',
-        'GBS': 'AFP',
-        'transverse myelitis': 'AFP',
-        'paralyses': 'AFP',
-        'AFP':'AFP',
-        'HFMD':'HFMD',
-        'Atypical HFMD':"Atypical HFMD",
+        # CNS-related conditions
+        'Encephalitis': 'CNS','Aseptic Meningitis': 'CNS','Meningitis': 'CNS','Opsomyoclonus Syndrome': 'CNS','Myoclonic jerk':'CNS',
+        'CNS': 'CNS', 'lethargy':'CNS','Seizure':'CNS',
+
+         # Fatality-related conditions
         'Fatality':'Fatality',
-        'CNS':'CNS',
+
+        # AFP-related conditions
+        'GBS': 'AFP','Myelitis': 'AFP', 'AFP':'AFP', 'ataxia':'AFP',  
+
+        # HFMD-related conditions
+        'HFMD':'HFMD','Atypical HFMD':"Atypical HFMD", 'Onychomadesis':"Atypical HFMD",
+        'Severe HFMD': 'HFMD', 'Light HFMD': 'HFMD', 'Mild HFMD': 'HFMD',
+
+        # Other categories
+        'Sepsis': 'other',
+        'URTI': 'other',
+        'Respiratory Symptoms': 'other',
+        'Fever': 'other',
+        'Vomiting; Diarrhea': 'other',
+        'Diarrhea': 'other',
+        'Oral Ulcers': 'other',
+        'Hypotension': 'other',
+        'Hyperglycemia': 'other',
+        'Cardiogenic shock': 'other',
+        'Cardiopulmonary Collapse': 'other',
+        'Rash': 'other',
+        'Vesicular Rash': 'other'   
     }
 
     major_forms = set(major_versions.values())

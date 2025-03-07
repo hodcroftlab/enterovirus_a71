@@ -1,6 +1,6 @@
 region	northern africa	28.0000	13.0000
 region	western africa	11.0000	-4.0000
-region	middle africa	0.0000	23.0000
+region	central africa	0.0000	23.0000
 region	eastern africa	0.0000	38.0000
 region	southern africa	-28.479262	24.672713
 
@@ -500,9 +500,12 @@ country	vietnam	16.0	106.0
 place	An Giang	10.3834	105.4399
 place	AnGiang	10.5411	105.0926
 place	Bac Giang	21.2667	106.2000
+place	BacGiang	21.2667	106.2000
 place	Bac Lieu	9.2850	105.7240
 place	BacLieu	9.2850	105.7240
+place	BacNinh	21.1861	106.0763
 place	Bac Ninh	21.1861	106.0763
+place	BaRia-VungTau	10.3529	107.0943
 place	Ba Ria-Vung Tau	10.3529	107.0943
 place	BaRia	10.3529	107.0943
 place	Ben Tre	10.2354	106.3753
@@ -524,6 +527,7 @@ place	DaNang	16.0544	108.2022
 place	DakNong	12.3754	107.6944
 place	Dong Thap	10.5169	105.6323
 place	DongThap	10.5353	105.7177
+place	GiaLai	13.3937	107.3136
 place	Ha Giang	22.1363	104.9422
 place	Ha Tinh	18.3333	105.9333
 place	Haiphong	20.8449	106.6881
@@ -537,6 +541,7 @@ place	Hoa Binh	20.4515	105.3450
 place	Hau Giang	9.7888	105.3562
 place	HauGiang	9.7663	105.3556
 place	Hung Yen	21.1694	105.6059
+place	HungYen	21.1694	105.6059
 place	Kampot	10.6110	104.1827
 place	Kampong Chnang	11.4584	104.7217
 place	Khanh Hoa	12.2388	109.1967
@@ -564,7 +569,9 @@ place	SocTrang	9.6020	105.9710
 place	Tay Ninh	11.3604	106.1813
 place	TayNinh	11.3150	106.1388
 place	Thanh Hoa	20.0561	105.2130
+place	ThanhHoa	20.0561	105.2130
 place	Thái Nguyên	21.5859	105.8480
+place	ThaiNguyen	21.5859	105.8480
 place	Thừa Thiên-Huế	16.4674	107.5900
 place	Tien Giang	10.3092	106.3374
 place	TienGiang	10.4032	106.3480

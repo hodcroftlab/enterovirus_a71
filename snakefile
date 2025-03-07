@@ -277,15 +277,16 @@ rule filter:
           - excluding strains in {input.exclude}
         """
     input:
-        sequences = rules.blast_sort.output.sequences,
+        sequences = rules.blast_sort.output.sequences, ## "XXXX" had no sequence data -> dropped because they don't meet the min sequence length in blast_sort
         sequence_index = rules.index_sequences.output.sequence_index,
         metadata = rules.add_metadata.output.metadata,
         exclude = files.dropped_strains
     output:
-        sequences = "{seg}/results/filtered.fasta"
+        sequences = "{seg}/results/filtered.fasta",
+        reason ="{seg}/results/reasons.tsv"
     params:
-        group_by = "country month",
-        sequences_per_group = 2000, # 2000 originally
+        group_by = "country year",
+        sequences_per_group = 500, # 2000 originally
         strain_id_field= "accession",
         min_date = 1960  # BrCr was collected in 1970
     shell:
@@ -299,7 +300,8 @@ rule filter:
             --group-by {params.group_by} \
             --sequences-per-group {params.sequences_per_group} \
             --min-date {params.min_date} \
-            --output {output.sequences}
+            --output {output.sequences}\
+            --output-log {output.reason}
         """
 # --exclude-where ENPEN="True"\
 
