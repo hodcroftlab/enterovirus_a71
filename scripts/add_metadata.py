@@ -6,12 +6,17 @@ import string
 import ipdb
 from fuzzywuzzy import process
 import argparse
+import yaml
 
 #This file adds new metadata to the NCBI Virus metadata
 #The files get checked and curated if necessary
 
 # Function to check if an accession number is real: it uses the entrez functionality of ncbi
 from check_accession import extract_accession
+
+# Load configuration data from YAML file
+with open('config/config.yaml', 'r') as file:
+    config = yaml.safe_load(file)
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='add additional metadata',
@@ -116,32 +121,7 @@ if __name__ == '__main__':
     # Function to map non-standard terms to standard terms
     def standardize_isolation_source(value):
         # Add mappings for non-standard terms to standard terms
-        mapping = {
-            'stool': 'feces',
-            'Stool': 'feces',
-            'Faeces': 'feces',
-            'CSF': 'cerebrospinal fluid',
-            'Cerebrospinal Fluid': 'cerebrospinal fluid',
-            'Cerebrospinal Fluid ': 'cerebrospinal fluid',
-            'Throat Swab': 'oronasopharynx',
-            'Throat swab': 'oronasopharynx',
-            'Oral Swab': 'oronasopharynx',
-            'Mouth Swab': 'oronasopharynx',
-            'Nasopharyngeal Aspirate': 'oronasopharynx',
-            'Brain': 'brain',
-            'Cerebellum': 'brain',
-            'Left brain': 'brain',
-            'Brainstem': 'brain',
-            'Vesicle Swab': 'swab',
-            'Ulcer Swab': 'lesion',
-            'Rectal swab': 'swab',
-            'Rectal Swab': 'swab',
-            'Mouth': 'oronasopharynx',
-            'Throat': 'oronasopharynx',
-            'Tonsil': 'oronasopharynx',
-            'Vesicle': 'lesion',
-            'Spinal cord ': 'spinal cord'
-        }
+        mapping = config['metadata']['isolation_source']
         
         val=mapping.get(value, value)
         if pd.isna(val):
@@ -203,122 +183,15 @@ if __name__ == '__main__':
         new_meta['region'] = new_meta['country'].apply(get_region)
 
     # Debugging statement to check the unique values in the 'country' column after correction
-    print("Unique countries after correction:", new_meta['country'].unique())
+    # print("Unique countries after correction:", new_meta['country'].unique())
 
     new_meta['has_diagnosis'] =~new_meta['diagnosis'].isna()
 
     # Define a mapping for full terms to their abbreviations and standardized names
-    short_versions = {
-        'poliomyelitis-like disease': 'AFP', 'acute flaccid paralysis': 'AFP',
-        'paralysis': 'AFP', 'poliomyelitis-like paralysis': 'AFP', 'afp': 'AFP',
-        'acute flaccid myelitis': 'AFP', 'afm': 'AFP', 'polio': 'AFP',
-        'difficulty walking': 'AFP','paralyses': 'AFP',
-        'Cerebellar ataxia': 'Ataxia',
-        'Cerebellitis': 'Ataxia',
-
-        'upper respiratory tract infection': 'Respiratory',
-        'acute respiratory disease': "Respiratory",
-        'asthmatic bronchitis': "Respiratory",
-        'Cough': "Respiratory",
-        'Influenza-like illness': "Respiratory",
-        'Respiratory Symptoms':'Respiratory',
-
-        'guillain-barré syndrome': 'GBS', 'guillain-barrésyndrome': 'GBS',
-
-        'febrile illness': 'Fever', 'pyrexia': 'Fever', 'fever': 'Fever',
-
-        'v&d': 'Vomiting; Diarrhea',
-
-        'transverse myelitis': 'Myelitis',
-
-        'diarrhoea': 'Diarrhea', 'diarrhea': 'Diarrhea',
-        'Gastroenteritis':'GI infection','Gastrointestinal':'GI infection',
-
-        'severe': "Severe HFMD", 
-        'light': "Light HFMD", 'mild': "Mild HFMD",
-        'Atypical hand foot and mouth disease': "Atypical HFMD",
-        'atypical hfmd': "Atypical HFMD",
-        'HFMD; Onychomadesis': "Atypical HFMD",
-        'HFMD, Onychomadesis': "Atypical HFMD",
-        'hfmd': 'HFMD', 'hand foot and mouth disease': 'HFMD',
-        'hand-foot and mouth disease': 'HFMD',
-        'Toe lesion':'Lesion',
-
-        'Gingivostomatitis ':'Stomatitis',
-
-        'sepsis': 'Sepsis','neonatal sepsis':'Sepsis',
-        'Seizure':'Seizure',
-
-        'herpangina': 'Herpangina', 'herpangine': 'Herpangina',
-
-        'hypotension': 'Hypotension', 'hyperglycemia': 'Hyperglycemia',
-
-        'severe pulmonary hemorrhage': 'Cardiopulmonary Collapse',
-        'pulmonary hemorrhage': 'Cardiopulmonary Collapse',
-        'Acute cardiogenic shock': 'Cardiogenic shock',
-        'Acute cardiogenic shock, fatal': 'Cardiogenic shock; Fatality',
-        'cardiopulmonary collapse': 'Cardiopulmonary Collapse',
-
-        'vesicular': 'vesicular rash', 'rash with vesicles': 'vesicular rash',
-
-        '(death)': 'Fatality', 'fatal': 'Fatality', 'death': 'Fatality', 'Died':'Fatality',
-        'Shock':'Shock',
-
-        'oral ulcers': 'Oral Ulcers',
-        'Onychomadesis':'Onychomadesis',
-
-        'cns symptoms': 'CNS', 'cns involvement': 'CNS', 'cns disorder': 'CNS',
-        'neurological': 'CNS', 'severe neurological involvement': 'CNS',
-
-        'myoclonic jerk': 'Myoclonic jerk', 'myoclonus': 'Myoclonic jerk',
-
-        'lethargy': 'Lethargy', 'lethargic': 'Lethargy',
-
-        'neck stiffness; vomiting': 'Meningitis',
-        'aseptic meningitis': 'Aseptic Meningitis',
-        'Benign intracranial hypertension':'Meningitis',
-
-        'meningoencephalitis': 'Encephalitis', 'encephalytis': 'Encephalitis',
-        'Encephalitis':'Encephalitis',
-        'Encéphalite':'Encephalitis',
-
-        'skin rash': 'Rash', 'exanthema': 'Rash', 'rash': 'Rash','Skin':'Rash',
-        'eczema': 'Rash',
-    }
+    short_versions = config['metadata']['symptom_list']
+    major_versions = config['metadata']['major_symptoms']
 
     short_forms = set(short_versions.values())
-
-    major_versions = {
-        # CNS-related conditions
-        'Encephalitis': 'CNS','Aseptic Meningitis': 'CNS','Meningitis': 'CNS','Opsomyoclonus Syndrome': 'CNS','Myoclonic jerk':'CNS',
-        'CNS': 'CNS', 'lethargy':'CNS','Seizure':'CNS',
-
-         # Fatality-related conditions
-        'Fatality':'Fatality',
-
-        # AFP-related conditions
-        'GBS': 'AFP','Myelitis': 'AFP', 'AFP':'AFP', 'ataxia':'AFP',  
-
-        # HFMD-related conditions
-        'HFMD':'HFMD','Atypical HFMD':"Atypical HFMD", 'Onychomadesis':"Atypical HFMD",
-        'Severe HFMD': 'HFMD', 'Light HFMD': 'HFMD', 'Mild HFMD': 'HFMD',
-
-        # Other categories
-        'Sepsis': 'other',
-        'URTI': 'other',
-        'Respiratory Symptoms': 'other',
-        'Fever': 'other',
-        'Vomiting; Diarrhea': 'other',
-        'Diarrhea': 'other',
-        'Oral Ulcers': 'other',
-        'Hypotension': 'other',
-        'Hyperglycemia': 'other',
-        'Cardiogenic shock': 'other',
-        'Cardiopulmonary Collapse': 'other',
-        'Rash': 'other',
-        'Vesicular Rash': 'other'   
-    }
-
     major_forms = set(major_versions.values())
 
     def clean_diagnosis(diagnosis, threshold=75):
@@ -347,6 +220,8 @@ if __name__ == '__main__':
                 else:
                     # Check if the original diagnosis is in short_forms
                     standardized_diagnoses.append(diag if diag in short_forms else diag.title())
+        # Reorder the symptoms so that Fatality is first, then HFMD, then CNS
+        standardized_diagnoses = sorted(set(standardized_diagnoses), key=lambda x: (x != 'Fatality', x != 'HFMD', x != 'CNS', x))
         
         # Join the cleaned and standardized diagnoses back into a string
         return '; '.join(sorted(set(standardized_diagnoses)))

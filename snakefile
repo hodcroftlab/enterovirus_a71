@@ -13,6 +13,8 @@
 # To run specific proteins for tanglegrams:
 # snakemake --cores 9 all_proteins
 
+if not config:
+    configfile: "config/config.yaml"
 
 ###############
 wildcard_constraints:
@@ -184,9 +186,9 @@ rule curate:
     input:
         metadata=files.extended_metafile,  # Path to input metadata file
     params:
-        strain_id_field="accession",
-        date_column="collection_date",
-        format=['%Y-%m-%d','%Y','XX-%m-%Y','%Y-%m-%dT%H:%M:%SZ', 'XX-XX-%Y', 'XX-XX-XXXX','%m.%Y', '%d.%m.%Y', "%b-%Y", "%d-%b-%Y"], 
+        strain_id_field=config["id_field"],
+        date_fields=config["curate"]["date_fields"],
+        expected_date_formats=config["curate"]["expected_date_formats"],
         temp_metadata="data/temp_curated.tsv",  # Temporary file
     output:
         metadata="data/meta_manual_publications_genbank_curated.tsv",  # Final output file for metadata
@@ -200,9 +202,9 @@ rule curate:
         # Format dates for metadata
         augur curate format-dates \
             --metadata {params.temp_metadata} \
-            --date-fields {params.date_column} \
+            --date-fields {params.date_fields} \
             --no-mask-failure \
-            --expected-date-formats {params.format} \
+            --expected-date-formats {params.expected_date_formats} \
             --id-column {params.strain_id_field} \
             --output-metadata {output.metadata}
 
@@ -225,10 +227,10 @@ rule add_metadata:
         regions=ancient(files.regions),
         renamed_strains=rules.update_strain_names.output.file_out
     params:
-        strain_id_field="accession",
+        strain_id_field=config["id_field"],
         last_updated = files.last_updated_file,
         local_accn = files.local_accn_file,
-        C1like_accn = "data/list_C1like_accn.txt"
+        C1like_accn = "data/list_C1like_accn.txt",
     output:
         metadata="data/added_metadata.tsv"
     shell:
@@ -287,7 +289,7 @@ rule filter:
     params:
         group_by = "country year",
         sequences_per_group = 500, # 2000 originally
-        strain_id_field= "accession",
+        strain_id_field=config["id_field"],
         min_date = 1960  # BrCr was collected in 1970
     shell:
         """
@@ -450,7 +452,7 @@ rule refine:
         coalescent = "opt",
         date_inference = "marginal",
         clock_filter_iqd = 6, # originally 3; set to 6 if you want more control over outliers
-        strain_id_field ="accession",
+        strain_id_field =config["id_field"],
         # clock_rate = 0.004, # remove for estimation
         # clock_std_dev = 0.0015
         # clock_rate_string = lambda wildcards: f"--clock-rate 0.004 --clock-std-dev 0.0015" if wildcards.gene else ""
@@ -520,7 +522,7 @@ rule traits:
         node_data = "{seg}/results/traits{gene}{protein}.json",
     params:
         traits = "country",
-        strain_id_field= "accession"
+        strain_id_field= config["id_field"]
     shell:
         """
         augur traits \
@@ -562,7 +564,7 @@ rule clade_published:
         rivm_data = "data/rivm/subgenotypes_rivm.csv",
         alignment= "vp1/results/aligned.fasta"
     params:
-        strain_id_field= "accession",
+        strain_id_field= config["id_field"],
         rerun=True
     output:
         meta = "data/final_metadata_added_subgenotyp.tsv"
@@ -657,7 +659,7 @@ rule export:
         vaccine = "config/vaccine.json",
         auspice_config = files.auspice_config
     params:
-        strain_id_field= "accession",
+        strain_id_field= config["id_field"],
         epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else "",
 
     output:
@@ -691,7 +693,7 @@ rule rename_json:
         # auspice_json="auspice/enterovirus_A71_{seg}.json"
         auspice_json="auspice/enterovirus_A71_{seg}{gene}{protein}.json"
     params:
-        strain_id_field="accession",
+        strain_id_field=config["id_field"],
         display_strain_field= "strain"
     shell:
         """
