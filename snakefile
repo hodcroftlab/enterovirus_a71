@@ -13,6 +13,7 @@
 # To run specific proteins for tanglegrams:
 # snakemake --cores 9 all_proteins
 
+# Load config file
 if not config:
     configfile: "config/config.yaml"
 
@@ -47,13 +48,15 @@ rule files:
         sequence_length =   "{seg}",
         dropped_strains =   "config/dropped_strains.txt",
         reference =         "{seg}/config/reference_sequence.gb",
+        gff_reference =     "{seg}/config/annotation.gff3",
         lat_longs =         "config/lat_longs.tsv",
         auspice_config =    "{seg}/config/auspice_config.json",
         colors =            "config/colors.tsv",
         clades =            "{seg}/config/clades_genome.tsv",
         regions=            "config/geo_regions.tsv",
         meta=               "data/metadata.tsv",
-        extended_metafile=  "data/meta_manual_publications_genbank.tsv",
+        extended_metafile=  "data/meta_public.tsv",
+        collab_meta =       "data/meta_ENPEN.tsv",
         last_updated_file = "data/date_last_updated.txt",
         local_accn_file =   "data/local_accn.txt"
 
@@ -103,6 +106,59 @@ rule update_strain_names:
         cp -i {output.file_out} {params.backup}
         """
 
+
+##############################
+# Change the format of the dates in the metadata
+# Attention: ```augur curate``` only accepts iso 8 formats; please make sure that you save e.g. Excel files in the correct format
+###############################
+
+rule curate:
+    message:
+        """
+        Cleaning up metadata with augur curate
+        """
+    input:
+        metadata=files.extended_metafile,  # Path to input metadata file
+        collab_meta = files.collab_meta  # Data shared with us by collaborators
+    params:
+        strain_id_field=config["id_field"],
+        date_fields=config["curate"]["date_fields"],
+        expected_date_formats=config["curate"]["expected_date_formats"],
+    output:
+        metadata = "data/curated/meta_public.tsv",  # Final output file for publications metadata
+        collab_meta="data/curated/meta_ENPEN.tsv",  # Curated collaborator metadata
+        final_metadata="data/curated/extra_meta.tsv"  # Final merged output file
+    shell:
+        """
+        # Normalize strings for publication metadata
+        augur curate normalize-strings \
+            --id-column {params.strain_id_field} \
+            --metadata {input.metadata} \
+        | augur curate format-dates \
+            --date-fields {params.date_fields} \
+            --no-mask-failure \
+            --expected-date-formats {params.expected_date_formats} \
+            --id-column {params.strain_id_field} \
+            --output-metadata {output.metadata}
+        
+        # Normalize strings and format dates for collab metadata
+        augur curate normalize-strings \
+            --id-column {params.strain_id_field} \
+            --metadata {input.collab_meta} \
+        | augur curate format-dates \
+            --date-fields {params.date_fields} \
+            --no-mask-failure \
+            --expected-date-formats {params.expected_date_formats} \
+            --id-column {params.strain_id_field} \
+            --output-metadata {output.collab_meta}
+        
+        # Merge curated metadata
+        augur merge --metadata metadata={output.metadata} collab_meta={output.collab_meta}\
+            --metadata-id-columns {params.strain_id_field} \
+            --output-metadata {output.final_metadata}
+        """
+
+
 ##############################
 # Add additional sequences
 # if you have sequences that are not on NCBI Virus
@@ -112,12 +168,12 @@ rule update_sequences:
     input:
         sequences = "data/sequences.fasta",
         metadata=files.meta,
-        add_metadata = files.extended_metafile
+        extra_metadata = rules.curate.output.final_metadata
     output:
-        sequences = "data/sequences_added.fasta"
+        sequences = "data/all_sequences.fasta"
     params:
         file_ending = "data/*.fas*",
-        temp = "data/temp_sequences_added.fasta",
+        temp = "data/temp_sequences.fasta",
         date_last_updated = files.last_updated_file,
         local_accn = files.local_accn_file,
     shell:
@@ -125,7 +181,7 @@ rule update_sequences:
         touch {params.temp} && rm {params.temp}
         cat {params.file_ending} > {params.temp}
         python scripts/update_sequences.py --in_seq {params.temp} --out_seq {output.sequences} --dates {params.date_last_updated} \
-        --local_accession {params.local_accn} --meta {input.metadata} --add {input.add_metadata} \
+        --local_accession {params.local_accn} --meta {input.metadata} --add {input.extra_metadata} \
         --ingest_seqs {input.sequences}
         rm {params.temp}
         awk '/^>/{{if (seen[$1]++ == 0) print; next}} !/^>/{{print}}' {output.sequences} > {params.temp} && mv {params.temp} {output.sequences}
@@ -173,43 +229,6 @@ rule blast_sort:
             --range {params.range}
         """
 
-##############################
-# Change the format of the dates in the metadata
-# Attention: ```augur curate``` only accepts iso 8 formats; please make sure that you save e.g. Excel files in the correct format
-###############################
-
-rule curate:
-    message:
-        """
-        Cleaning up metadata with augur curate
-        """
-    input:
-        metadata=files.extended_metafile,  # Path to input metadata file
-    params:
-        strain_id_field=config["id_field"],
-        date_fields=config["curate"]["date_fields"],
-        expected_date_formats=config["curate"]["expected_date_formats"],
-        temp_metadata="data/temp_curated.tsv",  # Temporary file
-    output:
-        metadata="data/meta_manual_publications_genbank_curated.tsv",  # Final output file for metadata
-    shell:
-        """
-        # Normalize strings for metadata
-        augur curate normalize-strings --metadata {input.metadata} \
-            --id-column {params.strain_id_field} \
-            --output-metadata {params.temp_metadata}
-
-        # Format dates for metadata
-        augur curate format-dates \
-            --metadata {params.temp_metadata} \
-            --date-fields {params.date_fields} \
-            --no-mask-failure \
-            --expected-date-formats {params.expected_date_formats} \
-            --id-column {params.strain_id_field} \
-            --output-metadata {output.metadata}
-
-        rm {params.temp_metadata}
-        """
 
 ##############################
 # Merge all metadata files (NCBI download and own files) and clean them up
@@ -223,7 +242,7 @@ rule add_metadata:
         """
     input:
         metadata=files.meta,
-        new_data=rules.curate.output.metadata,
+        new_data=rules.curate.output.final_metadata,
         regions=ancient(files.regions),
         renamed_strains=rules.update_strain_names.output.file_out
     params:
@@ -232,7 +251,7 @@ rule add_metadata:
         local_accn = files.local_accn_file,
         C1like_accn = "data/list_C1like_accn.txt",
     output:
-        metadata="data/added_metadata.tsv"
+        metadata="data/all_metadata.tsv"
     shell:
         """
         python scripts/add_metadata.py \
@@ -279,7 +298,7 @@ rule filter:
           - excluding strains in {input.exclude}
         """
     input:
-        sequences = rules.blast_sort.output.sequences, ## "XXXX" had no sequence data -> dropped because they don't meet the min sequence length in blast_sort
+        sequences = rules.blast_sort.output.sequences, ## x had no sequence data -> dropped because they don't meet the min sequence length in blast_sort
         sequence_index = rules.index_sequences.output.sequence_index,
         metadata = rules.add_metadata.output.metadata,
         exclude = files.dropped_strains
@@ -331,21 +350,39 @@ rule align:
         Aligning sequences to {input.reference} using Nextalign.
         """
     input:
+        gff_reference = files.gff_reference,
         sequences = rules.filter.output.sequences,
         reference = rules.reference_gb_to_fasta.output.reference
     output:
         alignment = "{seg}/results/aligned.fasta"
 
     params:
-            nuc_mismatch_all = 10,
-            nuc_seed_length = 30
+        penalty_gap_extend = config["align"]["penalty_gap_extend"],
+        penalty_gap_open = config["align"]["penalty_gap_open"],
+        penalty_gap_open_in_frame = config["align"]["penalty_gap_open_in_frame"],
+        penalty_gap_open_out_of_frame = config["align"]["penalty_gap_open_out_of_frame"],
+        kmer_length = config["align"]["kmer_length"],
+        kmer_distance = config["align"]["kmer_distance"],
+        min_match_length = config["align"]["min_match_length"],
+        allowed_mismatches = config["align"]["allowed_mismatches"],
+        min_length = config["align"]["min_length"]
+    threads: 8
     shell:
         """
         nextclade run \
-        {input.sequences}  \
-        --input-ref {input.reference}\
-        --allowed-mismatches {params.nuc_mismatch_all} \
-        --min-length {params.nuc_seed_length} \
+        -j {threads} \
+        {input.sequences} \
+        --input-ref {input.reference} \
+        --input-annotation {input.gff_reference} \
+        --penalty-gap-open {params.penalty_gap_open} \
+        --penalty-gap-extend {params.penalty_gap_extend} \
+        --penalty-gap-open-in-frame {params.penalty_gap_open_in_frame} \
+        --penalty-gap-open-out-of-frame {params.penalty_gap_open_out_of_frame} \
+        --kmer-length {params.kmer_length} \
+        --kmer-distance {params.kmer_distance} \
+        --min-match-length {params.min_match_length} \
+        --allowed-mismatches {params.allowed_mismatches} \
+        --min-length {params.min_length} \
         --include-reference false \
         --output-fasta {output.alignment} 
         """
@@ -452,11 +489,10 @@ rule refine:
         coalescent = "opt",
         date_inference = "marginal",
         clock_filter_iqd = 6, # originally 3; set to 6 if you want more control over outliers
-        strain_id_field =config["id_field"],
-        # clock_rate = 0.004, # remove for estimation
-        # clock_std_dev = 0.0015
-        # clock_rate_string = lambda wildcards: f"--clock-rate 0.004 --clock-std-dev 0.0015" if wildcards.gene else ""
-        clock_rate_string = "--clock-rate 0.004 --clock-std-dev 0.0015"
+        strain_id_field = config["id_field"],
+        clock_rate = 0.004, # remove for estimation
+        clock_std_dev = 0.0015
+        # clock_rate_string = lambda wildcards: f"--clock-rate 0.004 --clock-std-dev 0.0015" if wildcards.gene or wildcards.quart else ""
     shell:
         """
         augur refine \
@@ -469,7 +505,8 @@ rule refine:
             --timetree \
             --coalescent {params.coalescent} \
             --date-confidence \
-            {params.clock_rate_string} \
+            --clock-rate {params.clock_rate}\
+            --clock-std-dev {params.clock_std_dev} \
             --date-inference {params.date_inference} \
             --clock-filter-iqd {params.clock_filter_iqd}
         """
@@ -567,7 +604,7 @@ rule clade_published:
         strain_id_field= config["id_field"],
         rerun=True
     output:
-        meta = "data/final_metadata_added_subgenotyp.tsv"
+        meta = "data/final_metadata.tsv"
     shell:
         """
         python scripts/published_clades.py --input {input.metadata} --rivm {input.rivm_data}\

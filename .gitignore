@@ -1,24 +1,25 @@
 .snakemake
 
-
+# data and auspice outputs
 data/*
+!data/meta_public.tsv
 auspice/
 
 *errors.csv
 
+# ingest
 ingest/.snakemake/
 ingest/benchmarks/
 ingest/logs/
 ingest/vendored-old/
-
-
-*/results/
-*/temp/
-
 ingest/data/*
 !ingest/data/references/
 ingest/data/references/reference_a71_manual.gff3
 ingest/data/references/nextclade.tsv
+
+# all results and temporary folders
+*/results/
+*/temp/
 
 scripts/__pycache__/
 
