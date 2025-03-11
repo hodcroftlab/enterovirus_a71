@@ -150,8 +150,12 @@
     "color_by": "clade_membership",
     "geo_resolution": "country",
     "distance_measure": "num_date",
+    "tip_label": "strain",
     "map_triplicate": true
   },
+  "metadata_columns": [
+    "strain"
+  ],
   "filters": [
     "RIVM_subgenogroup",
     "subgenogroup",

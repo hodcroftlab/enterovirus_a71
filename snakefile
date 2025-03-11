@@ -700,7 +700,7 @@ rule export:
         epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else "",
 
     output:
-        auspice_json = "auspice/enterovirus_A71_{seg}{gene}{protein}-accession.json"
+        auspice_json="auspice/enterovirus_A71_{seg}{gene}{protein}.json"
         # auspice_json = "auspice/enterovirus_A71_{seg}-accession.json"
         
     shell:
@@ -718,31 +718,6 @@ rule export:
         """
         # {input.epis} 
         
-# ##############################
-# # Change from accession to strain name view in tree
-# ###############################
-
-rule rename_json:
-    input:
-        auspice_json= rules.export.output.auspice_json,
-        metadata = rules.add_metadata.output.metadata,
-    output:
-        # auspice_json="auspice/enterovirus_A71_{seg}.json"
-        auspice_json="auspice/enterovirus_A71_{seg}{gene}{protein}.json"
-    params:
-        strain_id_field=config["id_field"],
-        display_strain_field= "strain"
-    shell:
-        """
-        python3 scripts/set_final_strain_name.py --metadata {input.metadata} \
-                --metadata-id-columns {params.strain_id_field} \
-                --input-auspice-json {input.auspice_json} \
-                --display-strain-name {params.display_strain_field} \
-                --output {output.auspice_json}
-
-        mkdir -p auspice/accession/ && mv {input.auspice_json} auspice/accession/
-        """
-
 rule clean:
     message: "Removing directories: {params}"
     params:
