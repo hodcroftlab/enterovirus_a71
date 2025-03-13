@@ -2,7 +2,7 @@
 
 # data and auspice outputs
 data/*
-!data/meta_public.tsv
+# !data/meta_public.tsv
 auspice/
 
 *errors.csv
@@ -25,10 +25,11 @@ scripts/__pycache__/
 
 *.code-workspace
 
-scripts/bin
-
+scripts/bin/     
 .env
 
 Simplot
 
 strain_accession.txt
+
+backup*

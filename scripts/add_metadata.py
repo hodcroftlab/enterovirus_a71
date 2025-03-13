@@ -108,8 +108,6 @@ if __name__ == '__main__':
 
     # Country: keep the non-missing ones
     new_meta['country'] = new_meta['country_y'].mask(new_meta['country_y'].isna(), new_meta['country_x'])
-    new_meta['country'] = new_meta['country'].replace("Viet Nam", "Vietnam")
-    new_meta['country'] = new_meta['country'].replace("UK", "United Kingdom")
 
     # Country: keep the non-missing ones
     new_meta['place'] = new_meta['place'].mask(new_meta['place'].isna(), new_meta['location'])

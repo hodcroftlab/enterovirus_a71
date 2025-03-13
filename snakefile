@@ -47,6 +47,7 @@ rule files:
     input:
         sequence_length =   "{seg}",
         dropped_strains =   "config/dropped_strains.txt",
+        incl_strains =      "config/kept_strains.txt",
         reference =         "{seg}/config/reference_sequence.gb",
         gff_reference =     "{seg}/config/annotation.gff3",
         lat_longs =         "config/lat_longs.tsv",
@@ -56,7 +57,7 @@ rule files:
         regions=            "config/geo_regions.tsv",
         meta=               "data/metadata.tsv",
         extended_metafile=  "data/meta_public.tsv",
-        collab_meta =       "data/meta_ENPEN.tsv",
+        meta_collab =       "data/meta_ENPEN.tsv",
         last_updated_file = "data/date_last_updated.txt",
         local_accn_file =   "data/local_accn.txt"
 
@@ -119,15 +120,15 @@ rule curate:
         """
     input:
         metadata=files.extended_metafile,  # Path to input metadata file
-        collab_meta = files.collab_meta  # Data shared with us by collaborators
+        meta_collab = files.meta_collab  # Data shared with us by collaborators
     params:
         strain_id_field=config["id_field"],
         date_fields=config["curate"]["date_fields"],
         expected_date_formats=config["curate"]["expected_date_formats"],
     output:
         metadata = "data/curated/meta_public.tsv",  # Final output file for publications metadata
-        collab_meta="data/curated/meta_ENPEN.tsv",  # Curated collaborator metadata
-        final_metadata="data/curated/extra_meta.tsv"  # Final merged output file
+        meta_collab="data/curated/meta_collab.tsv",  # Curated collaborator metadata
+        meta="data/curated/all_meta.tsv"  # Final merged output file
     shell:
         """
         # Normalize strings for publication metadata
@@ -144,18 +145,18 @@ rule curate:
         # Normalize strings and format dates for collab metadata
         augur curate normalize-strings \
             --id-column {params.strain_id_field} \
-            --metadata {input.collab_meta} \
+            --metadata {input.meta_collab} \
         | augur curate format-dates \
             --date-fields {params.date_fields} \
             --no-mask-failure \
             --expected-date-formats {params.expected_date_formats} \
             --id-column {params.strain_id_field} \
-            --output-metadata {output.collab_meta}
+            --output-metadata {output.meta_collab}
         
         # Merge curated metadata
-        augur merge --metadata metadata={output.metadata} collab_meta={output.collab_meta}\
+        augur merge --metadata metadata={output.metadata} meta_collab={output.meta_collab}\
             --metadata-id-columns {params.strain_id_field} \
-            --output-metadata {output.final_metadata}
+            --output-metadata {output.meta}
         """
 
 
@@ -168,7 +169,7 @@ rule update_sequences:
     input:
         sequences = "data/sequences.fasta",
         metadata=files.meta,
-        extra_metadata = rules.curate.output.final_metadata
+        extra_metadata = rules.curate.output.meta
     output:
         sequences = "data/all_sequences.fasta"
     params:
@@ -201,7 +202,7 @@ rule blast:
     output:
         blast_out = "vp1/temp/blast_out.csv"
     params:
-        blast_db = "vp1/temp/entero_db_vp1"
+        blast_db = "vp1/temp/blast_database"
     shell:
         """
         sed -i 's/-//g' {input.seqs_to_blast}
@@ -242,7 +243,7 @@ rule add_metadata:
         """
     input:
         metadata=files.meta,
-        new_data=rules.curate.output.final_metadata,
+        new_data=rules.curate.output.meta,
         regions=ancient(files.regions),
         renamed_strains=rules.update_strain_names.output.file_out
     params:
@@ -301,13 +302,14 @@ rule filter:
         sequences = rules.blast_sort.output.sequences, ## x had no sequence data -> dropped because they don't meet the min sequence length in blast_sort
         sequence_index = rules.index_sequences.output.sequence_index,
         metadata = rules.add_metadata.output.metadata,
-        exclude = files.dropped_strains
+        exclude = files.dropped_strains,
+        include = files.incl_strains,
     output:
         sequences = "{seg}/results/filtered.fasta",
         reason ="{seg}/results/reasons.tsv"
     params:
-        group_by = "country year",
-        sequences_per_group = 500, # 2000 originally
+        group_by = "country",
+        sequences_per_group = 15000, # 2000 originally
         strain_id_field=config["id_field"],
         min_date = 1960  # BrCr was collected in 1970
     shell:
@@ -318,6 +320,7 @@ rule filter:
             --metadata {input.metadata} \
             --metadata-id-columns {params.strain_id_field} \
             --exclude {input.exclude} \
+            --include {input.include} \
             --group-by {params.group_by} \
             --sequences-per-group {params.sequences_per_group} \
             --min-date {params.min_date} \
@@ -366,7 +369,7 @@ rule align:
         min_match_length = config["align"]["min_match_length"],
         allowed_mismatches = config["align"]["allowed_mismatches"],
         min_length = config["align"]["min_length"]
-    threads: 8
+    threads: 9
     shell:
         """
         nextclade run \
@@ -604,11 +607,11 @@ rule clade_published:
         strain_id_field= config["id_field"],
         rerun=True
     output:
-        meta = "data/final_metadata.tsv"
+        final_metadata = "data/final_metadata.tsv"
     shell:
         """
         python scripts/published_clades.py --input {input.metadata} --rivm {input.rivm_data}\
-        --sgt {input.subgenotypes} --alignment {input.alignment} --id {params.strain_id_field} --output {output.meta}
+        --sgt {input.subgenotypes} --alignment {input.alignment} --id {params.strain_id_field} --output {output.final_metadata}
         """
 
 ##############################
@@ -685,7 +688,7 @@ rule export:
     message: "Creating auspice JSONs"
     input:
         tree = rules.refine.output.tree,
-        metadata = rules.clade_published.output.meta,
+        metadata = rules.clade_published.output.final_metadata,
         branch_lengths = rules.refine.output.node_data,
         traits = rules.traits.output.node_data,
         nt_muts = rules.ancestral.output.node_data,
