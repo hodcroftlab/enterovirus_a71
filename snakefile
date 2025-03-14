@@ -350,7 +350,7 @@ rule reference_gb_to_fasta:
 rule align: 
     message:
         """
-        Aligning sequences to {input.reference} using Nextalign.
+        Aligning sequences to {input.reference} using Nextclade.
         """
     input:
         gff_reference = files.gff_reference,
@@ -372,7 +372,7 @@ rule align:
     threads: 9
     shell:
         """
-        nextclade run \
+        nextclade3 run \
         -j {threads} \
         {input.sequences} \
         --input-ref {input.reference} \

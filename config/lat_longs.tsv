@@ -313,8 +313,10 @@ country	tanzania	-6.0	35.0
 place	Zanzibar	-6.1659	39.2026
 
 country	madagascar	-20.0	47.0
-place	Mahatalaky	-25.5154	45.2061
-place	Tsaratanana	-16.8	47.633333
+place	Mahatalaky	-24.783333	47.083333
+place	Scama	-12.46667	49.03333
+place	Tsaratanana	-16.797222	47.652778
+place	Tsimenatse	-23.35864	43.67434
 
 country	ghana	8.0300284	-1.080027
 place	Accra	5.6037	-0.187
@@ -433,6 +435,7 @@ place	Xianghe	39.7642	117.0056
 place	Yancheng	33.3851	120.1492
 place	Yantai	37.4638	121.4479
 place	Yunnan	24.3570	102.7090
+place	Yuyao	30.0491	121.1546
 place	Yn	24.3570	102.7090
 place	Yunnan Province	24.3570	102.7090
 place	Zhaotong Prefecture	27.3105	106.9225
@@ -441,6 +444,7 @@ place	Zhejiang	29.1832	120.0934
 place	Zhuhai	22.2760	113.5678
 
 country	india	22.3511148	78.6677428
+place	Andaman Islands	11.7401	92.6586
 place	Chennai	13.0827	80.2707
 place	Kolkata	22.5726	88.3639
 place	Maharashtra State	19.7515	75.7139
@@ -512,6 +516,7 @@ place	Kyunggi	37.4138	127.5183
 place	Pusan	35.1796	129.0756
 place	Seoul	37.5665	126.9780
 place	Wonju	37.3422	127.9202
+place	Gwangju	35.1595	126.8526
 
 country	thailand	15.0	100.0
 place	Bangkok	13.7540	100.5014
@@ -749,6 +754,7 @@ place	Annecy	45.8992	6.1294
 place	Annonay	45.2415	4.6706
 place	Aubagne	43.2924	5.5703
 place	Auvergne-Rhone-Alpes	45.7640	4.8357
+place	Auvergne and Rhone-Alpes	45.7640	4.8357
 place	Bagnols-sur-Ceze	44.1593	4.6172
 place	Bagnolet	48.8667	2.4167
 place	Bayonne	43.4929	-1.4748
@@ -786,6 +792,7 @@ place	Hauts de France	50.6292	3.0573
 place	Hery-sur-Alby	45.8125	6.0167
 place	Ile de France	48.8499	2.6370
 place	La-Garenne-Colombes	48.9089	2.2428
+place	La Gareene Colombes	48.9089	2.2428
 place	Lagny-Sur-Marne	48.8765	2.7074
 place	Lagny-sur-Marne	48.8765	2.7074
 place	Le Mans	48.0061	0.1996
