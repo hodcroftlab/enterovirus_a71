@@ -313,3 +313,7 @@ JQ315059
 
 # low diversity
 KF982854
+
+# dropped through Nextclade alignment: "Unable to align: seed alignment was unable to find any matches that are long enough."
+HQ647168
+HQ647170
