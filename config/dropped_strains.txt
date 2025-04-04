@@ -48,6 +48,7 @@ AF135899
 
 # not sure
 #AY278249 	# good demographic data, was passaged in cells though
+EU131739
 
 ## pulls cluster back
 AB936544
@@ -310,9 +311,14 @@ LC637980
 JQ003960
 JQ315074
 JQ315059
+JQ003959
 
 # low diversity
 KF982854
+KC954664
+
+# high diversity
+HQ676175
 
 # dropped through Nextclade alignment: "Unable to align: seed alignment was unable to find any matches that are long enough."
 HQ647168
