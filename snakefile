@@ -104,7 +104,7 @@ rule update_strain_names:
     shell:
         """
         time bash scripts/update_strain.sh {input.file_in} {params.backup} {output.file_out}
-        cp -i {output.file_out} {params.backup}
+        cp {output.file_out} {params.backup}
         """
 
 
@@ -319,6 +319,7 @@ rule filter:
             --sequence-index {input.sequence_index} \
             --metadata {input.metadata} \
             --metadata-id-columns {params.strain_id_field} \
+            --exclude-where ENPEN="True"\
             --exclude {input.exclude} \
             --include {input.include} \
             --group-by {params.group_by} \
@@ -491,7 +492,7 @@ rule refine:
     params:
         coalescent = "opt",
         date_inference = "marginal",
-        clock_filter_iqd = 6, # originally 3; set to 6 if you want more control over outliers
+        clock_filter_iqd = 3, # originally 3; set to 6 if you want more control over outliers
         strain_id_field = config["id_field"],
         clock_rate = 0.004, # remove for estimation
         clock_std_dev = 0.0015

@@ -120,11 +120,13 @@
     },
     {
       "key": "author",
-      "title": "Authors"
+      "title": "Authors",
+      "type": "categorical"
     },
     {
       "key": "date_added",
-      "title": "Date when added to build"
+      "title": "Date when added to build",
+      "type": "ordinal"
     }
   ],
   "geo_resolutions": [
