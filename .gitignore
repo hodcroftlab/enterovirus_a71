@@ -11,11 +11,11 @@ auspice/
 ingest/.snakemake/
 ingest/benchmarks/
 ingest/logs/
-ingest/vendored-old/
 ingest/data/*
 !ingest/data/references/
 ingest/data/references/reference_a71_manual.gff3
 ingest/data/references/nextclade.tsv
+
 
 # all results and temporary folders
 */results/
@@ -35,3 +35,5 @@ strain_accession.txt
 backup*
 
 compare-alignments
+
+*.json
