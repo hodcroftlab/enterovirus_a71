@@ -115,33 +115,52 @@ if __name__ == '__main__':
     # Clades: keep non-missing clades - subgenogroup
     new_meta['subgenogroup'] = new_meta['subgenogroup'].mask(new_meta['subgenogroup'].isna(), new_meta['clade_x'])
 
-    # Isolation source: standardize
-    # Function to map non-standard terms to standard terms
-    def standardize_isolation_source(value):
-        # Add mappings for non-standard terms to standard terms
-        mapping = config['metadata']['isolation_source']
-        
-        val=mapping.get(value, value)
-        if pd.isna(val):
-            return val
-        val=val.title()
+    # Define a mapping for full terms to their abbreviations and standardized names
+    isolation_version = config['metadata']['isolation_source']
+    isolation_forms = set(isolation_version.values())
 
-        # Return the mapped value if it exists, otherwise return the original value
-        return val
-    
+    def standardize_isolation_source(isolation, threshold=75):
+        if pd.isna(isolation):
+            return np.nan
+        
+        # Check if the isolation is already a short form
+        if isolation in isolation_forms:
+            return isolation
+        
+        # Remove punctuation and split multiple isolations
+        clean_isolation = isolation.replace(',', ';').replace(' or ', ';').replace('/', ';').replace('  ', ' ').strip()
+        isolations = [iso.strip() for iso in clean_isolation.split(';')]
+
+        # Standardize isolations and replace full terms with abbreviations
+        standardized_isolation = []
+        for iso in isolations:
+            iso_lower = iso.lower()
+            if iso_lower in isolation_version:
+                standardized_isolation.append(isolation_version[iso_lower])
+            else:
+                # Use fuzzy matching to handle typos
+                match = process.extractOne(iso_lower, isolation_version.keys(), score_cutoff=threshold)
+                if match:
+                    standardized_isolation.append(isolation_version[match[0]])
+                else:
+                    # Check if the original isolation is in isolation_forms
+                    standardized_isolation.append(iso if iso in isolation_forms else iso.title())
+        
+        # Join the cleaned and standardized isolations back into a string
+        return '; '.join(sorted(set(standardized_isolation)))
+
     # Apply the standardization to both columns
     new_meta['isolate-lineage-source'] = new_meta['isolate-lineage-source'].apply(standardize_isolation_source)
     new_meta['isolation'] = new_meta['isolation'].apply(standardize_isolation_source)
-
+    
     # Combine the two columns, prioritizing the standardized values
     new_meta['combined_isolation_source'] = new_meta['isolation'].mask(new_meta['isolation'].isna(), new_meta['isolate-lineage-source'])
-
+    
     # Replace the original isolation_source column
     new_meta['isolation_source'] = new_meta['combined_isolation_source']
-
+    
     # Drop unnecessary columns
     new_meta = new_meta.drop(['isolation', 'combined_isolation_source'], axis=1)
-
 
     # Define a dictionary for old naming formats and spelling mistakes
     corrections = {
