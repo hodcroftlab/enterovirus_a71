@@ -28,6 +28,9 @@ segments = ['vp1', 'whole-genome']
 GENES=["-5utr","-vp4", "-vp2", "-vp3", "-vp1", "-2A", "-2B", "-2C", "-3A", "-3B", "-3C", "-3D","-3utr"]
 PROT = ["-P1", "-P2", "-P3"]
 
+# include or exclude ENPEN data
+INCL_ENPEN = False
+
 # Expand augur JSON paths
 rule all:
     input:
@@ -306,29 +309,30 @@ rule filter:
         include = files.incl_strains,
     output:
         sequences = "{seg}/results/filtered.fasta",
-        reason ="{seg}/results/reasons.tsv"
+        reason ="{seg}/results/reasons.tsv",
+        log = "{seg}/results/reasons.log"
     params:
-        group_by = "country",
-        sequences_per_group = 15000, # 2000 originally
+        group_by = "country year",
+        sequences_per_group = 5000, # 2000 originally
         strain_id_field=config["id_field"],
-        min_date = 1960  # BrCr was collected in 1970
+        min_date = 1960,  # BrCr was collected in 1970
+        exclude_enpen = "--exclude-where ENPEN=True" if not INCL_ENPEN else "" # INCL_ENPEN was defined on line 32
     shell:
         """
-        augur filter \
+        (augur filter \
             --sequences {input.sequences} \
             --sequence-index {input.sequence_index} \
             --metadata {input.metadata} \
             --metadata-id-columns {params.strain_id_field} \
-            --exclude-where ENPEN="True"\
             --exclude {input.exclude} \
+            {params.exclude_enpen} \
             --include {input.include} \
             --group-by {params.group_by} \
             --sequences-per-group {params.sequences_per_group} \
             --min-date {params.min_date} \
             --output {output.sequences}\
-            --output-log {output.reason}
+            --output-log {output.reason}) > {output.log} 2>&1
         """
-# --exclude-where ENPEN="True"\
 
 ##############################
 # Reference sequence &
@@ -370,6 +374,7 @@ rule align:
         min_match_length = config["align"]["min_match_length"],
         allowed_mismatches = config["align"]["allowed_mismatches"],
         min_length = config["align"]["min_length"]
+        ## min_length
     threads: 9
     shell:
         """
@@ -488,15 +493,18 @@ rule refine:
         # tree = "{seg}/results/tree.nwk",
         # node_data = "{seg}/results/branch_lengths.json"
         tree = "{seg}/results/tree{gene}{protein}.nwk",
-        node_data = "{seg}/results/branch_lengths{gene}{protein}.json"
+        node_data = "{seg}/results/branch_lengths{gene}{protein}.json",
     params:
         coalescent = "opt",
         date_inference = "marginal",
         clock_filter_iqd = 3, # originally 3; set to 6 if you want more control over outliers
         strain_id_field = config["id_field"],
         clock_rate = 0.004, # remove for estimation
-        clock_std_dev = 0.0015
+        clock_std_dev = 0.0015,
         # clock_rate_string = lambda wildcards: f"--clock-rate 0.004 --clock-std-dev 0.0015" if wildcards.gene or wildcards.quart else ""
+        rooting = lambda wildcards: "--root DQ341364 KF501389" if wildcards.seg == "whole_genome" else "", # rooting B5 and A; keeps tree structure
+        reasons_refine = rules.filter.output.log # number of dropped sequences
+
     shell:
         """
         augur refine \
@@ -507,12 +515,24 @@ rule refine:
             --output-tree {output.tree} \
             --output-node-data {output.node_data} \
             --timetree \
+            --stochastic-resolve \
             --coalescent {params.coalescent} \
             --date-confidence \
             --clock-rate {params.clock_rate}\
             --clock-std-dev {params.clock_std_dev} \
             --date-inference {params.date_inference} \
-            --clock-filter-iqd {params.clock_filter_iqd}
+            --clock-filter-iqd {params.clock_filter_iqd} \
+            {params.rooting}
+        
+        dropped=$(comm -23 \
+            <(grep -oE '[^\(\),:]+' {input.tree} | sort -u) \
+            <(grep -oE '[^\(\),:]+' {output.tree} | sort -u)
+        )
+        dropped_count=$(echo "$dropped" | wc -l)
+
+        echo "Dropped sequences due to clock filter: $dropped_count" >> {params.reasons_refine}
+        echo "Dropped tip labels:" >> {params.reasons_refine}
+        echo "$dropped" >> {params.reasons_refine}
         """
 
 rule ancestral:
