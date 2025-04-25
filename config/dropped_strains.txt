@@ -323,3 +323,17 @@ HQ676175
 # dropped through Nextclade alignment: "Unable to align: seed alignment was unable to find any matches that are long enough."
 HQ647168
 HQ647170
+
+# probably recombinants, dropped in VP1
+PP858877
+PP548273
+PP548263
+
+# pulling B clade
+GU434678
+
+# outlier
+MH084344
+
+# unknown collection date
+GU434678
