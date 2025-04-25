@@ -126,7 +126,7 @@ if __name__ == '__main__':
         # Check if the isolation is already a short form
         if isolation in isolation_forms:
             return isolation
-        
+    
         # Remove punctuation and split multiple isolations
         clean_isolation = isolation.replace(',', ';').replace(' or ', ';').replace('/', ';').replace('  ', ' ').strip()
         isolations = [iso.strip() for iso in clean_isolation.split(';')]
