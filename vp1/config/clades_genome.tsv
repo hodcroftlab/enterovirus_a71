@@ -17,10 +17,11 @@ B3	nuc	297	C
 B3	nuc	309	G
 B3	nuc	373	T
 
-B4	nuc	814	C
-B4	nuc	9	A
-B4	nuc	321	T
-B4	nuc	675	C
+B4	nuc	54	G
+B4	nuc	222	T
+B4	nuc	492	G
+B4	nuc	561	G
+B4	nuc	840	C
 
 B5	nuc	153	G
 B5	nuc	156	C
@@ -42,6 +43,11 @@ C2	nuc	42	C
 C2	nuc	81	T
 C2	nuc	93	T
 C2	nuc	264	A
+
+C2-like	nuc	51	T
+C2-like	nuc	159	G
+C2-like	nuc	294	G
+C2-like	nuc	714	G
 
 C5	nuc	6	C
 C5	nuc	27	A

@@ -300,6 +300,7 @@ rule filter:
           - {params.sequences_per_group} sequence(s) per {params.group_by!s}
           - from {params.min_date} onwards
           - excluding strains in {input.exclude}
+        Log file in {log.log}
         """
     input:
         sequences = rules.blast_sort.output.sequences, ## x had no sequence data -> dropped because they don't meet the min sequence length in blast_sort
@@ -310,7 +311,8 @@ rule filter:
     output:
         sequences = "{seg}/results/filtered.fasta",
         reason ="{seg}/results/reasons.tsv",
-        log = "{seg}/results/reasons.log"
+    log:
+        log = "{seg}/results/filter.log"
     params:
         group_by = "country year",
         sequences_per_group = 5000, # 2000 originally
@@ -331,7 +333,7 @@ rule filter:
             --sequences-per-group {params.sequences_per_group} \
             --min-date {params.min_date} \
             --output {output.sequences}\
-            --output-log {output.reason}) > {output.log} 2>&1
+            --output-log {output.reason}) > {log.log} 2>&1
         """
 
 ##############################
@@ -483,6 +485,7 @@ rule refine:
           - use {params.coalescent} coalescent timescale
           - estimate {params.date_inference} node dates
           - filter tips more than {params.clock_filter_iqd} IQDs from clock expectation
+          - rooting with {params.rooting}
         """
     input:
         tree = rules.tree.output.tree,
@@ -502,9 +505,9 @@ rule refine:
         clock_rate = 0.004, # remove for estimation
         clock_std_dev = 0.0015,
         # clock_rate_string = lambda wildcards: f"--clock-rate 0.004 --clock-std-dev 0.0015" if wildcards.gene or wildcards.quart else ""
-        rooting = lambda wildcards: "--root DQ341364 KF501389" if wildcards.seg == "whole_genome" else "", # rooting B5 and A; keeps tree structure
-        reasons_refine = rules.filter.output.log # number of dropped sequences
-
+        rooting = lambda wildcards: "--root DQ341364 KF501389" if wildcards.seg == "whole_genome" or getattr(wildcards, "gene", None) else "", # rooting B5 and A; keeps tree structure
+    log:
+        reasons_refine = "{seg}/results/refine{gene}{protein}.log" # number of dropped sequences
     shell:
         """
         augur refine \
@@ -515,14 +518,13 @@ rule refine:
             --output-tree {output.tree} \
             --output-node-data {output.node_data} \
             --timetree \
-            --stochastic-resolve \
             --coalescent {params.coalescent} \
             --date-confidence \
             --clock-rate {params.clock_rate}\
             --clock-std-dev {params.clock_std_dev} \
             --date-inference {params.date_inference} \
             --clock-filter-iqd {params.clock_filter_iqd} \
-            {params.rooting}
+            {params.rooting} >> {log.reasons_refine} 2>&1
         
         dropped=$(comm -23 \
             <(grep -oE '[^\(\),:]+' {input.tree} | sort -u) \
@@ -530,10 +532,13 @@ rule refine:
         )
         dropped_count=$(echo "$dropped" | wc -l)
 
-        echo "Dropped sequences due to clock filter: $dropped_count" >> {params.reasons_refine}
-        echo "Dropped tip labels:" >> {params.reasons_refine}
-        echo "$dropped" >> {params.reasons_refine}
+        echo "Dropped sequences due to clock filter: $dropped_count" >> {log.reasons_refine}
+        echo "Dropped tip labels:" >> {log.reasons_refine}
+        echo "$dropped" >> {log.reasons_refine}
         """
+        # echo -e "\\n Excluded tips count:" >> {log.reasons_refine}
+        # grep "pruning leaf" {log.reasons_refine} | wc -l >> {log.reasons_refine}
+        
 
 rule ancestral:
     message: "Reconstructing ancestral sequences and mutations"
