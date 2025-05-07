@@ -74,7 +74,7 @@ for accession in "${accessions_to_process[@]}"; do
         if [ -n "$strain_from_gb" ]; then
             strain=$strain_from_gb
             ((new_accessions += 1))
-            echo "Updated strain for $accession: $strain"
+            # echo "Updated strain for $accession: $strain"
         else
             strain="$accession"
         fi

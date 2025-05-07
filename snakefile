@@ -80,6 +80,8 @@ rule fetch:
     params:
         seq="ingest/data/sequences.fasta",
         meta="ingest/data/metadata.tsv"
+    benchmark:
+        "logs/fetch.log"
     shell:
         """
         cd {input.dir} 
@@ -464,11 +466,12 @@ rule tree:
         # tree = "{seg}/results/tree_raw.nwk"
         tree = "{seg}/results/tree_raw{gene}{protein}.nwk"
     threads: 9
+    benchmark:
+        "logs/tree.{seg}{gene}{protein}.log"
     shell:
         """
         augur tree \
             --alignment {input.alignment} \
-            --nthreads {threads}\
             --output {output.tree}
         """
 
@@ -497,6 +500,8 @@ rule refine:
         # node_data = "{seg}/results/branch_lengths.json"
         tree = "{seg}/results/tree{gene}{protein}.nwk",
         node_data = "{seg}/results/branch_lengths{gene}{protein}.json",
+    benchmark:
+        "logs/refine.{seg}{gene}{protein}.log"
     params:
         coalescent = "opt",
         date_inference = "marginal",
@@ -589,6 +594,9 @@ rule traits:
     params:
         traits = "country",
         strain_id_field= config["id_field"]
+    benchmark:
+        "logs/traits.{seg}{gene}{protein}.log"
+
     shell:
         """
         augur traits \
@@ -727,6 +735,8 @@ rule export:
     params:
         strain_id_field= config["id_field"],
         epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else "",
+    benchmark:
+        "logs/export.{seg}{gene}{protein}.log"
 
     output:
         auspice_json="auspice/enterovirus_A71_{seg}{gene}{protein}.json"
