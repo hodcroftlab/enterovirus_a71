@@ -37,3 +37,8 @@ backup*
 compare-alignments
 
 *.json
+
+#scicore
+
+slurm_*
+*.log

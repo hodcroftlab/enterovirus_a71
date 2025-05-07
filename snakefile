@@ -71,44 +71,44 @@ files = rules.files.input
 # Download from NBCI Virus with ingest snakefile
 ###############################
 
-rule fetch:
-    input:
-        dir = "ingest"
-    output:
-        sequences="data/sequences.fasta",
-        metadata=files.meta
-    params:
-        seq="ingest/data/sequences.fasta",
-        meta="ingest/data/metadata.tsv"
-    shell:
-        """
-        cd {input.dir} 
-        snakemake --cores 9 all
-        cd ../
-        cp -u {params.seq} {output.sequences}
-        cp -u {params.meta} {output.metadata}
-        """
+# rule fetch:
+#     input:
+#         dir = "ingest"
+#     output:
+#         sequences="data/sequences.fasta",
+#         metadata=files.meta
+#     params:
+#         seq="ingest/data/sequences.fasta",
+#         meta="ingest/data/metadata.tsv"
+#     shell:
+#         """
+#         cd {input.dir} 
+#         snakemake --cores 9 all
+#         cd ../
+#         cp -u {params.seq} {output.sequences}
+#         cp -u {params.meta} {output.metadata}
+#         """
 
 ##############################
 # Update strain names
 ###############################
 
-rule update_strain_names:
-    message:
-        """
-        Updating strain name in metadata.
-        """
-    input:
-        file_in =  files.meta
-    params:
-        backup = "data/strain_names_previous_run.tsv"
-    output:
-        file_out = "data/updated_strain_names.tsv"
-    shell:
-        """
-        time bash scripts/update_strain.sh {input.file_in} {params.backup} {output.file_out}
-        cp {output.file_out} {params.backup}
-        """
+# rule update_strain_names:
+#     message:
+#         """
+#         Updating strain name in metadata.
+#         """
+#     input:
+#         file_in =  files.meta
+#     params:
+#         backup = "data/strain_names_previous_run.tsv"
+#     output:
+#         file_out = "data/updated_strain_names.tsv"
+#     shell:
+#         """
+#         time bash scripts/update_strain.sh {input.file_in} {params.backup} {output.file_out}
+#         cp {output.file_out} {params.backup}
+#         """
 
 
 ##############################
@@ -248,7 +248,7 @@ rule add_metadata:
         metadata=files.meta,
         new_data=rules.curate.output.meta,
         regions=ancient(files.regions),
-        renamed_strains=rules.update_strain_names.output.file_out
+        renamed_strains="data/updated_strain_names.tsv"
     params:
         strain_id_field=config["id_field"],
         last_updated = files.last_updated_file,
@@ -377,7 +377,7 @@ rule align:
         allowed_mismatches = config["align"]["allowed_mismatches"],
         min_length = config["align"]["min_length"]
         ## min_length
-    threads: 9
+    threads: workflow.cores
     shell:
         """
         nextclade3 run \
@@ -459,11 +459,12 @@ rule tree:
     input:
         # alignment = rules.fix_align_codon.output.alignment
         alignment = rules.sub_alignments.output.alignment
-
+    benchmark:
+        "logs/tree.{seg}{gene}{protein}.log"
     output:
         # tree = "{seg}/results/tree_raw.nwk"
         tree = "{seg}/results/tree_raw{gene}{protein}.nwk"
-    threads: 9
+    threads: workflow.cores
     shell:
         """
         augur tree \
@@ -492,6 +493,8 @@ rule refine:
         alignment = rules.sub_alignments.output.alignment,
         metadata =  rules.add_metadata.output.metadata,
         reference = rules.reference_gb_to_fasta.output.reference
+    benchmark:
+        "logs/refine.{seg}{gene}{protein}.log"
     output:
         # tree = "{seg}/results/tree.nwk",
         # node_data = "{seg}/results/branch_lengths.json"
@@ -727,7 +730,8 @@ rule export:
     params:
         strain_id_field= config["id_field"],
         epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else "",
-
+    benchmark:
+        "logs/export.{seg}{gene}{protein}.log"
     output:
         auspice_json="auspice/enterovirus_A71_{seg}{gene}{protein}.json"
         # auspice_json = "auspice/enterovirus_A71_{seg}-accession.json"
