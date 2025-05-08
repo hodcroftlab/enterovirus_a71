@@ -337,3 +337,6 @@ MH084344
 
 # unknown collection date
 GU434678
+
+# outlier
+AF135934

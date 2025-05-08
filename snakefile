@@ -38,11 +38,14 @@ rule all:
 
 rule all_genes:
     input:
-        augur_jsons = expand("auspice/enterovirus_A71_gene_{genes}.json", genes=GENES)
+        seg_jsn = expand("auspice/enterovirus_A71_{segs}.json", segs=segments),
+        augur_jsons = expand("auspice/enterovirus_A71_gene_{genes}.json", genes=GENES),
+        
 
 rule all_proteins:
     input:
-        augur_jsons = expand("auspice/enterovirus_A71_protein_{proteins}.json", proteins=PROT)
+        augur_jsons = expand("auspice/enterovirus_A71_protein_{proteins}.json", proteins=PROT),
+        seg_jsn = expand("auspice/enterovirus_A71_{segs}.json", segs=segments)
 
 
 # Rule to handle configuration files
@@ -312,7 +315,10 @@ rule filter:
         sequences = "{seg}/results/filtered.fasta",
         reason ="{seg}/results/reasons.tsv",
     log:
-        log = "{seg}/results/filter.log"
+        log = "logs/filter.{seg}.log"
+    benchmark:
+        "benchmark/filter.{seg}.log"
+
     params:
         group_by = "country year",
         sequences_per_group = 5000, # 2000 originally
@@ -365,7 +371,8 @@ rule align:
         reference = rules.reference_gb_to_fasta.output.reference
     output:
         alignment = "{seg}/results/aligned.fasta"
-
+    benchmark:
+        "benchmark/align.{seg}.log"
     params:
         penalty_gap_extend = config["align"]["penalty_gap_extend"],
         penalty_gap_open = config["align"]["penalty_gap_open"],
@@ -407,6 +414,8 @@ rule sub_alignments:
     output:
         # alignment = "{seg}/results/aligned.fasta"
         alignment = "{seg}/results/aligned{gene}{protein}.fasta"
+    benchmark:
+        "benchmark/sub_alignments.{seg}{gene}{protein}.log"
     run:
         from Bio import SeqIO
         from Bio.Seq import Seq
@@ -460,7 +469,7 @@ rule tree:
         # alignment = rules.fix_align_codon.output.alignment
         alignment = rules.sub_alignments.output.alignment
     benchmark:
-        "logs/tree.{seg}{gene}{protein}.log"
+        "benchmark/tree.{seg}{gene}{protein}.log"
     output:
         # tree = "{seg}/results/tree_raw.nwk"
         tree = "{seg}/results/tree_raw{gene}{protein}.nwk"
@@ -494,7 +503,7 @@ rule refine:
         metadata =  rules.add_metadata.output.metadata,
         reference = rules.reference_gb_to_fasta.output.reference
     benchmark:
-        "logs/refine.{seg}{gene}{protein}.log"
+        "benchmark/refine.{seg}{gene}{protein}.log"
     output:
         # tree = "{seg}/results/tree.nwk",
         # node_data = "{seg}/results/branch_lengths.json"
@@ -507,10 +516,10 @@ rule refine:
         strain_id_field = config["id_field"],
         clock_rate = 0.004, # remove for estimation
         clock_std_dev = 0.0015,
-        # clock_rate_string = lambda wildcards: f"--clock-rate 0.004 --clock-std-dev 0.0015" if wildcards.gene or wildcards.quart else ""
-        rooting = lambda wildcards: "--root DQ341364 KF501389" if wildcards.seg == "whole_genome" or getattr(wildcards, "gene", None) else "", # rooting B5 and A; keeps tree structure
+        rooting = lambda wildcards: "--root DQ341364 KF501389" if (wildcards.seg == "whole_genome" and not wildcards.gene) or wildcards.seg == "vp1" else "", # rooting B5 and A; keeps tree structure
+
     log:
-        reasons_refine = "{seg}/results/refine{gene}{protein}.log" # number of dropped sequences
+        reasons_refine = "logs/refine.{seg}{gene}{protein}.log" # number of dropped sequences
     shell:
         """
         augur refine \
@@ -528,17 +537,16 @@ rule refine:
             --date-inference {params.date_inference} \
             --clock-filter-iqd {params.clock_filter_iqd} \
             {params.rooting} >> {log.reasons_refine} 2>&1
-        
-        dropped=$(comm -23 \
-            <(grep -oE '[^\(\),:]+' {input.tree} | sort -u) \
-            <(grep -oE '[^\(\),:]+' {output.tree} | sort -u)
-        )
-        dropped_count=$(echo "$dropped" | wc -l)
-
-        echo "Dropped sequences due to clock filter: $dropped_count" >> {log.reasons_refine}
-        echo "Dropped tip labels:" >> {log.reasons_refine}
-        echo "$dropped" >> {log.reasons_refine}
         """
+        #         dropped=$(comm -23 \
+        #     <(grep -oE '[^\(\),:]+' {input.tree} | sort -u) \
+        #     <(grep -oE '[^\(\),:]+' {output.tree} | sort -u)
+        # )
+        # dropped_count=$(echo "$dropped" | wc -l)
+
+        # echo "Dropped sequences due to clock filter: $dropped_count" >> {log.reasons_refine}
+        # echo "Dropped tip labels:" >> {log.reasons_refine}
+        # echo "$dropped" >> {log.reasons_refine}
         # echo -e "\\n Excluded tips count:" >> {log.reasons_refine}
         # grep "pruning leaf" {log.reasons_refine} | wc -l >> {log.reasons_refine}
         
@@ -731,7 +739,7 @@ rule export:
         strain_id_field= config["id_field"],
         epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else "",
     benchmark:
-        "logs/export.{seg}{gene}{protein}.log"
+        "benchmark/export.{seg}{gene}{protein}.log"
     output:
         auspice_json="auspice/enterovirus_A71_{seg}{gene}{protein}.json"
         # auspice_json = "auspice/enterovirus_A71_{seg}-accession.json"
