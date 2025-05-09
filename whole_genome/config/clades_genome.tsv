@@ -22,9 +22,17 @@ B3	nuc	2768	T
 B3	nuc	3296	G
 B3	nuc	6968	G
 
-B	nuc	500	C
-B	nuc	3317	C
-B	nuc	5243	A
+B	nuc	1199	T
+B	nuc	1739	G
+B	nuc	3134	T
+B	nuc	3692	T
+B	nuc	4121	C
+B	nuc	4997	T
+B	nuc	5546	T
+B	nuc	6161	T
+B	VP1	292	N
+B	2A	102	A
+
 
 C	nuc	308	A
 C	nuc	998	A

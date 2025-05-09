@@ -40,3 +40,4 @@ backup*
 *slurm.sh
 slurm_*
 *.log
+run.stats

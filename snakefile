@@ -34,18 +34,21 @@ INCL_ENPEN = False
 # Expand augur JSON paths
 rule all:
     input:
-        augur_jsons = expand("auspice/enterovirus_A71_{segs}.json", segs=segments)
+        augur_jsons = expand("auspice/enterovirus_A71_{segs}.json", segs=segments),
+        epitopes = "vp1/results/epitopes.json"
 
 rule all_genes:
     input:
         seg_jsn = expand("auspice/enterovirus_A71_{segs}.json", segs=segments),
         augur_jsons = expand("auspice/enterovirus_A71_gene_{genes}.json", genes=GENES),
+        epitopes = "vp1/results/epitopes.json"
         
 
 rule all_proteins:
     input:
         augur_jsons = expand("auspice/enterovirus_A71_protein_{proteins}.json", proteins=PROT),
-        seg_jsn = expand("auspice/enterovirus_A71_{segs}.json", segs=segments)
+        seg_jsn = expand("auspice/enterovirus_A71_{segs}.json", segs=segments),
+        epitopes = "vp1/results/epitopes.json"
 
 
 # Rule to handle configuration files
@@ -516,7 +519,11 @@ rule refine:
         strain_id_field = config["id_field"],
         clock_rate = 0.004, # remove for estimation
         clock_std_dev = 0.0015,
-        rooting = lambda wildcards: "--root DQ341364 KF501389" if (wildcards.seg == "whole_genome" and not wildcards.gene) or wildcards.seg == "vp1" else "", # rooting B5 and A; keeps tree structure
+        rooting = lambda wildcards: (
+            "--root DQ341364 KF501389" if (wildcards.seg == "whole_genome" and not wildcards.gene)
+            else "--root JN204010 DQ341364" if wildcards.seg == "vp1"
+            else ""
+        )
 
     log:
         reasons_refine = "logs/refine.{seg}{gene}{protein}.log" # number of dropped sequences
@@ -737,7 +744,7 @@ rule export:
         auspice_config = files.auspice_config
     params:
         strain_id_field= config["id_field"],
-        epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else "",
+        epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else "", ## please run the epitopes function
     benchmark:
         "benchmark/export.{seg}{gene}{protein}.log"
     output:
