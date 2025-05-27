@@ -32,4 +32,6 @@ export LMOD_DISABLE_SAME_NAME_AUTOSWAP="no"
 
 # Run Snakemake
 cd ~/nextstrain/enterovirus/enterovirus_a71/
+# time snakemake fetch -f --cores $SLURM_CPUS_PER_TASK --nolock --stats run.stats --rerun-incomplete
+time snakemake all --cores $SLURM_CPUS_PER_TASK --nolock --stats run.stats --rerun-incomplete
 time snakemake all_genes --cores $SLURM_CPUS_PER_TASK --nolock --stats run.stats --rerun-incomplete

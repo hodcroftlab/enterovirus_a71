@@ -106,6 +106,7 @@ files = rules.files.input
 #         """
 #     input:
 #         file_in =  files.meta
+#     localrule: True # can access internet
 #     params:
 #         backup = "data/strain_names_previous_run.tsv"
 #     output:

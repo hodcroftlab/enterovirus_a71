@@ -22,6 +22,7 @@ rule fetch_general_geolocation_rules:
         general_geolocation_rules="data/general-geolocation-rules.tsv",
     params:
         geolocation_rules_url=config["curate"]["geolocation_rules_url"],
+    localrule: True # can access internet
     shell:
         """
         curl {params.geolocation_rules_url} > {output.general_geolocation_rules}
