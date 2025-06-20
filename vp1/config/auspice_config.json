@@ -35,7 +35,7 @@
     },
     {
       "key": "clade_assignment",
-      "title": "VP1 Subgenogroup",
+      "title": "Subclade Annotation (VP1-based)",
       "type": "categorical"
     },
     {
@@ -89,22 +89,32 @@
       "type": "continuous"
     },
     {
-      "title": "Epitope at BC loop (94, 96, 97, 98, 99, 100, 101, 102, 103, 104)",
+      "title": "Epitope at BC loop",
       "type": "categorical",
       "key": "BC"
     },
     {
-      "title": "Epitope at DE loop (141,142,143,144,145,146,147,148,149)",
+      "title": "Epitope at DE loop",
       "type": "categorical",
       "key": "DE"
     },
     {
-      "title": "Epitope at C terminus (272, 273, 280, 281, 282, 283, 292,293,298)",
+      "key": "GH",
+      "title": "Epitope at GH loop",
+      "type": "categorical"
+    },
+    {
+      "key": "EF",
+      "title": "Epitope at EF loop",
+      "type": "categorical"
+    },
+    {
+      "title": "Epitope at C terminus",
       "type": "categorical",
       "key": "CTERM"
     },
     {
-      "title": "Surface C terminus (282, 292)",
+      "title": "Surface C terminus",
       "type": "categorical",
       "key": "Esc_CHN"
     },

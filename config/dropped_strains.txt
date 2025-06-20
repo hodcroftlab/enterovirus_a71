@@ -329,14 +329,42 @@ PP858877
 PP548273
 PP548263
 
-# pulling B clade
-GU434678
-
 # outlier
 MH084344
 
 # unknown collection date
 GU434678
+KM673244
 
-# outlier
+# too long; GPF included (Lab strain)
+AB469183
+
+# high divergence -- long branches
 AF135934
+LC627090
+LC627089
+ON502276
+KX372322
+PP855530
+KP289419
+MG367593
+
+
+# under-diverged
+FJ357371
+
+#high diverged
+AF119795
+AB575911
+
+# might help to normalize B5 clade
+HQ285102
+JN316095
+AB575911
+
+# pulling C4 up
+AF302996
+
+#highly diverged C4
+KF358275
+MN938568

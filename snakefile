@@ -13,9 +13,17 @@
 # To run specific proteins for tanglegrams:
 # snakemake --cores 9 all_proteins
 
-# Load config file
+from dotenv import load_dotenv
+import os
+from datetime import date
+import glob
+
 if not config:
     configfile: "config/config.yaml"
+
+load_dotenv(".env")
+REMOTE_GROUP = os.getenv("REMOTE_GROUP")
+UPLOAD_DATE = os.getenv("UPLOAD_DATE") or date.today().isoformat()
 
 ###############
 wildcard_constraints:
@@ -28,28 +36,9 @@ segments = ['vp1', 'whole-genome']
 GENES=["-5utr","-vp4", "-vp2", "-vp3", "-vp1", "-2A", "-2B", "-2C", "-3A", "-3B", "-3C", "-3D","-3utr"]
 PROT = ["-P1", "-P2", "-P3"]
 
-# include or exclude ENPEN data
-INCL_ENPEN = False
-
-# Expand augur JSON paths
-rule all:
-    input:
-        augur_jsons = expand("auspice/enterovirus_A71_{segs}.json", segs=segments),
-        epitopes = "vp1/results/epitopes.json"
-
-rule all_genes:
-    input:
-        seg_jsn = expand("auspice/enterovirus_A71_{segs}.json", segs=segments),
-        augur_jsons = expand("auspice/enterovirus_A71_gene_{genes}.json", genes=GENES),
-        epitopes = "vp1/results/epitopes.json"
-        
-
-rule all_proteins:
-    input:
-        augur_jsons = expand("auspice/enterovirus_A71_protein_{proteins}.json", proteins=PROT),
-        seg_jsn = expand("auspice/enterovirus_A71_{segs}.json", segs=segments),
-        epitopes = "vp1/results/epitopes.json"
-
+# parameters
+INCL_ENPEN = False # include or exclude ENPEN data
+DOWNLOAD_INGEST = False
 
 # Rule to handle configuration files
 rule files:
@@ -64,36 +53,60 @@ rule files:
         colors =            "config/colors.tsv",
         clades =            "{seg}/config/clades_genome.tsv",
         regions=            "config/geo_regions.tsv",
-        meta=               "data/metadata.tsv",
-        extended_metafile=  "data/meta_public.tsv",
+        meta_public=        "data/meta_public.tsv",
         meta_collab =       "data/meta_ENPEN.tsv",
         last_updated_file = "data/date_last_updated.txt",
-        local_accn_file =   "data/local_accn.txt"
+        local_accn_file =   "data/local_accn.txt",
+        SEQUENCES =         "data/sequences.fasta",
+        METADATA =          "data/metadata.tsv"
 
 
 files = rules.files.input
 
+# Expand augur JSON paths
+rule all:
+    input:
+        augur_jsons = expand("auspice/enterovirus_A71_{segs}.json", segs=segments),
+        epitopes = "vp1/results/epitopes.json",
+        meta = files.METADATA,
+        seq = files.SEQUENCES
+
+
+rule all_genes:
+    input:
+        seg_jsn = expand("auspice/enterovirus_A71_{segs}.json", segs=segments),
+        augur_jsons = expand("auspice/enterovirus_A71_gene_{genes}.json", genes=GENES),
+        epitopes = "vp1/results/epitopes.json",
+        meta = files.METADATA,
+        seq = files.SEQUENCES
+        
+
+rule all_proteins:
+    input:
+        augur_jsons = expand("auspice/enterovirus_A71_protein_{proteins}.json", proteins=PROT),
+        seg_jsn = expand("auspice/enterovirus_A71_{segs}.json", segs=segments),
+        epitopes = "vp1/results/epitopes.json",
+        meta = files.METADATA,
+        seq = files.SEQUENCES
+
+
 ##############################
 # Download from NBCI Virus with ingest snakefile
 ###############################
-
-# rule fetch:
-#     input:
-#         dir = "ingest"
-#     output:
-#         sequences="data/sequences.fasta",
-#         metadata=files.meta
-#     params:
-#         seq="ingest/data/sequences.fasta",
-#         meta="ingest/data/metadata.tsv"
-#     shell:
-#         """
-#         cd {input.dir} 
-#         snakemake --cores 9 all
-#         cd ../
-#         cp -u {params.seq} {output.sequences}
-#         cp -u {params.meta} {output.metadata}
-#         """
+if DOWNLOAD_INGEST:
+    rule fetch:
+        input:
+            dir = "ingest"
+        output:
+            sequences=files.SEQUENCES,
+            metadata=files.METADATA
+        shell:
+            """
+            cd {input.dir}
+            rm data/*.*
+            snakemake --cores 9 all
+            cd ../
+            """
 
 ##############################
 # Update strain names
@@ -105,7 +118,7 @@ files = rules.files.input
 #         Updating strain name in metadata.
 #         """
 #     input:
-#         file_in =  files.meta
+#         file_in =  files.METADATA
 #     localrule: True # can access internet
 #     params:
 #         backup = "data/strain_names_previous_run.tsv"
@@ -129,7 +142,7 @@ rule curate:
         Cleaning up metadata with augur curate
         """
     input:
-        metadata=files.extended_metafile,  # Path to input metadata file
+        metadata=files.meta_public,  # Path to input metadata file
         meta_collab = files.meta_collab  # Data shared with us by collaborators
     params:
         strain_id_field=config["id_field"],
@@ -177,8 +190,8 @@ rule curate:
 
 rule update_sequences:
     input:
-        sequences = "data/sequences.fasta",
-        metadata=files.meta,
+        sequences = files.SEQUENCES,
+        metadata=files.METADATA,
         extra_metadata = rules.curate.output.meta
     output:
         sequences = "data/all_sequences.fasta"
@@ -252,7 +265,7 @@ rule add_metadata:
         Cleaning data in metadata
         """
     input:
-        metadata=files.meta,
+        metadata=files.METADATA,
         new_data=rules.curate.output.meta,
         regions=ancient(files.regions),
         renamed_strains="data/updated_strain_names.tsv"
@@ -324,10 +337,10 @@ rule filter:
         "benchmark/filter.{seg}.log"
 
     params:
-        group_by = "country year",
+        group_by = "country",
         sequences_per_group = 5000, # 2000 originally
         strain_id_field=config["id_field"],
-        min_date = 1960,  # BrCr was collected in 1970
+        min_date = 1970,  # BrCr was collected in 1970
         exclude_enpen = "--exclude-where ENPEN=True" if not INCL_ENPEN else "" # INCL_ENPEN was defined on line 32
     shell:
         """
@@ -538,6 +551,7 @@ rule refine:
             --output-tree {output.tree} \
             --output-node-data {output.node_data} \
             --timetree \
+            --stochastic-resolve\
             --coalescent {params.coalescent} \
             --date-confidence \
             --clock-rate {params.clock_rate}\
@@ -669,12 +683,13 @@ rule epitopes:
     output:
         node_data = "{seg}/results/epitopes{gene}{protein}.json"
     params:
-        epitopes = {
-            # 'BC':[94, 96, 97, 98, 99, 100, 101, 102, 103, 104], 
-            # 'EF':{165, 167, 168},
-            # 'DE':[141,142,143,144,145,146,147,148,149],
-            # 'CTERM':[272, 273, 280, 281, 282, 283, 292,293], 
-            'Esc_CHN':[282, 292]}, # it is minus one!!!!
+        epitopes = { #it is minus one!!!!
+        'BC':     list(range(94, 106)),         # Huang et al., 2015; Foo et al., 2008; structural mapping of neutralizing antibodies
+        'DE':     list(range(141, 151)),        # Liu et al., 2011; Zaini et al., 2012.
+        'EF':     list(range(164, 172)),        # Lyu et al., 2014; Wang et al., 2010.
+        'CTERM':  list(range(280, 290)),        # Chang et al., 2012 (monoclonal antibody studies), structural models.
+        'GH':     list(range(208, 223)),        # mutations at S215, K218 have been noted to impact neutralization. Often used in vaccine design (e.g., in VLPs or epitope grafting studies).      
+        'Esc_CHN':[282, 292]},                  # Escape Mutations in C-Terminal in Chinese Samples
         min_count = 6 # number of sequences?
     run:
         import json
@@ -767,16 +782,6 @@ rule export:
         """
         # {input.epis} 
         
-rule clean:
-    message: "Removing directories: {params}"
-    params:
-        "results/*",
-        # "auspice/*",
-        "temp/*"
-    shell:
-        "rm -rfv {params}"
-
-
 rule rename_whole_genome:
     message: "Rename whole-genome built"
     input: 
@@ -814,4 +819,44 @@ rule rename_proteins:
     shell:
         """
         mv {input.json} {output.json}
+        """
+
+
+rule clean:
+    message: "Removing directories: {params}"
+    params:
+        "*/results/*",
+        "auspice/*",
+        "temp/*",
+        "logs/*",
+        "benchmark/*",
+        files.METADATA,
+        files.SEQUENCES,
+        "data/curated/*",
+        "data/all_sequences.fasta",
+        "data/all_metadata.tsv",
+        "data/final_metadata.tsv",
+
+
+    shell:
+        "rm -rfv {params}"
+
+
+rule upload: ## make sure you're logged in to Nextstrain
+    message: "Uploading auspice JSONs to Nextstrain"
+    input:
+        # jsons = glob.glob("auspice/*.json"),
+        jsons = ["auspice/enterovirus_A71_vp1.json", "auspice/enterovirus_A71_whole-genome.json",
+        "auspice/enterovirus_A71_gene_-vp1.json", "auspice/enterovirus_A71_gene_-3D.json"]
+    params:
+        remote_group=REMOTE_GROUP,
+        date=UPLOAD_DATE,
+    shell:
+        """
+        nextstrain remote upload \
+            nextstrain.org/groups/{params.remote_group}/ \
+            {input.jsons}
+
+        mkdir -p auspice/{params.date}
+        cp {input.jsons} auspice/{params.date}/
         """
