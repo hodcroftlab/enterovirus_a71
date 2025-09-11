@@ -100,5 +100,8 @@ if __name__ == '__main__':
     final_meta2 = final_meta2.drop(columns=["l_vp1"])
 
 
+    # add url with genbank accession
+    final_meta2['url'] = "https://www.ncbi.nlm.nih.gov/nuccore/" + final_meta2['accession']
+
     # save it to the new metadata file
     final_meta2.to_csv(args.output, sep='\t', index=False)

@@ -31,6 +31,7 @@ FEATURES             Location/Qualifiers
      CDS             1..891
                      /codon_start=1
                      /product="VP1"
+                     /gene="VP1"
                      /note="capsid protein"
                      /translation="GDRVADVIESSIGDSVSKALTPALPAPTGPDTQVSSHRLDTGKV
                      PALQAAEIGASSNASDESMIETRCVLNSHSTAETTLDSFFSRAGLVGEIDLPLKGTTN

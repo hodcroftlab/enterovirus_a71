@@ -13,9 +13,17 @@
 # To run specific proteins for tanglegrams:
 # snakemake --cores 9 all_proteins
 
-# Load config file
+from dotenv import load_dotenv
+import os
+from datetime import date
+import glob
+
 if not config:
     configfile: "config/config.yaml"
+
+load_dotenv(".env")
+REMOTE_GROUP = os.getenv("REMOTE_GROUP")
+UPLOAD_DATE = os.getenv("UPLOAD_DATE") or date.today().isoformat()
 
 ###############
 wildcard_constraints:
@@ -28,22 +36,9 @@ segments = ['vp1', 'whole-genome']
 GENES=["-5utr","-vp4", "-vp2", "-vp3", "-vp1", "-2A", "-2B", "-2C", "-3A", "-3B", "-3C", "-3D","-3utr"]
 PROT = ["-P1", "-P2", "-P3"]
 
-# include or exclude ENPEN data
-INCL_ENPEN = False
-
-# Expand augur JSON paths
-rule all:
-    input:
-        augur_jsons = expand("auspice/enterovirus_A71_{segs}.json", segs=segments)
-
-rule all_genes:
-    input:
-        augur_jsons = expand("auspice/enterovirus_A71_gene_{genes}.json", genes=GENES)
-
-rule all_proteins:
-    input:
-        augur_jsons = expand("auspice/enterovirus_A71_protein_{proteins}.json", proteins=PROT)
-
+# parameters
+INCL_ENPEN = False # include or exclude ENPEN data
+DOWNLOAD_INGEST = False
 
 # Rule to handle configuration files
 rule files:
@@ -58,60 +53,82 @@ rule files:
         colors =            "config/colors.tsv",
         clades =            "{seg}/config/clades_genome.tsv",
         regions=            "config/geo_regions.tsv",
-        meta=               "data/metadata.tsv",
-        extended_metafile=  "data/meta_public.tsv",
+        meta_public=        "data/meta_public.tsv",
         meta_collab =       "data/meta_ENPEN.tsv",
         last_updated_file = "data/date_last_updated.txt",
         local_accn_file =   "data/local_accn.txt",
-        strain_names =      "data/updated_strain_names.tsv"
+        strain_names =      "data/updated_strain_names.tsv",
+        SEQUENCES =         "data/sequences.fasta",
+        METADATA =          "data/metadata.tsv"
 
 
 files = rules.files.input
 
+# Expand augur JSON paths
+rule all:
+    input:
+        augur_jsons = expand("auspice/enterovirus_A71_{segs}.json", segs=segments),
+        epitopes = "vp1/results/epitopes.json",
+        meta = files.METADATA,
+        seq = files.SEQUENCES
+
+
+rule all_genes:
+    input:
+        seg_jsn = expand("auspice/enterovirus_A71_{segs}.json", segs=segments),
+        augur_jsons = expand("auspice/enterovirus_A71_gene_{genes}.json", genes=GENES),
+        epitopes = "vp1/results/epitopes.json",
+        meta = files.METADATA,
+        seq = files.SEQUENCES
+        
+
+rule all_proteins:
+    input:
+        augur_jsons = expand("auspice/enterovirus_A71_protein_{proteins}.json", proteins=PROT),
+        seg_jsn = expand("auspice/enterovirus_A71_{segs}.json", segs=segments),
+        epitopes = "vp1/results/epitopes.json",
+        meta = files.METADATA,
+        seq = files.SEQUENCES
+
+
 ##############################
 # Download from NBCI Virus with ingest snakefile
 ###############################
-
-rule fetch:
-    input:
-        dir = "ingest"
-    output:
-        sequences="data/sequences.fasta",
-        metadata=files.meta
-    params:
-        seq="ingest/data/sequences.fasta",
-        meta="ingest/data/metadata.tsv"
-    benchmark:
-        "logs/fetch.log"
-    shell:
-        """
-        cd {input.dir} 
-        snakemake --cores 9 all
-        cd ../
-        cp -u {params.seq} {output.sequences}
-        cp -u {params.meta} {output.metadata}
-        """
+if DOWNLOAD_INGEST:
+    rule fetch:
+        input:
+            dir = "ingest"
+        output:
+            sequences=files.SEQUENCES,
+            metadata=files.METADATA
+        shell:
+            """
+            cd {input.dir}
+            rm data/*.*
+            snakemake --cores 9 all
+            cd ../
+            """
 
 ##############################
 # Update strain names
 ###############################
 
-# rule update_strain_names:
-#     message:
-#         """
-#         Updating strain name in metadata.
-#         """
-#     input:
-#         file_in =  files.meta
-#     params:
-#         backup = "data/strain_names_previous_run.tsv"
-#     output:
-#         file_out = files.strain_names
-#     shell:
-#         """
-#         time bash scripts/update_strain.sh {input.file_in} {params.backup} {output.file_out}
-#         cp {output.file_out} {params.backup}
-#         """
+rule update_strain_names:
+    message:
+        """
+        Updating strain name in metadata.
+        """
+    input:
+        file_in =  files.meta
+    params:
+        backup = "data/strain_names_previous_run.tsv"
+    output:
+        file_out = files.strain_names
+    shell:
+        """
+        time bash scripts/update_strain.sh {input.file_in} {params.backup} {output.file_out}
+        cp {output.file_out} {params.backup}
+        """
 
 
 ##############################
@@ -125,7 +142,7 @@ rule curate:
         Cleaning up metadata with augur curate
         """
     input:
-        metadata=files.extended_metafile,  # Path to input metadata file
+        metadata=files.meta_public,  # Path to input metadata file
         meta_collab = files.meta_collab  # Data shared with us by collaborators
     params:
         strain_id_field=config["id_field"],
@@ -173,8 +190,8 @@ rule curate:
 
 rule update_sequences:
     input:
-        sequences = "data/sequences.fasta",
-        metadata=files.meta,
+        sequences = files.SEQUENCES,
+        metadata=files.METADATA,
         extra_metadata = rules.curate.output.meta
     output:
         sequences = "data/all_sequences.fasta"
@@ -248,7 +265,7 @@ rule add_metadata:
         Cleaning data in metadata
         """
     input:
-        metadata=files.meta,
+        metadata=files.METADATA,
         new_data=rules.curate.output.meta,
         regions=ancient(files.regions),
         renamed_strains=files.strain_names
@@ -315,12 +332,15 @@ rule filter:
         sequences = "{seg}/results/filtered.fasta",
         reason ="{seg}/results/reasons.tsv",
     log:
-        log = "{seg}/results/filter.log"
+        log = "logs/filter.{seg}.log"
+    benchmark:
+        "benchmark/filter.{seg}.log"
+
     params:
         group_by = "country",
         sequences_per_group = 5000, # 2000 originally
         strain_id_field=config["id_field"],
-        min_date = 1960,  # BrCr was collected in 1970
+        min_date = 1970,  # BrCr was collected in 1970
         exclude_enpen = "--exclude-where ENPEN=True" if not INCL_ENPEN else "" # INCL_ENPEN was defined on line 32
     shell:
         """
@@ -368,7 +388,9 @@ rule align:
         reference = rules.reference_gb_to_fasta.output.reference
     output:
         alignment = "{seg}/results/aligned.fasta",
-        tsv = "{seg}/results/nextclade.tsv",
+        tsv = "{seg}/results/nextclade.tsv",    
+    benchmark:
+        "benchmark/align.{seg}.log"
     params:
         penalty_gap_extend = config["align"]["penalty_gap_extend"],
         penalty_gap_open = config["align"]["penalty_gap_open"],
@@ -380,7 +402,7 @@ rule align:
         allowed_mismatches = config["align"]["allowed_mismatches"],
         min_length = config["align"]["min_length"]
         ## min_length
-    threads: 9
+    threads: workflow.cores
     shell:
         """
         nextclade3 run \
@@ -410,6 +432,8 @@ rule sub_alignments:
         reference=files.reference
     output:
         alignment = "{seg}/results/aligned{gene}{protein}.fasta"
+    benchmark:
+        "benchmark/sub_alignments.{seg}{gene}{protein}.log"
     run:
         from Bio import SeqIO
         from Bio.Seq import Seq
@@ -464,7 +488,8 @@ rule tree:
     input:
         # alignment = rules.fix_align_codon.output.alignment
         alignment = rules.sub_alignments.output.alignment
-
+    benchmark:
+        "benchmark/tree.{seg}{gene}{protein}.log"
     output:
         # tree = "{seg}/results/tree_raw.nwk"
         tree = "{seg}/results/tree_raw{gene}{protein}.nwk"
@@ -498,6 +523,8 @@ rule refine:
         alignment = rules.sub_alignments.output.alignment,
         metadata =  rules.add_metadata.output.metadata,
         reference = rules.reference_gb_to_fasta.output.reference
+    benchmark:
+        "benchmark/refine.{seg}{gene}{protein}.log"
     output:
         # tree = "{seg}/results/tree.nwk",
         # node_data = "{seg}/results/branch_lengths.json"
@@ -512,10 +539,14 @@ rule refine:
         strain_id_field = config["id_field"],
         clock_rate = 0.004, # remove for estimation
         clock_std_dev = 0.0015,
-        # clock_rate_string = lambda wildcards: f"--clock-rate 0.004 --clock-std-dev 0.0015" if wildcards.gene or wildcards.quart else ""
-        rooting = lambda wildcards: "--root DQ341364 KF501389" if wildcards.seg == "whole_genome" or getattr(wildcards, "gene", None) else "", # rooting B5 and A; keeps tree structure
+        rooting = lambda wildcards: (
+            "--root DQ341364 KF501389" if (wildcards.seg == "whole_genome" and not wildcards.gene)
+            else "--root JN204010 DQ341364" if wildcards.seg == "vp1"
+            else ""
+        )
+
     log:
-        reasons_refine = "{seg}/results/refine{gene}{protein}.log" # number of dropped sequences
+        reasons_refine = "logs/refine.{seg}{gene}{protein}.log" # number of dropped sequences
     shell:
         """
         augur refine \
@@ -525,18 +556,17 @@ rule refine:
             --metadata-id-columns {params.strain_id_field} \
             --output-tree {output.tree} \
             --output-node-data {output.node_data} \
-            --stochastic-resolve \
+            --timetree \
+            --stochastic-resolve\
             --coalescent {params.coalescent} \
             --date-confidence \
             --clock-rate {params.clock_rate}\
             --clock-std-dev {params.clock_std_dev} \
             --date-inference {params.date_inference} \
             --clock-filter-iqd {params.clock_filter_iqd} \
-            {params.rooting}
+            {params.rooting} >> {log.reasons_refine} 2>&1
         """
-        # echo -e "\\n Excluded tips count:" >> {log.reasons_refine}
-        # grep "pruning leaf" {log.reasons_refine} | wc -l >> {log.reasons_refine}
-        
+       
 
 rule ancestral:
     message: "Reconstructing ancestral sequences and mutations"
@@ -674,12 +704,13 @@ rule epitopes:
     output:
         node_data = "{seg}/results/epitopes{gene}{protein}.json"
     params:
-        epitopes = {
-            # 'BC':[94, 96, 97, 98, 99, 100, 101, 102, 103, 104], 
-            # 'EF':{165, 167, 168},
-            # 'DE':[141,142,143,144,145,146,147,148,149],
-            # 'CTERM':[272, 273, 280, 281, 282, 283, 292,293], 
-            'Esc_CHN':[282, 292]}, # it is minus one!!!!
+        epitopes = { #it is minus one!!!!
+        'BC':     list(range(94, 106)),         # Huang et al., 2015; Foo et al., 2008; structural mapping of neutralizing antibodies
+        'DE':     list(range(141, 151)),        # Liu et al., 2011; Zaini et al., 2012.
+        'EF':     list(range(164, 172)),        # Lyu et al., 2014; Wang et al., 2010.
+        'CTERM':  list(range(280, 290)),        # Chang et al., 2012 (monoclonal antibody studies), structural models.
+        'GH':     list(range(208, 223)),        # mutations at S215, K218 have been noted to impact neutralization. Often used in vaccine design (e.g., in VLPs or epitope grafting studies).      
+        'Esc_CHN':[282, 292]},                  # Escape Mutations in C-Terminal in Chinese Samples
         min_count = 6 # number of sequences?
     run:
         import json
@@ -750,10 +781,9 @@ rule export:
         auspice_config = files.auspice_config
     params:
         strain_id_field= config["id_field"],
-        epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else "",
+        epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else "", ## please run the epitopes function
     benchmark:
-        "logs/export.{seg}{gene}{protein}.log"
-
+        "benchmark/export.{seg}{gene}{protein}.log"
     output:
         auspice_json="auspice/enterovirus_A71_{seg}{gene}{protein}.json"
         # auspice_json = "auspice/enterovirus_A71_{seg}-accession.json"
@@ -773,16 +803,6 @@ rule export:
         """
         # {input.epis} 
         
-rule clean:
-    message: "Removing directories: {params}"
-    params:
-        "results/*",
-        # "auspice/*",
-        "temp/*"
-    shell:
-        "rm -rfv {params}"
-
-
 rule rename_whole_genome:
     message: "Rename whole-genome built"
     input: 
@@ -820,4 +840,44 @@ rule rename_proteins:
     shell:
         """
         mv {input.json} {output.json}
+        """
+
+
+rule clean:
+    message: "Removing directories: {params}"
+    params:
+        "*/results/*",
+        "auspice/*",
+        "temp/*",
+        "logs/*",
+        "benchmark/*",
+        files.METADATA,
+        files.SEQUENCES,
+        "data/curated/*",
+        "data/all_sequences.fasta",
+        "data/all_metadata.tsv",
+        "data/final_metadata.tsv",
+
+
+    shell:
+        "rm -rfv {params}"
+
+
+rule upload: ## make sure you're logged in to Nextstrain
+    message: "Uploading auspice JSONs to Nextstrain"
+    input:
+        # jsons = glob.glob("auspice/*.json"),
+        jsons = ["auspice/enterovirus_A71_vp1.json", "auspice/enterovirus_A71_whole-genome.json",
+        "auspice/enterovirus_A71_gene_-vp1.json", "auspice/enterovirus_A71_gene_-3D.json"]
+    params:
+        remote_group=REMOTE_GROUP,
+        date=UPLOAD_DATE,
+    shell:
+        """
+        nextstrain remote upload \
+            nextstrain.org/groups/{params.remote_group}/ \
+            {input.jsons}
+
+        mkdir -p auspice/{params.date}
+        cp {input.jsons} auspice/{params.date}/
         """

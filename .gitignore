@@ -34,8 +34,12 @@ strain_accession.txt
 
 backup*
 
-compare-alignments
-
 *.json
+
+#scicore
+*slurm.sh
+slurm_*
+*.log
+run.stats
 
 *.log

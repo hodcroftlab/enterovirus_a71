@@ -35,7 +35,7 @@
     },
     {
       "key": "clade_assignment",
-      "title": "VP1 Subgenogroup",
+      "title": "Subclade Annotation (VP1-based)",
       "type": "categorical"
     },
     {
