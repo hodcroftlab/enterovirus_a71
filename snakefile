@@ -62,7 +62,8 @@ rule files:
         extended_metafile=  "data/meta_public.tsv",
         meta_collab =       "data/meta_ENPEN.tsv",
         last_updated_file = "data/date_last_updated.txt",
-        local_accn_file =   "data/local_accn.txt"
+        local_accn_file =   "data/local_accn.txt",
+        strain_names =      "data/updated_strain_names.tsv"
 
 
 files = rules.files.input
@@ -95,22 +96,22 @@ rule fetch:
 # Update strain names
 ###############################
 
-rule update_strain_names:
-    message:
-        """
-        Updating strain name in metadata.
-        """
-    input:
-        file_in =  files.meta
-    params:
-        backup = "data/strain_names_previous_run.tsv"
-    output:
-        file_out = "data/updated_strain_names.tsv"
-    shell:
-        """
-        time bash scripts/update_strain.sh {input.file_in} {params.backup} {output.file_out}
-        cp {output.file_out} {params.backup}
-        """
+# rule update_strain_names:
+#     message:
+#         """
+#         Updating strain name in metadata.
+#         """
+#     input:
+#         file_in =  files.meta
+#     params:
+#         backup = "data/strain_names_previous_run.tsv"
+#     output:
+#         file_out = files.strain_names
+#     shell:
+#         """
+#         time bash scripts/update_strain.sh {input.file_in} {params.backup} {output.file_out}
+#         cp {output.file_out} {params.backup}
+#         """
 
 
 ##############################
@@ -250,7 +251,7 @@ rule add_metadata:
         metadata=files.meta,
         new_data=rules.curate.output.meta,
         regions=ancient(files.regions),
-        renamed_strains=rules.update_strain_names.output.file_out
+        renamed_strains=files.strain_names
     params:
         strain_id_field=config["id_field"],
         last_updated = files.last_updated_file,
@@ -316,7 +317,7 @@ rule filter:
     log:
         log = "{seg}/results/filter.log"
     params:
-        group_by = "country year",
+        group_by = "country",
         sequences_per_group = 5000, # 2000 originally
         strain_id_field=config["id_field"],
         min_date = 1960,  # BrCr was collected in 1970
@@ -366,8 +367,8 @@ rule align:
         sequences = rules.filter.output.sequences,
         reference = rules.reference_gb_to_fasta.output.reference
     output:
-        alignment = "{seg}/results/aligned.fasta"
-
+        alignment = "{seg}/results/aligned.fasta",
+        tsv = "{seg}/results/nextclade.tsv",
     params:
         penalty_gap_extend = config["align"]["penalty_gap_extend"],
         penalty_gap_open = config["align"]["penalty_gap_open"],
@@ -397,17 +398,17 @@ rule align:
         --allowed-mismatches {params.allowed_mismatches} \
         --min-length {params.min_length} \
         --include-reference false \
-        --output-fasta {output.alignment} 
+        --output-tsv {output.tsv} \
+        --output-translations "{wildcards.seg}/results/translations/nextclade.cds_translation.{{cds}}.fasta" \
+        --output-fasta {output.alignment}
         """
 
-# potentially add one-by-one genes
-# use wildcards
+#  one-by-one genes
 rule sub_alignments:
     input:
         alignment=rules.align.output.alignment,
         reference=files.reference
     output:
-        # alignment = "{seg}/results/aligned.fasta"
         alignment = "{seg}/results/aligned{gene}{protein}.fasta"
     run:
         from Bio import SeqIO
@@ -416,8 +417,10 @@ rule sub_alignments:
         if wildcards.protein:
             real_gene = wildcards.protein.replace("-", "", 1)
             boundaries = {
-                'P1':(744,3329),  'P2':(3330,5063),
-                'P3':(5064,7322)}
+                'P1': (744, 3329),
+                'P2': (3330, 5063),
+                'P3': (5064, 7322)
+            }
             b = boundaries[real_gene]
         else:
             real_gene = wildcards.gene.replace("-", "", 1)
@@ -443,7 +446,7 @@ rule sub_alignments:
             for record in alignment:
                 sequence = Seq(record.seq)
                 gene_keep = sequence[b[0]:b[1]]
-                if set(gene_keep) == {"N"} or len(gene_keep) == 0 or set(gene_keep) == {"-"}:
+                if set(gene_keep) in [{"N"}, {"-"}, set()]:
                     continue  # Skip sequences that are entirely masked
                 sequence = len(sequence) * "N"
                 sequence = sequence[:b[0]] + gene_keep + sequence[b[1]:]
@@ -522,24 +525,14 @@ rule refine:
             --metadata-id-columns {params.strain_id_field} \
             --output-tree {output.tree} \
             --output-node-data {output.node_data} \
-            --timetree \
+            --stochastic-resolve \
             --coalescent {params.coalescent} \
             --date-confidence \
             --clock-rate {params.clock_rate}\
             --clock-std-dev {params.clock_std_dev} \
             --date-inference {params.date_inference} \
             --clock-filter-iqd {params.clock_filter_iqd} \
-            {params.rooting} >> {log.reasons_refine} 2>&1
-        
-        dropped=$(comm -23 \
-            <(grep -oE '[^\(\),:]+' {input.tree} | sort -u) \
-            <(grep -oE '[^\(\),:]+' {output.tree} | sort -u)
-        )
-        dropped_count=$(echo "$dropped" | wc -l)
-
-        echo "Dropped sequences due to clock filter: $dropped_count" >> {log.reasons_refine}
-        echo "Dropped tip labels:" >> {log.reasons_refine}
-        echo "$dropped" >> {log.reasons_refine}
+            {params.rooting}
         """
         # echo -e "\\n Excluded tips count:" >> {log.reasons_refine}
         # grep "pruning leaf" {log.reasons_refine} | wc -l >> {log.reasons_refine}
@@ -549,21 +542,37 @@ rule ancestral:
     message: "Reconstructing ancestral sequences and mutations"
     input:
         tree = rules.refine.output.tree,
-        alignment = rules.sub_alignments.output.alignment
+        alignment = rules.sub_alignments.output.alignment,
+        annotation = files.reference,
+
     output:
         # node_data = "{seg}/results/nt_muts.json"
         node_data = "{seg}/results/nt_muts{gene}{protein}.json"
     params:
-        inference = "joint"
-    shell:
-        """
-        augur ancestral \
-            --tree {input.tree} \
-            --alignment {input.alignment} \
-            --output-node-data {output.node_data} \
-            --keep-ambiguous\
-            --inference {params.inference}
-        """
+        inference = "joint",
+        genes = lambda wildcards: wildcards.gene.replace("-", "", 1).upper(),
+    run:
+        if wildcards.gene in ["-5utr", "-3utr"]:
+            shell("""
+                augur ancestral \
+                --tree {input.tree} \
+                --alignment {input.alignment} \
+                --annotation {input.annotation} \
+                --root-sequence {input.annotation} \
+                --output-node-data {output.node_data}
+            """)
+        else:
+            shell("""
+                augur ancestral \
+                --tree {input.tree} \
+                --alignment {input.alignment} \
+                --annotation {input.annotation} \
+                --root-sequence {input.annotation} \
+                --genes {params.genes} \
+                --translations {wildcards.seg}/results/translations/nextclade.cds_translation.{params.genes}.fasta \
+                --output-node-data {output.node_data}
+            """)
+        # --keep-ambiguous\ #do not infer nucleotides at ambiguous (N) sites on tip sequences (leave as N).
  
 rule translate:
     message: "Translating amino acid sequences"
@@ -571,17 +580,24 @@ rule translate:
         tree = rules.refine.output.tree,
         node_data = rules.ancestral.output.node_data,
         reference = files.reference
+    params:
+        genes=lambda wildcards: wildcards.gene.replace("-", "", 1).upper()
     output:
         node_data = "{seg}/results/aa_muts{gene}{protein}.json"
         # node_data = "{seg}/results/aa_muts.json"
-    shell:
-        """
-        augur translate \
-            --tree {input.tree} \
-            --ancestral-sequences {input.node_data} \
-            --reference-sequence {input.reference} \
-            --output-node-data {output.node_data}
-        """
+    run:
+        if wildcards.gene.lower() in ["-5utr", "-3utr"]:
+            # skip non-coding regions
+            print(f"Skipping translate for non-coding region: {wildcards.gene}")
+        else:
+            shell("""
+                augur translate \
+                    --tree {input.tree} \
+                    --ancestral-sequences {input.node_data} \
+                    --genes {params.genes} \
+                    --reference-sequence {input.reference} \
+                    --output-node-data {output.node_data}
+            """)
 
 rule traits:
     message: "Inferring ancestral traits for {params.traits!s}"

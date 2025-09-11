@@ -30,7 +30,7 @@ FEATURES             Location/Qualifiers
      CDS             1..743
                      /Note="untranslated region"
                      /gbkey="Prot"
-                     /product="5'UTR"
+                     /product="5UTR"
                      /Name="5UTR"
                      /locus_tag="5UTR"
      CDS             744..950
@@ -95,7 +95,7 @@ FEATURES             Location/Qualifiers
      CDS             7323..7408
                      /Note="untranslated region"
                      /gbkey="Prot"
-                     /product="3'UTR"
+                     /product="3UTR"
                      /Name="3UTR"
                      /locus_tag="3UTR"                     
 ORIGIN
