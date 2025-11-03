@@ -792,7 +792,8 @@ rule export:
         colors = files.colors,
         lat_longs = files.lat_longs,
         vaccine = "config/vaccine.json",
-        auspice_config = files.auspice_config
+        auspice_config = files.auspice_config,
+        config_dates = "config/date_bounds.json"
     params:
         strain_id_field= config["id_field"],
         epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else "", ## please run the epitopes function
