@@ -106,7 +106,7 @@
     {
       "key": "date_added",
       "title": "Date when added to build",
-      "type": "ordinal"
+      "type": "categorical"
     }
   ],
   "geo_resolutions": [
@@ -147,6 +147,7 @@
     "ENPEN",
     "length_VP1",
     "med_diagnosis_major",
+    "isolation_source",
     "has_age",
     "has_diagnosis",
     "date_added"

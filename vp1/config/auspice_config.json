@@ -136,7 +136,7 @@
     {
       "key": "date_added",
       "title": "Date when added to build",
-      "type": "ordinal"
+      "type": "categorical"
     }
   ],
   "geo_resolutions": [
