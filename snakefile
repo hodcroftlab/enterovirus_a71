@@ -35,10 +35,11 @@ wildcard_constraints:
 segments = ['vp1', 'whole-genome']
 GENES=["-5utr","-vp4", "-vp2", "-vp3", "-vp1", "-2A", "-2B", "-2C", "-3A", "-3B", "-3C", "-3D","-3utr"]
 PROT = ["-P1", "-P2", "-P3"]
+CODING_GENES = ["VP4", "VP2", "VP3", "VP1", "2A", "2B", "2C", "3A", "3B", "3C", "3D"]
 
 # parameters
 INCL_ENPEN = False # include or exclude ENPEN data
-DOWNLOAD_INGEST = False
+DOWNLOAD_INGEST = True
 
 # Rule to handle configuration files
 rule files:
@@ -90,6 +91,13 @@ rule all_proteins:
         meta = files.METADATA,
         seq = files.SEQUENCES
 
+rule next_update:
+    input:
+        "auspice/enterovirus_A71_vp1.json", 
+        "auspice/enterovirus_A71_whole-genome.json",
+        "auspice/enterovirus_A71_gene_-vp1.json", 
+        "auspice/enterovirus_A71_gene_-3D.json"
+
 
 ##############################
 # Download from NBCI Virus with ingest snakefile
@@ -104,7 +112,6 @@ if DOWNLOAD_INGEST:
         shell:
             """
             cd {input.dir}
-            rm data/*.*
             snakemake --cores 9 all
             cd ../
             """
@@ -119,7 +126,7 @@ rule update_strain_names:
         Updating strain name in metadata.
         """
     input:
-        file_in =  files.meta
+        file_in =  files.METADATA
     params:
         backup = "data/strain_names_previous_run.tsv"
     output:
@@ -320,7 +327,6 @@ rule filter:
           - {params.sequences_per_group} sequence(s) per {params.group_by!s}
           - from {params.min_date} onwards
           - excluding strains in {input.exclude}
-        Log file in {log.log}
         """
     input:
         sequences = rules.blast_sort.output.sequences, ## x had no sequence data -> dropped because they don't meet the min sequence length in blast_sort
@@ -331,20 +337,15 @@ rule filter:
     output:
         sequences = "{seg}/results/filtered.fasta",
         reason ="{seg}/results/reasons.tsv",
-    log:
-        log = "logs/filter.{seg}.log"
-    benchmark:
-        "benchmark/filter.{seg}.log"
-
     params:
-        group_by = "country",
-        sequences_per_group = 5000, # 2000 originally
-        strain_id_field=config["id_field"],
+        group_by = "country year", # dropped because of ambiguous year information
+        sequences_per_group = 800, # set lower if you want to have a max sequences per group
+        strain_id_field = config["id_field"],
         min_date = 1970,  # BrCr was collected in 1970
         exclude_enpen = "--exclude-where ENPEN=True" if not INCL_ENPEN else "" # INCL_ENPEN was defined on line 32
     shell:
         """
-        (augur filter \
+        augur filter \
             --sequences {input.sequences} \
             --sequence-index {input.sequence_index} \
             --metadata {input.metadata} \
@@ -355,8 +356,8 @@ rule filter:
             --group-by {params.group_by} \
             --sequences-per-group {params.sequences_per_group} \
             --min-date {params.min_date} \
-            --output {output.sequences}\
-            --output-log {output.reason}) > {log.log} 2>&1
+            --output-sequences {output.sequences}\
+            --output-log {output.reason}
         """
 
 ##############################
@@ -421,7 +422,7 @@ rule align:
         --min-length {params.min_length} \
         --include-reference false \
         --output-tsv {output.tsv} \
-        --output-translations "{wildcards.seg}/results/translations/nextclade.cds_translation.{{cds}}.fasta" \
+        --output-translations "{wildcards.seg}/results/translations/cds_{{cds}}.translation.fasta" \
         --output-fasta {output.alignment}
         """
 
@@ -472,7 +473,7 @@ rule sub_alignments:
                 gene_keep = sequence[b[0]:b[1]]
                 if set(gene_keep) in [{"N"}, {"-"}, set()]:
                     continue  # Skip sequences that are entirely masked
-                sequence = len(sequence) * "N"
+                sequence = len(sequence) * "-"
                 sequence = sequence[:b[0]] + gene_keep + sequence[b[1]:]
                 record.seq = Seq(sequence)
                 SeqIO.write(record, oh, "fasta")
@@ -535,15 +536,17 @@ rule refine:
     params:
         coalescent = "opt",
         date_inference = "marginal",
-        clock_filter_iqd = 3, # originally 3; set to 6 if you want more control over outliers
+        clock_filter_iqd = 8, # originally 3; set to 6 if you want more control over outliers
         strain_id_field = config["id_field"],
         clock_rate = 0.004, # remove for estimation
         clock_std_dev = 0.0015,
-        rooting = lambda wildcards: (
-            "--root DQ341364 KF501389" if (wildcards.seg == "whole_genome" and not wildcards.gene)
-            else "--root JN204010 DQ341364" if wildcards.seg == "vp1"
-            else ""
-        )
+        rooting = "",
+        # rooting = "--root DQ341364 KF501389",
+        # rooting = lambda wildcards: (
+        #     "--root DQ341364 KF501389" if (wildcards.seg == "whole_genome" and not wildcards.gene)
+        #     else "--root JN204010 DQ341364" if wildcards.seg == "vp1"
+        #     else ""
+        # )
 
     log:
         reasons_refine = "logs/refine.{seg}{gene}{protein}.log" # number of dropped sequences
@@ -574,60 +577,72 @@ rule ancestral:
         tree = rules.refine.output.tree,
         alignment = rules.sub_alignments.output.alignment,
         annotation = files.reference,
-
     output:
-        # node_data = "{seg}/results/nt_muts.json"
-        node_data = "{seg}/results/nt_muts{gene}{protein}.json"
+        node_data = "{seg}/results/muts{gene}{protein}.json",
     params:
         inference = "joint",
-        genes = lambda wildcards: wildcards.gene.replace("-", "", 1).upper(),
+        genes = lambda wildcards: "VP1" if wildcards.seg == "vp1" else (wildcards.gene.replace("-", "", 1).upper() if wildcards.gene else CODING_GENES), 
+        translation_template= r"{seg}/results/translations/cds_%GENE.translation.fasta",
+        output_translation_template=r"{seg}/results/translations/cds_%GENE.ancestral.fasta",
+        root = "{seg}/results/ancestral_sequences.fasta",
+
     run:
-        if wildcards.gene in ["-5utr", "-3utr"]:
+        # Check if this is for a specific gene (wildcards.gene is not empty)
+        if wildcards.gene != "":
+            # Running for a specific gene
             shell("""
                 augur ancestral \
                 --tree {input.tree} \
                 --alignment {input.alignment} \
-                --annotation {input.annotation} \
-                --root-sequence {input.annotation} \
-                --output-node-data {output.node_data}
+                --output-node-data {output.node_data} \
+                --keep-ambiguous \
+                --inference {params.inference}
             """)
         else:
+            # Running for whole genome with translation
             shell("""
                 augur ancestral \
                 --tree {input.tree} \
                 --alignment {input.alignment} \
                 --annotation {input.annotation} \
-                --root-sequence {input.annotation} \
                 --genes {params.genes} \
-                --translations {wildcards.seg}/results/translations/nextclade.cds_translation.{params.genes}.fasta \
-                --output-node-data {output.node_data}
+                --translations {params.translation_template} \
+                --output-node-data {output.node_data} \
+                --output-translations {params.output_translation_template} \
+                --output-sequences {params.root} \
+                --skip-validation
             """)
         # --keep-ambiguous\ #do not infer nucleotides at ambiguous (N) sites on tip sequences (leave as N).
+        # --root-sequence {input.annotation} \  -> assigns mutations to the root relative to the reference, not wanted here
  
-rule translate:
-    message: "Translating amino acid sequences"
-    input:
-        tree = rules.refine.output.tree,
-        node_data = rules.ancestral.output.node_data,
-        reference = files.reference
-    params:
-        genes=lambda wildcards: wildcards.gene.replace("-", "", 1).upper()
-    output:
-        node_data = "{seg}/results/aa_muts{gene}{protein}.json"
-        # node_data = "{seg}/results/aa_muts.json"
-    run:
-        if wildcards.gene.lower() in ["-5utr", "-3utr"]:
-            # skip non-coding regions
-            print(f"Skipping translate for non-coding region: {wildcards.gene}")
-        else:
-            shell("""
-                augur translate \
-                    --tree {input.tree} \
-                    --ancestral-sequences {input.node_data} \
-                    --genes {params.genes} \
-                    --reference-sequence {input.reference} \
-                    --output-node-data {output.node_data}
-            """)
+# rule translate:
+#     message: "Translating amino acid sequences"
+#     input:
+#         tree = rules.refine.output.tree,
+#         node_data = rules.ancestral.output.node_data,
+#         reference = files.reference
+#     params:
+#         genes=CODING_GENES
+#     output:
+#         node_data = "{seg}/results/aa_muts{gene}{protein}.json"
+#         # node_data = "{seg}/results/aa_muts.json"
+#     run:
+#         if wildcards.gene!="":
+#             shell("""
+#                 augur translate \
+#                     --tree {input.tree} \
+#                     --ancestral-sequences {input.node_data} \
+#                     --reference-sequence {input.reference} \
+#                     --output-node-data {output.node_data}
+#             """)
+#         else:
+#             shell("""
+#                 augur translate \
+#                     --tree {input.tree} \
+#                     --ancestral-sequences {input.node_data} \
+#                     --reference-sequence {input.reference} \
+#                     --output-node-data {output.node_data}
+#             """)
 
 rule traits:
     message: "Inferring ancestral traits for {params.traits!s}"
@@ -640,9 +655,6 @@ rule traits:
     params:
         traits = "country",
         strain_id_field= config["id_field"]
-    benchmark:
-        "logs/traits.{seg}{gene}{protein}.log"
-
     shell:
         """
         augur traits \
@@ -662,8 +674,7 @@ rule clades:
     message: "Assigning clades according to nucleotide mutations"
     input:
         tree=rules.refine.output.tree,
-        aa_muts = rules.translate.output.node_data,
-        nuc_muts = rules.ancestral.output.node_data,
+        muts = rules.ancestral.output.node_data,
         clades = files.clades
     output:
         # clade_data = "{seg}/results/clades.json"
@@ -671,7 +682,7 @@ rule clades:
     shell:
         """
         augur clades --tree {input.tree} \
-            --mutations {input.nuc_muts} {input.aa_muts} \
+            --mutations {input.muts} \
             --clades {input.clades} \
             --output-node-data {output.clade_data}
         """
@@ -699,29 +710,32 @@ rule clade_published:
 ###############################
 rule epitopes:
     input:
-        anc_seqs = rules.ancestral.output.node_data, #"results/nt_muts_vp1.json",
+        anc_seqs = rules.ancestral.output.node_data, #"results/muts_vp1.json",
         tree = rules.refine.output.tree #"results/tree_vp1.nwk"
     output:
         node_data = "{seg}/results/epitopes{gene}{protein}.json"
     params:
+        translation = "vp1/results/translations/cds_VP1.ancestral.fasta",
         epitopes = { #it is minus one!!!!
-        'BC':     list(range(94, 106)),         # Huang et al., 2015; Foo et al., 2008; structural mapping of neutralizing antibodies
-        'DE':     list(range(141, 151)),        # Liu et al., 2011; Zaini et al., 2012.
-        'EF':     list(range(164, 172)),        # Lyu et al., 2014; Wang et al., 2010.
-        'CTERM':  list(range(280, 290)),        # Chang et al., 2012 (monoclonal antibody studies), structural models.
-        'GH':     list(range(208, 223)),        # mutations at S215, K218 have been noted to impact neutralization. Often used in vaccine design (e.g., in VLPs or epitope grafting studies).      
-        'Esc_CHN':[282, 292]},                  # Escape Mutations in C-Terminal in Chinese Samples
+        'BC':     list(range(95, 107)),         # Huang et al., 2015; Foo et al., 2008; structural mapping of neutralizing antibodies
+        'DE':     list(range(142, 152)),        # Liu et al., 2011; Zaini et al., 2012.
+        'EF':     list(range(165, 173)),        # Lyu et al., 2014; Wang et al., 2010.
+        'CTERM':  list(range(281, 291)),        # Chang et al., 2012 (monoclonal antibody studies), structural models.
+        'GH':     list(range(209, 224)),        # mutations at S215, K218 have been noted to impact neutralization. Often used in vaccine design (e.g., in VLPs or epitope grafting studies).      
+        'Esc_CHN':[283, 293]},                  # Escape Mutations in C-Terminal in Chinese Samples
         min_count = 6 # number of sequences?
     run:
         import json
         from collections import defaultdict
-        from augur.translate import safe_translate
-        from Bio import Phylo
+        from Bio import Phylo, SeqIO
 
         manyXList = ["XXXXXXXXXXXX", "KEXXXXXXXXXX", "KERANXXXXXXX", "KERXXXXXXXXX", "KERAXXXXXXXX"]
         valid_esc_chn = {"SA", "TA", "TX", "TS", "SS", "XX"}  # Set of valid values for Esc_CHN
-        with open(input.anc_seqs) as fh:
-            anc = json.load(fh)["nodes"]
+        # with open(input.anc_seqs) as fh:
+        #     anc = json.load(fh)["nodes"]
+
+        # Read translation files
+        vp1_anc = SeqIO.to_dict(SeqIO.parse(params.translation, "fasta"))
 
         T = Phylo.read(input.tree, 'newick')
         for node in T.find_clades(order='preorder'):
@@ -733,10 +747,10 @@ rule epitopes:
 
         for node in T.find_clades(order='preorder'):
             n = node.name
-            aa = safe_translate(anc[n]["sequence"])
-
+            aa = vp1_anc[n].seq
             nodes[n] = {}
             for epi,pos in params.epitopes.items():
+                pos = [p - 1 for p in pos]  # Convert to 0-based indexing
                 nodes[n][epi] = "".join([aa[p] for p in pos])
                 if epi == 'CTERM':
                     if nodes[n]['CTERM'] in manyXList:
@@ -772,8 +786,8 @@ rule export:
         metadata = rules.clade_published.output.final_metadata,
         branch_lengths = rules.refine.output.node_data,
         traits = rules.traits.output.node_data,
-        nt_muts = rules.ancestral.output.node_data,
-        aa_muts = rules.translate.output.node_data,
+        # nt_muts = "{seg}/results/nt_muts.json",
+        # aa_muts = "{seg}/results/aa_muts.json",
         clades = rules.clades.output.clade_data,
         colors = files.colors,
         lat_longs = files.lat_longs,
@@ -782,6 +796,7 @@ rule export:
     params:
         strain_id_field= config["id_field"],
         epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else "", ## please run the epitopes function
+        muts_flag = lambda wildcards: "" if wildcards.gene else f"{wildcards.seg}/results/muts.json",
     benchmark:
         "benchmark/export.{seg}{gene}{protein}.log"
     output:
@@ -794,8 +809,8 @@ rule export:
             --tree {input.tree} \
             --metadata {input.metadata} \
             --metadata-id-columns {params.strain_id_field} \
-            --node-data {input.branch_lengths} {input.traits} {input.nt_muts} \
-                {input.aa_muts} {input.clades} {input.vaccine} {params.epis} \
+            --node-data {input.branch_lengths} {input.traits} {params.muts_flag} {input.clades} \
+                {input.vaccine} {params.epis} \
             --colors {input.colors} \
             --lat-longs {input.lat_longs} \
             --auspice-config {input.auspice_config} \
@@ -817,7 +832,7 @@ rule rename_whole_genome:
 
 rule rename_genes:
     message: 
-        "Rename the single genome builts"
+        "Rename and compress the single genome builts"
     input: 
         json="auspice/enterovirus_A71_whole_genome{gene}.json"
 
@@ -825,7 +840,8 @@ rule rename_genes:
         json="auspice/enterovirus_A71_gene_{gene}.json" # easier view in auspice
     shell:
         """
-        mv {input.json} {output.json}
+        jq -c . {input.json} > {output.json}
+        rm {input.json}
         """
 
 
@@ -857,18 +873,17 @@ rule clean:
         "data/all_sequences.fasta",
         "data/all_metadata.tsv",
         "data/final_metadata.tsv",
-
-
+        "logs/*"
     shell:
-        "rm -rfv {params}"
+        "rm {params}"
 
 
 rule upload: ## make sure you're logged in to Nextstrain
     message: "Uploading auspice JSONs to Nextstrain"
     input:
-        # jsons = glob.glob("auspice/*.json"),
-        jsons = ["auspice/enterovirus_A71_vp1.json", "auspice/enterovirus_A71_whole-genome.json",
-        "auspice/enterovirus_A71_gene_-vp1.json", "auspice/enterovirus_A71_gene_-3D.json"]
+        jsons = glob.glob("auspice/*.json"),
+        # jsons = ["auspice/enterovirus_A71_vp1.json", "auspice/enterovirus_A71_whole-genome.json",
+        # "auspice/enterovirus_A71_gene_-vp1.json", "auspice/enterovirus_A71_gene_-3D.json"]
     params:
         remote_group=REMOTE_GROUP,
         date=UPLOAD_DATE,
