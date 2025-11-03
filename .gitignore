@@ -43,3 +43,4 @@ slurm_*
 run.stats
 
 *.log
+compare-alignments
