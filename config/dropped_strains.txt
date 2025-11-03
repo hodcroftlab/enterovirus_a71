@@ -360,7 +360,6 @@ AB575911
 # might help to normalize B5 clade
 HQ285102
 JN316095
-AB575911
 
 # pulling C4 up
 AF302996
@@ -368,3 +367,7 @@ AF302996
 #highly diverged C4
 KF358275
 MN938568
+
+#under-diverged - mixup with reference strain?
+PX021638
+PX021637
