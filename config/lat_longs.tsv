@@ -698,6 +698,7 @@ place	Ekaterinburg	56.8389	60.6057
 place	Irkutsk Region	52.047	103.497
 place	Kataysk	56.2900	62.5830
 place	Kostroma Region	57.767193	40.976257
+place	Kostroma	57.767193	40.976257
 place	Moscow	55.7558	37.6173
 place	Rostov-Na-Donu	47.2357137	39.701505
 place	Saint-Petersburg	59.9342802	30.3350986
@@ -717,10 +718,11 @@ place	Andorra	42.5078	1.5211
 country	spain	40.0	-4.0
 place	Barcelona	41.3829	2.1774
 place	Barcelona (Cochin)	48.8315	2.3328
+place	Catalunya	41.5912	1.5209
+place	Madrid	40.4168	-3.7038
+place	San Sebastián	43.3183	-1.9812
 place	Valencia	39.46975	-0.37739
 place	Vigo	42.2406	-8.7207
-place	Madrid	40.4168	-3.7038
-place	Catalunya	41.5912	1.5209
 
 place	Italy	41.8719	12.5674
 place	Rome	41.9028	12.4964
