@@ -41,14 +41,18 @@ rule nextclade:
         nextclade = "data/references/nextclade.tsv"
     params:
         dataset = "data/references/",
-        output_columns = "seqName clade qc.overallScore qc.overallStatus alignmentScore  alignmentStart  alignmentEnd  coverage dynamic"
-    threads: 8
+        output_columns = "seqName clade qc.overallScore qc.overallStatus alignmentScore  alignmentStart  alignmentEnd  coverage dynamic",
+        min_length = config["curate"]["min_length"]
+    log:
+        "logs/nextclade.txt"
+    threads: 9
     shell:
         """
         nextclade3 run -D {params.dataset}  -j {threads} \
                           --output-columns-selection {params.output_columns} \
+                          --min-length {params.min_length} \
                           --output-tsv {output.nextclade} \
-                          {input.sequences}
+                          {input.sequences} > {log} 2>&1
         """
 
 rule extend_metadata: 

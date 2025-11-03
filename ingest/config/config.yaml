@@ -117,3 +117,5 @@ curate:
     "abbr_authors",
     "institution",
   ]
+  # Minimum length of sequence
+  min_length: 550
