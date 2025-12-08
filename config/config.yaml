@@ -4,11 +4,11 @@ id_field: "accession"
 # Config parameters related to the curate rule
 curate:
   # List of date fields to standardize to ISO format YYYY-MM-DD
-  date_fields: ["date"]
+  date_fields: ["collection_date"]
   # List of expected date formats that are present in the date fields provided above
   # These date formats should use directives expected by datetime
   # See https://docs.python.org/3.9/library/datetime.html#strftime-and-strptime-format-codes
-  expected_date_formats: ['%Y', '%m.%Y', '%d.%m.%Y', "%b-%Y", "%d-%b-%Y","%Y-%m-%d"]
+  expected_date_formats: ['%Y-%m-%d','%Y','XX-%m-%Y','%Y-%m-%dT%H:%M:%SZ', 'XX-XX-%Y', 'XX-XX-XXXX','%m.%Y','%m-%Y', '%d.%m.%Y', "%b-%Y", "%d-%b-%Y"]
 
 # Config parameters related to the metadata curation
 metadata:
@@ -140,58 +140,80 @@ metadata:
 
     # Grouping all symptoms to major forms
     major_symptoms:
-        # CNS-related conditions
+        Poliomyelitis: Poliomyelitis
+        polio: Poliomyelitis
+        poliomyelitis-like disease: Poliomyelitis
+        poliomyelitis-like paralysis: Poliomyelitis
+
+        AFP: AFP
+        acute flaccid paralysis: AFP
+        acute flaccid myelitis: AFP
+        AFM: AFP
+        paralysis: AFP
+        paralyses: AFP
+        difficulty walking: AFP
+        Myelitis: AFP
+        Ataxia: AFP
+        GBS: AFP
+
+        Cardiogenic shock: Myopericarditis
+        Cardiopulmonary Collapse: Myopericarditis
+        Shock: Myopericarditis
+        Hypotension: Myopericarditis
+        Hyperglycemia: Myopericarditis
+
+        conjunctivitis: Hemorrhagic conjunctivitis
+
+        Respiratory distress: Pneumonia
+        acute respiratory disease: Pneumonia
+
+        upper respiratory tract infection: URTI
+        URTI: URTI
+        Cough: URTI
+        Influenza-like illness: URTI
+        Respiratory Symptoms: URTI
+        rhinitis: URTI
+        pharyngitis: URTI
+
+        asthmatic bronchitis: Airway exacerbation
+
+        HFMD: HFMD
+        Mild HFMD: HFMD
+        Light HFMD: HFMD
+        Severe HFMD: HFMD
+
+        Atypical HFMD: Atypical HFMD
+        Onychomadesis: Atypical HFMD
+
+        Aseptic Meningitis: Aseptic Meningitis
+        Meningitis: Aseptic Meningitis
+        Meningeal syndrome: Aseptic Meningitis
+
         Encephalitis: CNS
-        Aseptic Meningitis: CNS
-        Meningitis: CNS
         meningoencephalitis: CNS
-        Meningeal syndrome: CNS
-        Opsomyoclonus Syndrome: CNS
-        Myoclonic jerk: CNS
         CNS: CNS
         Lethargy: CNS
         Seizure: CNS
         convulsion: CNS
-        
-        # Fatality-related conditions
-        Fatality: Fatality
-        
-        # AFP-related conditions
-        GBS: AFP
-        Myelitis: AFP
-        AFP: AFP
-        Ataxia: AFP
-        
-        # HFMD-related conditions
-        HFMD: HFMD
-        Atypical HFMD: Atypical HFMD
-        Onychomadesis: Atypical HFMD
-        Severe HFMD: HFMD
-        Light HFMD: HFMD
-        Mild HFMD: HFMD
-        Herpangina: Atypical HFMD
+        Myoclonic jerk: CNS
 
-    
-        # Other categories
-        Sepsis: other
-        Respiratory: other
-        rhinitis: other
-        Fever: other
-        Vomiting; Diarrhea: other
-        Diarrhea: other
-        GI infection: other
-        Oral Ulcers: other
-        Stomatitis: other
-        Hypotension: other
-        Hyperglycemia: other
-        Cardiogenic shock: other
-        Cardiopulmonary Collapse: other
-        Shock: other
-        Rash: other
-        vesicular rash: other
-        Lesion: other
-        conjunctivitis: other
-        pharyngitis: other
+        Herpangina: Herpangina
+        Stomatitis: Oral disease
+        Oral Ulcers: Oral disease
+
+        Vomiting; Diarrhea: GI infection
+        Diarrhea: GI infection
+        GI infection: GI infection
+
+        Rash: Rash-associated
+        vesicular rash: Rash-associated
+        Lesion: Rash-associated
+
+        Sepsis: Sepsis
+
+        Fatality: Fatality
+
+        Fever: Other
 
     isolation_source:
         # feces
