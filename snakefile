@@ -137,6 +137,32 @@ rule update_strain_names:
         cp {output.file_out} {params.backup}
         """
 
+# This rule is very slow. Only give accessions as input where you are certain that they have GenBank metadata.
+rule fetch_metadata:
+    message:
+        """
+        Retrieving GenBank metadata for the specified accessions.
+        """
+    input:
+        accessions="data/metadata/genbank_meta_C1like.txt",
+        config="config/config.yaml" # include symptom list and isolation source mapping
+    output:
+        metadata="data/metadata/genbank_meta_C1like.tsv",
+    params:
+        virus="Enterovirus A71"
+        genbank_metadata="data/genbank_metadata.tsv"
+    log:
+        "logs/fetch_metadata.log"
+    shell:
+        """
+        python scripts/fetch_genbank_metadata.py \
+            --virus "{params.virus}" \
+            --accession_file {input.accessions} \
+            --output {output.metadata} \
+            --genbank {params.genbank_metadata} \
+            --config {input.config} \
+            2> {log}
+        """
 
 ##############################
 # Change the format of the dates in the metadata
