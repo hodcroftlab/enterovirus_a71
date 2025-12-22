@@ -100,10 +100,10 @@ if __name__ == '__main__':
     new_meta['strain'] = new_meta['strain'].fillna(new_meta['strain_x'])  # Take strain_x if strain_y is NaN
 
     # Keep only the dates from assign_publications.tsv table - except if they're NA
-    new_meta['date_new'] = new_meta['collection_date'].mask(sum([(new_meta['collection_date'].isna()),(new_meta['collection_date'] == "XXXX-XX-XX")])>=1, new_meta['date'])  # If date_y is unknown, keep date_x
+    new_meta['date_new'] = new_meta['date_y'].mask(sum([(new_meta['date_y'].isna()),(new_meta['date_y'] == "XXXX-XX-XX")])>=1, new_meta['date_x'])  # If date_y is unknown, keep date_x
 
     # Keep date_y if date_correction specified in origin
-    new_meta['date_new'] = new_meta['date_new'].mask(new_meta['origin']=='date_correction', new_meta['collection_date'])
+    new_meta['date_new'] = new_meta['date_new'].mask(new_meta['origin']=='date_correction', new_meta['date_y'])
 
     new_meta['date'] = new_meta['date_new']
 
@@ -118,7 +118,7 @@ if __name__ == '__main__':
     new_meta['place'] = new_meta['place'].mask(new_meta['place'].isna(), new_meta['location'])
 
     # Clades: keep non-missing clades - subgenogroup
-    new_meta['subgenogroup'] = new_meta['subgenogroup'].mask(new_meta['subgenogroup'].isna(), new_meta['clade_x'])
+    new_meta['subgenogroup'] = new_meta['subgenogroup'].mask(new_meta['subgenogroup'].isna(), new_meta['clade'])
 
     # Define a mapping for full terms to their abbreviations and standardized names
     isolation_version = config['metadata']['isolation_source']

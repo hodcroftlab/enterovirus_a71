@@ -13,13 +13,13 @@
 # To run specific proteins for tanglegrams:
 # snakemake --cores 9 all_proteins
 
+if not config:
+    configfile: "config/config.yaml"
+
 from dotenv import load_dotenv
 import os
 from datetime import date
 import glob
-
-if not config:
-    configfile: "config/config.yaml"
 
 load_dotenv(".env")
 REMOTE_GROUP = os.getenv("REMOTE_GROUP")
@@ -39,7 +39,7 @@ CODING_GENES = ["VP4", "VP2", "VP3", "VP1", "2A", "2B", "2C", "3A", "3B", "3C", 
 
 # parameters
 INCL_ENPEN = False # include or exclude ENPEN data
-DOWNLOAD_INGEST = True
+FETCH_SEQUENCES = True
 
 # Rule to handle configuration files
 rule files:
@@ -56,6 +56,7 @@ rule files:
         regions=            "config/geo_regions.tsv",
         meta_public=        "data/meta_public.tsv",
         meta_collab =       "data/meta_ENPEN.tsv",
+        meta_genbank =      "data/genbank_metadata.tsv",
         last_updated_file = "data/date_last_updated.txt",
         local_accn_file =   "data/local_accn.txt",
         strain_names =      "data/updated_strain_names.tsv",
@@ -102,17 +103,18 @@ rule next_update:
 ##############################
 # Download from NBCI Virus with ingest snakefile
 ###############################
-if DOWNLOAD_INGEST:
+if FETCH_SEQUENCES == True:
     rule fetch:
         input:
             dir = "ingest"
         output:
             sequences=files.SEQUENCES,
             metadata=files.METADATA
+        threads: workflow.cores
         shell:
             """
-            cd {input.dir}
-            snakemake --cores 9 all
+            cd {input.dir} 
+            snakemake --cores {threads} all
             cd ../
             """
 
@@ -141,16 +143,18 @@ rule update_strain_names:
 rule fetch_metadata:
     message:
         """
-        Retrieving GenBank metadata for the specified accessions.
+        Retrieving GenBank metadata for the specified accessions. See {log} for details.
         """
     input:
-        accessions="data/metadata/genbank_meta_C1like.txt",
-        config="config/config.yaml" # include symptom list and isolation source mapping
+        accessions="data/metadata/stool_strain.txt",
+        config="config/config.yaml", # include symptom list and isolation source mapping
+        lat_longs=files.lat_longs
     output:
-        metadata="data/metadata/genbank_meta_C1like.tsv",
+        metadata="data/metadata/stool_strain.tsv",
     params:
-        virus="Enterovirus A71"
-        genbank_metadata="data/genbank_metadata.tsv"
+        virus="Enterovirus A71",
+        genbank_metadata=files.meta_genbank,
+        cols = ["strain", "accession", "country", "place", "region", "subgenogroup", "lineage", "date", "collection_yr", "gender", "age_yrs", "age_mo", "diagnosis", "isolation", "origin", "doi"],
     log:
         "logs/fetch_metadata.log"
     shell:
@@ -161,6 +165,8 @@ rule fetch_metadata:
             --output {output.metadata} \
             --genbank {params.genbank_metadata} \
             --config {input.config} \
+            --latlongs {input.lat_longs} \
+            --columns {params.cols} \
             2> {log}
         """
 
@@ -176,42 +182,31 @@ rule curate:
         """
     input:
         metadata=files.meta_public,  # Path to input metadata file
-        meta_collab = files.meta_collab  # Data shared with us by collaborators
+        meta_collab = files.meta_collab,  # Data shared with us by collaborators
+        meta_genbank = files.meta_genbank
     params:
         strain_id_field=config["id_field"],
         date_fields=config["curate"]["date_fields"],
         expected_date_formats=config["curate"]["expected_date_formats"],
     output:
-        metadata = "data/curated/meta_public.tsv",  # Final output file for publications metadata
-        meta_collab="data/curated/meta_collab.tsv",  # Curated collaborator metadata
+        merge = "data/merge_meta.tsv",  # Final output file for publications metadata
         meta="data/curated/all_meta.tsv"  # Final merged output file
     shell:
-        """
-        # Normalize strings for publication metadata
-        augur curate normalize-strings \
-            --id-column {params.strain_id_field} \
-            --metadata {input.metadata} \
-        | augur curate format-dates \
-            --date-fields {params.date_fields} \
-            --no-mask-failure \
-            --expected-date-formats {params.expected_date_formats} \
-            --id-column {params.strain_id_field} \
-            --output-metadata {output.metadata}
-        
-        # Normalize strings and format dates for collab metadata
-        augur curate normalize-strings \
-            --id-column {params.strain_id_field} \
-            --metadata {input.meta_collab} \
-        | augur curate format-dates \
-            --date-fields {params.date_fields} \
-            --no-mask-failure \
-            --expected-date-formats {params.expected_date_formats} \
-            --id-column {params.strain_id_field} \
-            --output-metadata {output.meta_collab}
-        
+        """        
         # Merge curated metadata
-        augur merge --metadata metadata={output.metadata} meta_collab={output.meta_collab}\
+        augur merge --metadata metadata={input.metadata} meta_collab={input.meta_collab} meta_genbank={input.meta_genbank} \
             --metadata-id-columns {params.strain_id_field} \
+            --output-metadata {output.merge}
+        
+        # Normalize strings and format dates for metadata
+        augur curate normalize-strings \
+            --id-column {params.strain_id_field} \
+            --metadata {output.merge} \
+        | augur curate format-dates \
+            --date-fields {params.date_fields} \
+            --no-mask-failure \
+            --expected-date-formats {params.expected_date_formats} \
+            --id-column {params.strain_id_field} \
             --output-metadata {output.meta}
         """
 
@@ -327,6 +322,26 @@ rule add_metadata:
         fi
         """
 
+## Deduplicate sequences that have identical strain names and sequences
+rule deduplicate:
+    message:
+        """
+        Deduplicating sequences with identical strain names and sequences
+        """
+    input:
+        sequences = rules.blast_sort.output.sequences,
+        metadata = rules.add_metadata.output.metadata
+    output:
+        sequences = "{seg}/results/deduplicated_sequences.fasta",
+    shell:
+        """
+        python scripts/deduplicate.py \
+            --in-sequences {input.sequences} \
+            --metadata {input.metadata} \
+            --out-sequences {output.sequences} 
+        """
+
+
 ##############################
 # Create an index of sequence composition for filtering & filter
 ###############################
@@ -369,9 +384,11 @@ rule filter:
         strain_id_field = config["id_field"],
         min_date = 1970,  # BrCr was collected in 1970
         exclude_enpen = "--exclude-where ENPEN=True" if not INCL_ENPEN else "" # INCL_ENPEN was defined on line 32
+    threads: workflow.cores
     shell:
         """
         augur filter \
+            --threads {threads} \
             --sequences {input.sequences} \
             --sequence-index {input.sequence_index} \
             --metadata {input.metadata} \
@@ -566,13 +583,13 @@ rule refine:
         strain_id_field = config["id_field"],
         clock_rate = 0.004, # remove for estimation
         clock_std_dev = 0.0015,
-        rooting = "",
+        # rooting = "",
         # rooting = "--root DQ341364 KF501389",
-        # rooting = lambda wildcards: (
-        #     "--root DQ341364 KF501389" if (wildcards.seg == "whole_genome" and not wildcards.gene)
-        #     else "--root JN204010 DQ341364" if wildcards.seg == "vp1"
-        #     else ""
-        # )
+        rooting = lambda wildcards: (
+            "--root DQ341364 KF501389" if (wildcards.seg == "whole_genome" and not wildcards.gene)
+            else "--root JN204010 DQ341364" if wildcards.seg == "vp1"
+            else ""
+        )
 
     log:
         reasons_refine = "logs/refine.{seg}{gene}{protein}.log" # number of dropped sequences
@@ -819,7 +836,8 @@ rule export:
         lat_longs = files.lat_longs,
         vaccine = "config/vaccine.json",
         auspice_config = files.auspice_config,
-        config_dates = "config/date_bounds.json"
+        config_dates = "config/date_bounds.json",
+        muts = rules.ancestral.output.node_data,
     params:
         strain_id_field= config["id_field"],
         epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else "", ## please run the epitopes function
