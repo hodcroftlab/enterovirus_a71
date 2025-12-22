@@ -27,7 +27,7 @@ import word2number as w2n
 class MetadataFetcher:
     """Handles fetching and parsing GenBank metadata for viral sequences."""
     
-    def __init__(self, virus_name: str, config: Dict, email: str):
+    def __init__(self, virus_name: str, config: Dict, email: str,location_list):
         """
         Initialize the metadata fetcher.
         
@@ -39,7 +39,7 @@ class MetadataFetcher:
         self.virus_name = virus_name
         self.symptom_list = self._normalize_dict_keys(config['metadata']['symptom_list'])
         self.isolation_sources = self._normalize_dict_keys(config['metadata']['isolation_source'])
-        
+        self.location_list = location_list
         # Set up Entrez
         Entrez.email = email
         
@@ -199,9 +199,14 @@ class MetadataFetcher:
                         return [None] * 16
                     
                     # Extract strain
-                    strain = feature.qualifiers.get("isolate", [None])[0]
-                    if strain is None:
+                    isolate = feature.qualifiers.get("isolate", [None])[0]
+                    strain = feature.qualifiers.get("strain", [None])[0]
+                    if isolate is None:
                         strain = feature.qualifiers.get("strain", [None])[0]
+                    if strain is None:
+                        strain = isolate
+                    if len(strain) < len(isolate):
+                        strain = isolate
                     
                     # Extract location
                     location_str = feature.qualifiers.get("geo_loc_name", [None])[0]
@@ -234,7 +239,20 @@ class MetadataFetcher:
                         if host_field and host_field != 'Homo sapiens':
                             origin,isolation, sex, age_yrs, age_mo, diagnosis = self.parse_host(host_field)
                             isolation= isolation_field
-                            
+
+                    # get diagnosis from strain name
+                    for keyword, standardized in self.symptom_list.items():
+                        if keyword in strain.lower() or keyword in isolate.lower():
+                            diagnosis += f"; {standardized}"
+                            break     
+                    
+                    # get location from strain name
+                    if location is None:
+                        for keyword in self.location_list:
+                            if keyword.lower() in strain.lower() or keyword.lower() in isolate.lower():
+                                location = keyword
+                                break  
+                    
                     # Process note field
                     if note_field:
                         if "year" in note_field or "patient" in note_field:
@@ -268,7 +286,7 @@ class MetadataFetcher:
                             collection_yr = date.split(".")[-1]
                         else:
                             collection_yr = date
-            
+                        
             return [accession, strain, country, location, region, subgenogroup, 
                    lineage, date, collection_yr, sex, age_yrs, age_mo, 
                    diagnosis, isolation, origin, doi]
@@ -288,6 +306,25 @@ def load_accessions(input_file: str) -> pd.Series:
     """Load accession numbers from a file (one per line or tab-delimited)."""
     df = pd.read_table(input_file, header=None)
     return df[0].unique()
+
+def normalize_columns_with_mapping(requested, canonical_columns, aliases):
+    requested_to_canonical = {}
+    canonical_order = []
+
+    for col in requested:
+        if col in canonical_columns:
+            requested_to_canonical[col] = col
+            canonical_order.append(col)
+        elif col in aliases:
+            requested_to_canonical[col] = aliases[col]
+            canonical_order.append(aliases[col])
+        else:
+            print(
+                f"Warning: Requested column '{col}' is not a valid column or alias",
+                file=sys.stderr
+            )
+
+    return requested_to_canonical, canonical_order
 
 
 def main():
@@ -314,6 +351,10 @@ def main():
         '--genbank',
         required=True,
         help='Summary GenBank Metadata TSV file path, includes previous runs'
+    )
+    parser.add_argument(
+        '--latlongs', default='config/lat_longs.tsv',
+        help='Path to lat/long TSV file (default: config/lat_longs.tsv)'
     )
     parser.add_argument(
         '--config', '-c',
@@ -347,13 +388,17 @@ def main():
     # print(f"Loading configuration from {args.config}...")
     config = load_config(args.config)
     
+    #locations list
+    latlongs = pd.read_csv(args.latlongs, sep="\t")
+    location_list = latlongs.iloc[:,1].tolist()
+
     # Load accessions
     # print(f"Loading accessions from {args.accession_file}...")
     accessions = load_accessions(args.accession_file)
     # print(f"Found {len(accessions)} unique accessions")
     
     # Initialize fetcher
-    fetcher = MetadataFetcher(args.virus, config, email)
+    fetcher = MetadataFetcher(args.virus, config, email,location_list)
     
     # Fetch metadata
     # print(f"Fetching metadata for {args.virus}...")
@@ -371,14 +416,42 @@ def main():
     columns = ["accession", "strain", "country", "location", "region", 
                "subgenogroup", "lineage", "date", "collection_yr", "sex", 
                "age_yrs", "age_mo", "diagnosis", "isolation", "origin", "doi"]
-    
+
+    # Accepted user-facing aliases → canonical name
+    COLUMN_ALIASES = {
+        "gender": "sex",
+
+        "place": "location",
+
+        "year": "collection_yr",
+        
+        "collection_date": "date",
+
+        "age": "age_yrs",
+        "age_years": "age_yrs",
+        "age_month": "age_mo",
+
+        "symptoms": "diagnosis",
+
+        "clade": "subgenogroup",
+    }
+
+    requested_to_canonical, canonical_cols = normalize_columns_with_mapping(
+        args.columns,
+        columns,
+        COLUMN_ALIASES
+    )
+
     df = pd.DataFrame(data, columns=columns)
-    
+
     # Drop rows without accession
     df.dropna(subset=["accession"], inplace=True)
-    
-    # Select and reorder columns
-    df = df.loc[:, args.columns]
+
+    # Select canonical columns
+    df = df.loc[:, canonical_cols]
+
+    # Rename back to requested column names
+    df = df.rename(columns={v: k for k, v in requested_to_canonical.items()})
     
     # Save to file
     # print(f"Saving results to {args.output}...")
