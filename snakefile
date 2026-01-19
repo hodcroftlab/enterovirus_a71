@@ -19,9 +19,15 @@ if not config:
 from dotenv import load_dotenv
 import os
 from datetime import date
-import glob
 
-load_dotenv(".env")
+# Load environment variables
+# Try to load .env, but don't fail if it doesn't exist (for Actions)
+try:
+    from dotenv import load_dotenv
+    load_dotenv(".env")
+except:
+    pass
+
 REMOTE_GROUP = os.getenv("REMOTE_GROUP")
 UPLOAD_DATE = os.getenv("UPLOAD_DATE") or date.today().isoformat()
 
@@ -661,35 +667,6 @@ rule ancestral:
         # --keep-ambiguous\ #do not infer nucleotides at ambiguous (N) sites on tip sequences (leave as N).
         # --root-sequence {input.annotation} \  -> assigns mutations to the root relative to the reference, not wanted here
  
-# rule translate:
-#     message: "Translating amino acid sequences"
-#     input:
-#         tree = rules.refine.output.tree,
-#         node_data = rules.ancestral.output.node_data,
-#         reference = files.reference
-#     params:
-#         genes=CODING_GENES
-#     output:
-#         node_data = "{seg}/results/aa_muts{gene}{protein}.json"
-#         # node_data = "{seg}/results/aa_muts.json"
-#     run:
-#         if wildcards.gene!="":
-#             shell("""
-#                 augur translate \
-#                     --tree {input.tree} \
-#                     --ancestral-sequences {input.node_data} \
-#                     --reference-sequence {input.reference} \
-#                     --output-node-data {output.node_data}
-#             """)
-#         else:
-#             shell("""
-#                 augur translate \
-#                     --tree {input.tree} \
-#                     --ancestral-sequences {input.node_data} \
-#                     --reference-sequence {input.reference} \
-#                     --output-node-data {output.node_data}
-#             """)
-
 rule traits:
     message: "Inferring ancestral traits for {params.traits!s}"
     input:
