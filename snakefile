@@ -841,9 +841,10 @@ rule export:
         auspice_config = files.auspice_config,
         config_dates = "config/date_bounds.json",
         muts = rules.ancestral.output.node_data,
+        epi = "vp1/results/epitopes.json"
     params:
-        strain_id_field= config["id_field"],
         epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else "", ## please run the epitopes function
+        strain_id_field= config["id_field"],
         muts_flag = lambda wildcards: "" if wildcards.gene else f"{wildcards.seg}/results/muts.json",
     benchmark:
         "benchmark/export.{seg}{gene}{protein}.log"
