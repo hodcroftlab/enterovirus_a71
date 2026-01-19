@@ -105,9 +105,9 @@ rule all_proteins:
 rule next_update:
     input:
         "auspice/enterovirus_A71_vp1.json", 
-        "auspice/enterovirus_A71_whole-genome.json",
-        "auspice/enterovirus_A71_gene_-vp1.json", 
-        "auspice/enterovirus_A71_gene_-3D.json"
+        "auspice/enterovirus_A71_whole-genome.json"
+        # "auspice/enterovirus_A71_gene_-vp1.json", 
+        # "auspice/enterovirus_A71_gene_-3D.json"
 
 
 ##############################
