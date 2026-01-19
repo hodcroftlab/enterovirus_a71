@@ -199,15 +199,19 @@ class MetadataFetcher:
                         return [None] * 16
                     
                     # Extract strain
-                    isolate = feature.qualifiers.get("isolate", [None])[0]
-                    strain = feature.qualifiers.get("strain", [None])[0]
-                    if isolate is None:
-                        strain = feature.qualifiers.get("strain", [None])[0]
-                    if strain is None:
+                    isolate = feature.qualifiers.get("isolate", [None])[0] or None
+                    strain = feature.qualifiers.get("strain", [None])[0] or None
+
+                    # Prefer isolate when strain is missing; normalize to safe strings for checks
+                    if not strain:
                         strain = isolate
-                    if len(strain) < len(isolate):
+                    isolate_str = isolate or ""
+                    strain_str = strain or ""
+
+                    # If both present, prefer the longer identifier (avoid len(None))
+                    if isolate_str and strain_str and len(strain_str) < len(isolate_str):
                         strain = isolate
-                    
+
                     # Extract location
                     location_str = feature.qualifiers.get("geo_loc_name", [None])[0]
                     if location_str and ":" in location_str:
@@ -240,16 +244,16 @@ class MetadataFetcher:
                             origin,isolation, sex, age_yrs, age_mo, diagnosis = self.parse_host(host_field)
                             isolation= isolation_field
 
-                    # get diagnosis from strain name
+                    # get diagnosis from strain name (safe concatenation)
                     for keyword, standardized in self.symptom_list.items():
-                        if keyword in strain.lower() or keyword in isolate.lower():
-                            diagnosis += f"; {standardized}"
+                        if (strain_str and keyword in strain_str.lower()) or (isolate_str and keyword in isolate_str.lower()):
+                            diagnosis = (diagnosis + f"; {standardized}") if diagnosis else standardized
                             break     
                     
-                    # get location from strain name
+                    # get location from strain name (safely use strings)
                     if location is None:
                         for keyword in self.location_list:
-                            if keyword.lower() in strain.lower() or keyword.lower() in isolate.lower():
+                            if (strain_str and keyword.lower() in strain_str.lower()) or (isolate_str and keyword.lower() in isolate_str.lower()):
                                 location = keyword
                                 break  
                     
@@ -277,15 +281,22 @@ class MetadataFetcher:
                     
                     # Extract collection date
                     date = feature.qualifiers.get("collection_date", [None])[0]
-                    if date:
-                        if "-" in date:
-                            collection_yr = date.split("-")[-1]
-                        elif "/" in date:
-                            collection_yr = date.split("/")[-1]
-                        elif "." in date:
-                            collection_yr = date.split(".")[-1]
+
+                    # Safely handle missing dates and extract a 4-digit year if present
+                    if not date:
+                        collection_yr = None
+                    else:
+                        date_str = str(date).strip()
+                        # look for a 4-digit year anywhere in the date string
+                        m = re.search(r'(\d{4})', date_str)
+                        if m:
+                            try:
+                                collection_yr = int(m.group(1))
+                            except ValueError:
+                                collection_yr = m.group(1)
                         else:
-                            collection_yr = date
+                            # fallback: keep original string if no 4-digit year found
+                            collection_yr = date_str
                         
             return [accession, strain, country, location, region, subgenogroup, 
                    lineage, date, collection_yr, sex, age_yrs, age_mo, 
@@ -465,6 +476,13 @@ def main():
     gb = pd.concat([gb, df], ignore_index=True)
 
     gb.drop_duplicates(subset=["accession"], keep="last", inplace=True)
+    # drop rows if they only have accession, and nothing else
+    if gb.shape[1] > 1:
+        # Drop rows that have only one non-NA value across all columns
+        non_na_counts = gb.notna().sum(axis=1)
+        gb = gb.loc[non_na_counts > 1].reset_index(drop=True)
+    
+
     gb.to_csv(args.genbank, index=False, sep="\t")
     
     print(f"Done!  Processed {len(df)} records successfully.")

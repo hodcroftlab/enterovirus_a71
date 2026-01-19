@@ -146,11 +146,11 @@ rule fetch_metadata:
         Retrieving GenBank metadata for the specified accessions. See {log} for details.
         """
     input:
-        accessions="data/metadata/stool_strain.txt",
+        accessions="data/metadata/genbank_afm_failed.txt",
         config="config/config.yaml", # include symptom list and isolation source mapping
         lat_longs=files.lat_longs
     output:
-        metadata="data/metadata/stool_strain.tsv",
+        metadata="data/metadata/genbank_afm_cases.tsv",
     params:
         virus="Enterovirus A71",
         genbank_metadata=files.meta_genbank,
@@ -331,6 +331,9 @@ rule deduplicate:
     input:
         sequences = rules.blast_sort.output.sequences,
         metadata = rules.add_metadata.output.metadata
+    params:
+        id_field = config["id_field"],
+        threshold = 0.995 # percent identity threshold to consider sequences as duplicates
     output:
         sequences = "{seg}/results/deduplicated_sequences.fasta",
     shell:
@@ -338,6 +341,8 @@ rule deduplicate:
         python scripts/deduplicate.py \
             --in-sequences {input.sequences} \
             --metadata {input.metadata} \
+            --id-field {params.id_field} \
+            --threshold {params.threshold} \
             --out-sequences {output.sequences} 
         """
 
@@ -351,7 +356,7 @@ rule index_sequences:
         Creating an index of sequence composition for filtering
         """
     input:
-        sequences = rules.blast_sort.output.sequences
+        sequences = rules.deduplicate.output.sequences
     output:
         sequence_index = "{seg}/results/sequence_index.tsv"
     shell:
@@ -370,7 +375,7 @@ rule filter:
           - excluding strains in {input.exclude}
         """
     input:
-        sequences = rules.blast_sort.output.sequences, ## x had no sequence data -> dropped because they don't meet the min sequence length in blast_sort
+        sequences = rules.deduplicate.output.sequences, ## x had no sequence data -> dropped because they don't meet the min sequence length in blast_sort
         sequence_index = rules.index_sequences.output.sequence_index,
         metadata = rules.add_metadata.output.metadata,
         exclude = files.dropped_strains,
@@ -380,15 +385,13 @@ rule filter:
         reason ="{seg}/results/reasons.tsv",
     params:
         group_by = "country year", # dropped because of ambiguous year information
-        sequences_per_group = 800, # set lower if you want to have a max sequences per group
+        sequences_per_group = 600, # set lower if you want to have a max sequences per group
         strain_id_field = config["id_field"],
         min_date = 1970,  # BrCr was collected in 1970
         exclude_enpen = "--exclude-where ENPEN=True" if not INCL_ENPEN else "" # INCL_ENPEN was defined on line 32
-    threads: workflow.cores
     shell:
         """
         augur filter \
-            --threads {threads} \
             --sequences {input.sequences} \
             --sequence-index {input.sequence_index} \
             --metadata {input.metadata} \
@@ -579,7 +582,7 @@ rule refine:
     params:
         coalescent = "opt",
         date_inference = "marginal",
-        clock_filter_iqd = 8, # originally 3; set to 6 if you want more control over outliers
+        clock_filter_iqd = 3, # originally 3; set to 6 if you want more control over outliers
         strain_id_field = config["id_field"],
         clock_rate = 0.004, # remove for estimation
         clock_std_dev = 0.0015,
@@ -907,8 +910,9 @@ rule rename_proteins:
 rule clean:
     message: "Removing directories: {params}"
     params:
+        "ingest/data/*.*",
         "*/results/*",
-        "auspice/*",
+        "auspice/*.json",
         "temp/*",
         "logs/*",
         "benchmark/*",
@@ -920,7 +924,7 @@ rule clean:
         "data/final_metadata.tsv",
         "logs/*"
     shell:
-        "rm {params}"
+        "rm -rfv {params}"
 
 
 rule upload: ## make sure you're logged in to Nextstrain
