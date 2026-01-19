@@ -30,11 +30,11 @@ jobs:
           mkdir -p data
           
           # Copy all EV-A71-specific data
-          if [ -d "data-source/coxsackievirus_a16" ]; then
-            cp -r data-source/coxsackievirus_a16/* data/
+          if [ -d "data-source/enterovirus_a71" ]; then
+            cp -r data-source/enterovirus_a71/* data/
             echo "EV-A71 data copied successfully"
           else
-            echo "ERROR: coxsackievirus_a16 folder not found in nextstrain-builds-data"
+            echo "ERROR: enterovirus_a71 folder not found in nextstrain-builds-data"
             exit 1
           fi
           
