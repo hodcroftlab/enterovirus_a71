@@ -21,7 +21,7 @@ import sys
 from Bio import Entrez, SeqIO
 from dotenv import load_dotenv, find_dotenv
 from typing import Dict, List, Optional, Tuple
-import ipdb
+# import ipdb
 import word2number as w2n
 
 class MetadataFetcher:
@@ -69,7 +69,7 @@ class MetadataFetcher:
             field_lower = field.lower()
 
             # Regular expressions for parsing
-            host_regex = r"(homo sapiens|human|other hosts)"
+            host_regex = r"(homo sapiens|human|other hosts|child)"
             sex_regex = r"\b(male|female|m|f|man|woman|boy|girl|h)\b"
             age_regex = r"(\d+\.?\d*|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve)\s*(years?|months?|days?|y|m|d)"
             symptom_pattern = "|".join(map(re.escape, self.symptom_list.keys()))
@@ -278,6 +278,9 @@ class MetadataFetcher:
                         genotype_match = re.search(r'(type|genogroup)[\s:]*([A-Za-z0-9\-\.]+)', note_field, re.IGNORECASE)
                         if genotype_match:
                             subgenogroup = genotype_match.group(2)
+                    
+                    diagnosis = diagnosis.replace("HFMD; HFMD", "HFMD")
+                    diagnosis = diagnosis.replace("AFP; AFP", "AFP")
                     
                     # Extract collection date
                     date = feature.qualifiers.get("collection_date", [None])[0]
