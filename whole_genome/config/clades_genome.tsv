@@ -27,15 +27,12 @@ B	nuc	3134	T
 B	nuc	4739	T
 B	VP1	58	T
 
-C	nuc	998	A
-C	nuc	1715	G
+C	nuc	1892	G
 C	nuc	2428	G
-C	nuc	7079	T
+C	nuc	5687	C
 
 C2.r	nuc	2057	T
 C2.r	nuc	4706	C
-C2.r	nuc	5474	T
-C2.r	5UTR	30	T
 
 C2	nuc	2972	A
 C2	nuc	4061	G

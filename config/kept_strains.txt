@@ -30,3 +30,6 @@ OQ026336
 
 # subgenotype C5
 KJ686262
+
+# subgenotype C4-like
+KF982854

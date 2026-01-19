@@ -25,7 +25,7 @@ MG367591 	# DK07-01 metadata mixup?
 # too short
 LR027526 # nextalign error message
 
-# higher diversity
+# higher diversity - pulling C1-like up?
 LR027545
 
 ## exclude sequences that pull to the front
@@ -324,10 +324,6 @@ HQ676175
 HQ647168
 HQ647170
 
-# probably recombinants, dropped in VP1
-PP858877
-PP548273
-PP548263
 
 # outlier
 MH084344
@@ -371,3 +367,40 @@ MN938568
 #under-diverged - mixup with reference strain?
 PX021638
 PX021637
+
+# same sample
+HG421069
+OK570251
+#LT719063
+
+JX307648
+#LT719067
+
+AB524174
+#LR027541
+
+AY956567
+FN649248
+HG934192
+#LR027542
+
+MG432108
+
+# lab escape mutant
+PV176308
+
+# mouse-adapted strain
+JN544419
+
+#neutralizing antibody escape mutant
+KM077140
+
+# probably recombinants, dropped in VP1
+PP858877
+PP548273
+PP548263
+
+## recombinant
+PQ868599
+PV684179
+LR798440

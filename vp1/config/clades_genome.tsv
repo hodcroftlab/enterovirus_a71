@@ -3,17 +3,12 @@ B	nuc	172	A
 B	nuc	525	A
 B	VP1	58	T
 
-B1	nuc	171	C
-B1	nuc	219	T
-B1	nuc	231	A
-B1	nuc	237	T
-B1	nuc	258	A
-B1	nuc	282	C
-B1	nuc	384	T
+B1	nuc	597	T
+B1	nuc	726	A
 
-B2	nuc	330	C
-B2	nuc	492	A
-B2	VP1	249	V
+B2	nuc	243	C
+B2	nuc	645	A
+B2	nuc	756	T
 
 B3	nuc	201	G
 B3	nuc	231	A
