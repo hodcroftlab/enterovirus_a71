@@ -19,11 +19,6 @@ if not config:
 import os
 from datetime import date
 
-
-# Load config file
-if not config:
-    configfile: "config/config.yaml"
-
 # Load environment variables
 # Try to load .env, but don't fail if it doesn't exist (for Actions)
 try:
