@@ -16,14 +16,24 @@
 if not config:
     configfile: "config/config.yaml"
 
-from dotenv import load_dotenv
 import os
 from datetime import date
-import glob
 
-load_dotenv(".env")
+
+# Load config file
+if not config:
+    configfile: "config/config.yaml"
+
+# Load environment variables
+# Try to load .env, but don't fail if it doesn't exist (for Actions)
+try:
+    from dotenv import load_dotenv
+    load_dotenv(".env")
+except:
+    pass
+
 REMOTE_GROUP = os.getenv("REMOTE_GROUP")
-UPLOAD_DATE = os.getenv("UPLOAD_DATE") or date.today().isoformat()
+UPLOAD_DATE = date.today().isoformat()
 
 ###############
 wildcard_constraints:
@@ -140,35 +150,35 @@ rule update_strain_names:
         """
 
 # This rule is very slow. Only give accessions as input where you are certain that they have GenBank metadata.
-rule fetch_metadata:
-    message:
-        """
-        Retrieving GenBank metadata for the specified accessions. See {log} for details.
-        """
-    input:
-        accessions="data/metadata/genbank_afm_failed.txt",
-        config="config/config.yaml", # include symptom list and isolation source mapping
-        lat_longs=files.lat_longs
-    output:
-        metadata="data/metadata/genbank_afm_cases.tsv",
-    params:
-        virus="Enterovirus A71",
-        genbank_metadata=files.meta_genbank,
-        cols = ["strain", "accession", "country", "place", "region", "subgenogroup", "lineage", "date", "collection_yr", "gender", "age_yrs", "age_mo", "diagnosis", "isolation", "origin", "doi"],
-    log:
-        "logs/fetch_metadata.log"
-    shell:
-        """
-        python scripts/fetch_genbank_metadata.py \
-            --virus "{params.virus}" \
-            --accession_file {input.accessions} \
-            --output {output.metadata} \
-            --genbank {params.genbank_metadata} \
-            --config {input.config} \
-            --latlongs {input.lat_longs} \
-            --columns {params.cols} \
-            2> {log}
-        """
+# rule fetch_metadata:
+#     message:
+#         """
+#         Retrieving GenBank metadata for the specified accessions. See {log} for details.
+#         """
+#     input:
+#         accessions="data/metadata/genbank_afm_failed.txt",
+#         config="config/config.yaml", # include symptom list and isolation source mapping
+#         lat_longs=files.lat_longs
+#     output:
+#         metadata="data/metadata/genbank_afm_cases.tsv",
+#     params:
+#         virus="Enterovirus A71",
+#         genbank_metadata=files.meta_genbank,
+#         cols = ["strain", "accession", "country", "place", "region", "subgenogroup", "lineage", "date", "collection_yr", "gender", "age_yrs", "age_mo", "diagnosis", "isolation", "origin", "doi"],
+#     log:
+#         "logs/fetch_metadata.log"
+#     shell:
+#         """
+#         python scripts/fetch_genbank_metadata.py \
+#             --virus "{params.virus}" \
+#             --accession_file {input.accessions} \
+#             --output {output.metadata} \
+#             --genbank {params.genbank_metadata} \
+#             --config {input.config} \
+#             --latlongs {input.lat_longs} \
+#             --columns {params.cols} \
+#             2> {log}
+#         """
 
 ##############################
 # Change the format of the dates in the metadata
@@ -473,56 +483,56 @@ rule align:
         """
 
 #  one-by-one genes
-rule sub_alignments:
-    input:
-        alignment=rules.align.output.alignment,
-        reference=files.reference
-    output:
-        alignment = "{seg}/results/aligned{gene}{protein}.fasta"
-    benchmark:
-        "benchmark/sub_alignments.{seg}{gene}{protein}.log"
-    run:
-        from Bio import SeqIO
-        from Bio.Seq import Seq
+# rule sub_alignments:
+#     input:
+#         alignment=rules.align.output.alignment,
+#         reference=files.reference
+#     output:
+#         alignment = "{seg}/results/aligned{gene}{protein}.fasta"
+#     benchmark:
+#         "benchmark/sub_alignments.{seg}{gene}{protein}.log"
+#     run:
+#         from Bio import SeqIO
+#         from Bio.Seq import Seq
 
-        if wildcards.protein:
-            real_gene = wildcards.protein.replace("-", "", 1)
-            boundaries = {
-                'P1': (744, 3329),
-                'P2': (3330, 5063),
-                'P3': (5064, 7322)
-            }
-            b = boundaries[real_gene]
-        else:
-            real_gene = wildcards.gene.replace("-", "", 1)
+#         if wildcards.protein:
+#             real_gene = wildcards.protein.replace("-", "", 1)
+#             boundaries = {
+#                 'P1': (744, 3329),
+#                 'P2': (3330, 5063),
+#                 'P3': (5064, 7322)
+#             }
+#             b = boundaries[real_gene]
+#         else:
+#             real_gene = wildcards.gene.replace("-", "", 1)
 
-            # Extract boundaries from the reference GenBank file
-            gene_boundaries = {}
-            with open(input.reference) as handle:
-                for record in SeqIO.parse(handle, "genbank"):
-                    for feature in record.features:
-                        if feature.type == "CDS" and 'Name' in feature.qualifiers:
-                            product = feature.qualifiers['Name'][0].upper()
-                            if product == real_gene.upper():
-                                # Corrected: Use .start and .end directly
-                                gene_boundaries[product] = (feature.location.start, feature.location.end)
+#             # Extract boundaries from the reference GenBank file
+#             gene_boundaries = {}
+#             with open(input.reference) as handle:
+#                 for record in SeqIO.parse(handle, "genbank"):
+#                     for feature in record.features:
+#                         if feature.type == "CDS" and 'Name' in feature.qualifiers:
+#                             product = feature.qualifiers['Name'][0].upper()
+#                             if product == real_gene.upper():
+#                                 # Corrected: Use .start and .end directly
+#                                 gene_boundaries[product] = (feature.location.start, feature.location.end)
 
-            if real_gene.upper() not in gene_boundaries:
-                raise ValueError(f"Gene {real_gene} not found in reference file.")
+#             if real_gene.upper() not in gene_boundaries:
+#                 raise ValueError(f"Gene {real_gene} not found in reference file.")
 
-            b = gene_boundaries[real_gene.upper()]
+#             b = gene_boundaries[real_gene.upper()]
 
-        alignment = SeqIO.parse(input.alignment, "fasta")
-        with open(output.alignment, "w") as oh:
-            for record in alignment:
-                sequence = Seq(record.seq)
-                gene_keep = sequence[b[0]:b[1]]
-                if set(gene_keep) in [{"N"}, {"-"}, set()]:
-                    continue  # Skip sequences that are entirely masked
-                sequence = len(sequence) * "-"
-                sequence = sequence[:b[0]] + gene_keep + sequence[b[1]:]
-                record.seq = Seq(sequence)
-                SeqIO.write(record, oh, "fasta")
+#         alignment = SeqIO.parse(input.alignment, "fasta")
+#         with open(output.alignment, "w") as oh:
+#             for record in alignment:
+#                 sequence = Seq(record.seq)
+#                 gene_keep = sequence[b[0]:b[1]]
+#                 if set(gene_keep) in [{"N"}, {"-"}, set()]:
+#                     continue  # Skip sequences that are entirely masked
+#                 sequence = len(sequence) * "-"
+#                 sequence = sequence[:b[0]] + gene_keep + sequence[b[1]:]
+#                 record.seq = Seq(sequence)
+#                 SeqIO.write(record, oh, "fasta")
 
 ##############################
 # Tree building
@@ -533,8 +543,8 @@ rule tree:
         Creating a maximum likelihood tree
         """
     input:
-        # alignment = rules.fix_align_codon.output.alignment
-        alignment = rules.sub_alignments.output.alignment
+        alignment = rules.align.output.alignment
+        # alignment = rules.sub_alignments.output.alignment
     benchmark:
         "benchmark/tree.{seg}{gene}{protein}.log"
     output:
@@ -567,7 +577,8 @@ rule refine:
         """
     input:
         tree = rules.tree.output.tree,
-        alignment = rules.sub_alignments.output.alignment,
+        # alignment = rules.sub_alignments.output.alignment,
+        alignment = rules.align.output.alignment,
         metadata =  rules.add_metadata.output.metadata,
         reference = rules.reference_gb_to_fasta.output.reference
     benchmark:
@@ -621,7 +632,8 @@ rule ancestral:
     message: "Reconstructing ancestral sequences and mutations"
     input:
         tree = rules.refine.output.tree,
-        alignment = rules.sub_alignments.output.alignment,
+        # alignment = rules.sub_alignments.output.alignment,
+        alignment = rules.align.output.alignment,
         annotation = files.reference,
     output:
         node_data = "{seg}/results/muts{gene}{protein}.json",
@@ -661,35 +673,6 @@ rule ancestral:
         # --keep-ambiguous\ #do not infer nucleotides at ambiguous (N) sites on tip sequences (leave as N).
         # --root-sequence {input.annotation} \  -> assigns mutations to the root relative to the reference, not wanted here
  
-# rule translate:
-#     message: "Translating amino acid sequences"
-#     input:
-#         tree = rules.refine.output.tree,
-#         node_data = rules.ancestral.output.node_data,
-#         reference = files.reference
-#     params:
-#         genes=CODING_GENES
-#     output:
-#         node_data = "{seg}/results/aa_muts{gene}{protein}.json"
-#         # node_data = "{seg}/results/aa_muts.json"
-#     run:
-#         if wildcards.gene!="":
-#             shell("""
-#                 augur translate \
-#                     --tree {input.tree} \
-#                     --ancestral-sequences {input.node_data} \
-#                     --reference-sequence {input.reference} \
-#                     --output-node-data {output.node_data}
-#             """)
-#         else:
-#             shell("""
-#                 augur translate \
-#                     --tree {input.tree} \
-#                     --ancestral-sequences {input.node_data} \
-#                     --reference-sequence {input.reference} \
-#                     --output-node-data {output.node_data}
-#             """)
-
 rule traits:
     message: "Inferring ancestral traits for {params.traits!s}"
     input:
@@ -738,7 +721,7 @@ rule clade_published:
     input:
         metadata = rules.add_metadata.output.metadata,
         subgenotypes = "data/clades_vp1.tsv",
-        rivm_data = "data/rivm/subgenotypes_rivm.csv",
+        rivm_data = "data/subgenotypes_rivm.csv",
         alignment= "vp1/results/aligned.fasta"
     params:
         strain_id_field= config["id_field"],
@@ -930,9 +913,8 @@ rule clean:
 rule upload: ## make sure you're logged in to Nextstrain
     message: "Uploading auspice JSONs to Nextstrain"
     input:
-        # jsons = glob.glob("auspice/*.json"),
-        jsons = ["auspice/enterovirus_A71_vp1.json", "auspice/enterovirus_A71_whole-genome.json",
-        "auspice/enterovirus_A71_gene_-vp1.json", "auspice/enterovirus_A71_gene_-3D.json"]
+        jsons = ["auspice/enterovirus_A71_vp1.json", "auspice/enterovirus_A71_whole-genome.json"]
+        # "auspice/enterovirus_A71_gene_-vp1.json", "auspice/enterovirus_A71_gene_-3D.json"]
     params:
         remote_group=REMOTE_GROUP,
         date=UPLOAD_DATE,
