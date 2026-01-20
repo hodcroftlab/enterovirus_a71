@@ -45,7 +45,7 @@ rule nextclade:
         min_length = config["curate"]["min_length"]
     log:
         "logs/nextclade.txt"
-    threads: 9
+    threads: workflow.cores
     shell:
         """
         nextclade3 run -D {params.dataset}  -j {threads} \

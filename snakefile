@@ -390,7 +390,7 @@ rule filter:
         reason ="{seg}/results/reasons.tsv",
     params:
         group_by = "country year", # dropped because of ambiguous year information
-        sequences_per_group = 600, # set lower if you want to have a max sequences per group
+        sequences_per_group = 500, # set lower if you want to have a max sequences per group
         strain_id_field = config["id_field"],
         min_date = 1970,  # BrCr was collected in 1970
         exclude_enpen = "--exclude-where ENPEN=True" if not INCL_ENPEN else "" # INCL_ENPEN was defined on line 32
