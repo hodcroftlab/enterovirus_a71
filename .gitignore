@@ -1,6 +1,5 @@
 .snakemake
 
-# data and auspice outputs
 data/*
 *errors.csv
 
@@ -31,8 +30,6 @@ strain_accession.txt
 
 backup*
 
-*.json
-
 #scicore
 *slurm.sh
 slurm_*
@@ -54,3 +51,6 @@ data/meta_public.tsv
 data/subgenotypes_rivm.csv
 data/clades_vp1.tsv
 data/strain_names_previous_run.tsv
+
+auspice/enterovirus_A71_whole-genome.json
+auspice/enterovirus_A71_vp1.json
