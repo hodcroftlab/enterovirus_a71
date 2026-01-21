@@ -715,7 +715,7 @@ rule clade_published:
     input:
         metadata = rules.add_metadata.output.metadata,
         subgenotypes = "data/clades_vp1.tsv",
-        rivm_data = "data/rivm/subgenotypes_rivm.csv",
+        rivm_data = "data/subgenotypes_rivm.csv",
         alignment= "vp1/results/aligned.fasta"
     params:
         strain_id_field= config["id_field"],
