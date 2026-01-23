@@ -1,29 +1,22 @@
 clade	gene	site	alt
-B	nuc	172	A
 B	nuc	525	A
-B	VP1	58	T
 
-B1	nuc	597	T
+B1	nuc	171	C
+B1	nuc	582	T
 B1	nuc	726	A
 
-B2	nuc	243	C
-B2	nuc	645	A
-B2	nuc	756	T
+B2	clade	B1
+B2	nuc	597	C
+B2	nuc	726	G
 
-B3	nuc	201	G
-B3	nuc	231	A
-B3	nuc	243	T
 B3	nuc	297	C
-B3	nuc	309	G
+B3	nuc	432	C
 B3	nuc	373	T
 
-B4	nuc	54	G
 B4	nuc	222	T
 B4	nuc	492	G
 B4	nuc	561	G
-B4	nuc	840	C
 
-B5	nuc	153	G
 B5	nuc	156	C
 B5	nuc	238	C
 B5	nuc	642	C
@@ -44,10 +37,12 @@ C2	nuc	81	T
 C2	nuc	93	T
 C2	nuc	264	A
 
-C5	nuc	6	C
-C5	nuc	27	A
-C5	nuc	120	C
-C5	nuc	132	C
+C5	clade	C1
+C5	nuc	246	C
+C5	nuc	447	G
+C5	nuc	534	A
+C5	nuc	606	G
+C5	nuc	771	T
 
 C1	nuc	264	G
 C1	nuc	888	T
@@ -57,9 +52,9 @@ C1-like	nuc	291	A
 C1-like	nuc	501	G
 C1-like	nuc	837	C
 
-C4	nuc	27	A
-C4	nuc	123	A
-C4	nuc	723	C
+C4	nuc	129	G
+C4	nuc	303	T
+C4	nuc	678	T
 
 G	nuc	285	T
 G	nuc	531	A

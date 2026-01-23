@@ -76,7 +76,7 @@ files = rules.files.input
 rule all:
     input:
         augur_jsons = expand("auspice/enterovirus_A71_{segs}.json", segs=segments),
-        epitopes = "vp1/results/epitopes.json",
+        # epitopes = "vp1/results/epitopes.json",
         meta = files.METADATA,
         seq = files.SEQUENCES
 
@@ -909,8 +909,10 @@ rule upload: ## make sure you're logged in to Nextstrain
     message: "Uploading auspice JSONs to Nextstrain"
     input:
         # jsons = glob.glob("auspice/*.json"),
-        jsons = ["auspice/enterovirus_A71_vp1.json", "auspice/enterovirus_A71_whole-genome.json",
-        "auspice/enterovirus_A71_gene_-vp1.json", "auspice/enterovirus_A71_gene_-3D.json"]
+        jsons = ["auspice/enterovirus_A71_vp1.json", 
+        # "auspice/enterovirus_A71_whole-genome.json",
+        # "auspice/enterovirus_A71_gene_-vp1.json", "auspice/enterovirus_A71_gene_-3D.json"
+        ]
     params:
         remote_group=REMOTE_GROUP,
         date=UPLOAD_DATE,
@@ -920,7 +922,7 @@ rule upload: ## make sure you're logged in to Nextstrain
         nextstrain remote upload \
             nextstrain.org/groups/{params.remote_group}/ \
             {input.jsons}
-        nextstrain logout
+        # nextstrain logout
         mkdir -p auspice/{params.date}
         cp {input.jsons} auspice/{params.date}/
         """
