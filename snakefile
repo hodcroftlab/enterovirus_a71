@@ -298,10 +298,6 @@ rule add_metadata:
             --regions {input.regions} \
             --id {params.strain_id_field} \
             --output {output.metadata}
-        
-        if [ -d "./temp/" ]; then
-        rm -r ./temp/
-        fi
         """
 
 ## Deduplicate sequences that have identical strain names and sequences
@@ -616,32 +612,19 @@ rule ancestral:
         output_translation_template=r"{seg}/results/translations/cds_%GENE.ancestral.fasta",
         root = "{seg}/results/ancestral_sequences.fasta",
 
-    run:
-        # Check if this is for a specific gene (wildcards.gene is not empty)
-        if wildcards.gene != "":
-            # Running for a specific gene
-            shell("""
-                augur ancestral \
-                --tree {input.tree} \
-                --alignment {input.alignment} \
-                --output-node-data {output.node_data} \
-                --keep-ambiguous \
-                --inference {params.inference}
-            """)
-        else:
-            # Running for whole genome with translation
-            shell("""
-                augur ancestral \
-                --tree {input.tree} \
-                --alignment {input.alignment} \
-                --annotation {input.annotation} \
-                --genes {params.genes} \
-                --translations {params.translation_template} \
-                --output-node-data {output.node_data} \
-                --output-translations {params.output_translation_template} \
-                --output-sequences {params.root} \
-                --skip-validation
-            """)
+    shell:
+        """
+            augur ancestral \
+            --tree {input.tree} \
+            --alignment {input.alignment} \
+            --annotation {input.annotation} \
+            --genes {params.genes} \
+            --translations {params.translation_template} \
+            --output-node-data {output.node_data} \
+            --output-translations {params.output_translation_template} \
+            --output-sequences {params.root} \
+            --skip-validation
+        """
         # --keep-ambiguous\ #do not infer nucleotides at ambiguous (N) sites on tip sequences (leave as N).
         # --root-sequence {input.annotation} \  -> assigns mutations to the root relative to the reference, not wanted here
  
