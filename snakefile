@@ -16,7 +16,6 @@
 if not config:
     configfile: "config/config.yaml"
 
-from dotenv import load_dotenv
 import os
 from datetime import date
 
@@ -28,8 +27,16 @@ try:
 except:
     pass
 
+# Load environment variables
+# Try to load .env, but don't fail if it doesn't exist (for Actions)
+try:
+    from dotenv import load_dotenv
+    load_dotenv(".env")
+except:
+    pass
+
 REMOTE_GROUP = os.getenv("REMOTE_GROUP")
-UPLOAD_DATE = os.getenv("UPLOAD_DATE") or date.today().isoformat()
+UPLOAD_DATE = date.today().isoformat()
 
 ###############
 wildcard_constraints:
@@ -44,7 +51,7 @@ PROT = ["-P1", "-P2", "-P3"]
 CODING_GENES = ["VP4", "VP2", "VP3", "VP1", "2A", "2B", "2C", "3A", "3B", "3C", "3D"]
 
 # parameters
-INCL_ENPEN = False # include or exclude ENPEN data
+INCL_ENPEN = True # include or exclude ENPEN data
 FETCH_SEQUENCES = True
 
 # Rule to handle configuration files
@@ -65,7 +72,6 @@ rule files:
         meta_genbank =      "data/genbank_metadata.tsv",
         last_updated_file = "data/date_last_updated.txt",
         local_accn_file =   "data/local_accn.txt",
-        strain_names =      "data/updated_strain_names.tsv",
         SEQUENCES =         "data/sequences.fasta",
         METADATA =          "data/metadata.tsv"
 
@@ -101,9 +107,9 @@ rule all_proteins:
 rule next_update:
     input:
         "auspice/enterovirus_A71_vp1.json", 
-        "auspice/enterovirus_A71_whole-genome.json",
-        "auspice/enterovirus_A71_gene_-vp1.json", 
-        "auspice/enterovirus_A71_gene_-3D.json"
+        "auspice/enterovirus_A71_whole-genome.json"
+        # "auspice/enterovirus_A71_gene_-vp1.json", 
+        # "auspice/enterovirus_A71_gene_-3D.json"
 
 
 ##############################
@@ -124,26 +130,6 @@ if FETCH_SEQUENCES == True:
             cd ../
             """
 
-##############################
-# Update strain names
-###############################
-
-rule update_strain_names:
-    message:
-        """
-        Updating strain name in metadata.
-        """
-    input:
-        file_in =  files.METADATA
-    params:
-        backup = "data/strain_names_previous_run.tsv"
-    output:
-        file_out = files.strain_names
-    shell:
-        """
-        time bash scripts/update_strain.sh {input.file_in} {params.backup} {output.file_out}
-        cp {output.file_out} {params.backup}
-        """
 
 # This rule is very slow. Only give accessions as input where you are certain that they have GenBank metadata.
 rule fetch_metadata:
@@ -195,7 +181,7 @@ rule curate:
         date_fields=config["curate"]["date_fields"],
         expected_date_formats=config["curate"]["expected_date_formats"],
     output:
-        merge = "data/merge_meta.tsv",  # Final output file for publications metadata
+        merge = temp("data/merge_meta.tsv"),  # Final output file for publications metadata
         meta="data/curated/all_meta.tsv"  # Final merged output file
     shell:
         """        
@@ -214,6 +200,7 @@ rule curate:
             --expected-date-formats {params.expected_date_formats} \
             --id-column {params.strain_id_field} \
             --output-metadata {output.meta}
+        echo "Curated metadata saved to {output.meta}"
         """
 
 
@@ -302,7 +289,6 @@ rule add_metadata:
         metadata=files.METADATA,
         new_data=rules.curate.output.meta,
         regions=ancient(files.regions),
-        renamed_strains=files.strain_names
     params:
         strain_id_field=config["id_field"],
         last_updated = files.last_updated_file,
@@ -315,17 +301,12 @@ rule add_metadata:
         python scripts/add_metadata.py \
             --input {input.metadata} \
             --add {input.new_data} \
-            --rename {input.renamed_strains} \
             --local {params.local_accn} \
             --C1like {params.C1like_accn} \
             --update {params.last_updated}\
             --regions {input.regions} \
             --id {params.strain_id_field} \
             --output {output.metadata}
-        
-        if [ -d "./temp/" ]; then
-        rm -r ./temp/
-        fi
         """
 
 ## Deduplicate sequences that have identical strain names and sequences
@@ -391,7 +372,7 @@ rule filter:
         reason ="{seg}/results/reasons.tsv",
     params:
         group_by = "country year", # dropped because of ambiguous year information
-        sequences_per_group = 600, # set lower if you want to have a max sequences per group
+        sequences_per_group = 500, # set lower if you want to have a max sequences per group
         strain_id_field = config["id_field"],
         min_date = 1970,  # BrCr was collected in 1970
         exclude_enpen = "--exclude-where ENPEN=True" if not INCL_ENPEN else "" # INCL_ENPEN was defined on line 32
@@ -539,7 +520,7 @@ rule tree:
         Creating a maximum likelihood tree
         """
     input:
-        # alignment = rules.fix_align_codon.output.alignment
+        # alignment = rules.align.output.alignment
         alignment = rules.sub_alignments.output.alignment
     benchmark:
         "benchmark/tree.{seg}{gene}{protein}.log"
@@ -574,6 +555,7 @@ rule refine:
     input:
         tree = rules.tree.output.tree,
         alignment = rules.sub_alignments.output.alignment,
+        # alignment = rules.align.output.alignment,
         metadata =  rules.add_metadata.output.metadata,
         reference = rules.reference_gb_to_fasta.output.reference
     benchmark:
@@ -592,13 +574,13 @@ rule refine:
         strain_id_field = config["id_field"],
         clock_rate = 0.004, # remove for estimation
         clock_std_dev = 0.0015,
-        # rooting = "",
-        # rooting = "--root DQ341364 KF501389",
-        rooting = lambda wildcards: (
-            "--root DQ341364 KF501389" if (wildcards.seg == "whole_genome" and not wildcards.gene)
-            else "--root JN204010 DQ341364" if wildcards.seg == "vp1"
-            else ""
-        )
+        # rooting = "--root mid_point",
+        rooting = "--root DQ341364 KF501389",
+        # rooting = lambda wildcards: (
+        #     "--root DQ341364 KF501389" if (wildcards.seg == "whole_genome" and not wildcards.gene)
+        #     else "--root JN204010 DQ341364" if wildcards.seg == "vp1"
+        #     else ""
+        # )
 
     log:
         reasons_refine = "logs/refine.{seg}{gene}{protein}.log" # number of dropped sequences
@@ -628,6 +610,7 @@ rule ancestral:
     input:
         tree = rules.refine.output.tree,
         alignment = rules.sub_alignments.output.alignment,
+        # alignment = rules.align.output.alignment,
         annotation = files.reference,
     output:
         node_data = "{seg}/results/muts{gene}{protein}.json",
@@ -638,32 +621,19 @@ rule ancestral:
         output_translation_template=r"{seg}/results/translations/cds_%GENE.ancestral.fasta",
         root = "{seg}/results/ancestral_sequences.fasta",
 
-    run:
-        # Check if this is for a specific gene (wildcards.gene is not empty)
-        if wildcards.gene != "":
-            # Running for a specific gene
-            shell("""
-                augur ancestral \
-                --tree {input.tree} \
-                --alignment {input.alignment} \
-                --output-node-data {output.node_data} \
-                --keep-ambiguous \
-                --inference {params.inference}
-            """)
-        else:
-            # Running for whole genome with translation
-            shell("""
-                augur ancestral \
-                --tree {input.tree} \
-                --alignment {input.alignment} \
-                --annotation {input.annotation} \
-                --genes {params.genes} \
-                --translations {params.translation_template} \
-                --output-node-data {output.node_data} \
-                --output-translations {params.output_translation_template} \
-                --output-sequences {params.root} \
-                --skip-validation
-            """)
+    shell:
+        """
+            augur ancestral \
+            --tree {input.tree} \
+            --alignment {input.alignment} \
+            --annotation {input.annotation} \
+            --genes {params.genes} \
+            --translations {params.translation_template} \
+            --output-node-data {output.node_data} \
+            --output-translations {params.output_translation_template} \
+            --output-sequences {params.root} \
+            --skip-validation
+        """
         # --keep-ambiguous\ #do not infer nucleotides at ambiguous (N) sites on tip sequences (leave as N).
         # --root-sequence {input.annotation} \  -> assigns mutations to the root relative to the reference, not wanted here
  
@@ -724,8 +694,13 @@ rule clade_published:
         final_metadata = "data/final_metadata.tsv"
     shell:
         """
-        python scripts/published_clades.py --input {input.metadata} --rivm {input.rivm_data}\
-        --sgt {input.subgenotypes} --alignment {input.alignment} --id {params.strain_id_field} --output {output.final_metadata}
+        python scripts/published_clades.py \
+            --input {input.metadata} \
+            --rivm {input.rivm_data} \
+            --sgt {input.subgenotypes} \
+            --alignment {input.alignment} \
+            --id {params.strain_id_field} \
+            --output {output.final_metadata}
         """
 
 ##############################
@@ -822,7 +797,7 @@ rule export:
     params:
         epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else "", ## please run the epitopes function
         strain_id_field= config["id_field"],
-        muts_flag = lambda wildcards: "" if wildcards.gene else f"{wildcards.seg}/results/muts.json",
+        muts_flag = lambda wildcards: f"{wildcards.seg}/results/muts.json" if wildcards.seg else "",
     benchmark:
         "benchmark/export.{seg}{gene}{protein}.log"
     output:
@@ -875,7 +850,7 @@ rule rename_proteins:
     message: 
         "Rename the single genome builts"
     input: 
-        json="auspice/enterovirus_A71_whole-genome{protein}.json"
+        json="auspice/enterovirus_A71_whole_genome{protein}.json"
 
     output:
         json="auspice/enterovirus_A71_protein_{protein}.json"
@@ -908,11 +883,8 @@ rule clean:
 rule upload: ## make sure you're logged in to Nextstrain
     message: "Uploading auspice JSONs to Nextstrain"
     input:
-        # jsons = glob.glob("auspice/*.json"),
-        jsons = ["auspice/enterovirus_A71_vp1.json", 
-        # "auspice/enterovirus_A71_whole-genome.json",
-        # "auspice/enterovirus_A71_gene_-vp1.json", "auspice/enterovirus_A71_gene_-3D.json"
-        ]
+        jsons = ["auspice/enterovirus_A71_vp1.json", "auspice/enterovirus_A71_whole-genome.json"]
+        # "auspice/enterovirus_A71_gene_-vp1.json", "auspice/enterovirus_A71_gene_-3D.json"]
     params:
         remote_group=REMOTE_GROUP,
         date=UPLOAD_DATE,

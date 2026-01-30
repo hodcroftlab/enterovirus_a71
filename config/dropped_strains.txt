@@ -404,3 +404,10 @@ PP548263
 PQ868599
 PV684179
 LR798440
+
+# removing outliers through unrooted view
+KF982854
+KX372308
+KX372309
+PX260179 # D genotype
+PX260180 # G genotype

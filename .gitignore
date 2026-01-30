@@ -1,10 +1,6 @@
 .snakemake
 
-# data and auspice outputs
 data/*
-# !data/meta_public.tsv
-auspice/
-
 *errors.csv
 
 # ingest
@@ -34,8 +30,6 @@ strain_accession.txt
 
 backup*
 
-*.json
-
 #scicore
 *slurm.sh
 slurm_*
@@ -44,3 +38,19 @@ run.stats
 
 *.log
 compare-alignments
+
+# data to include
+!/data/date_last_updated.txt
+!/data/local_accn.txt
+!/data/references
+!/ingest/data/references/
+
+## part of nextstrain-builds-data repo
+data/meta_ENPEN.tsv
+data/meta_public.tsv
+data/subgenotypes_rivm.csv
+data/clades_vp1.tsv
+data/strain_names_previous_run.tsv
+
+auspice/enterovirus_A71_whole-genome.json
+auspice/enterovirus_A71_vp1.json
