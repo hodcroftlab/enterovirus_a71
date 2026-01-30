@@ -27,9 +27,13 @@ B	nuc	3134	T
 B	nuc	4739	T
 B	VP1	58	T
 
+B1	nuc	2009	C
+B1	nuc	4219	A
+B1	nuc	6263	G
+
 C	nuc	1892	G
 C	nuc	2428	G
-C	nuc	5687	C
+C	nuc	3191	T
 
 C2.r	nuc	2057	T
 C2.r	nuc	4706	C
@@ -51,9 +55,8 @@ C4	nuc	3014	A
 C4	nuc	6173	T
 C4	3D	383	E
 
-C1-like	nuc	2798	G
-C1-like	nuc	6536	G
-C1-like	nuc	7330	C
+C1-like	clade	C
+C1-like	nuc	4385	A
 
 C2-like	nuc	505	G
 C2-like	nuc	2855	C

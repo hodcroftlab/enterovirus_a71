@@ -173,7 +173,7 @@ rule curate:
         date_fields=config["curate"]["date_fields"],
         expected_date_formats=config["curate"]["expected_date_formats"],
     output:
-        merge = "data/merge_meta.tsv",  # Final output file for publications metadata
+        merge = temp("data/merge_meta.tsv"),  # Final output file for publications metadata
         meta="data/curated/all_meta.tsv"  # Final merged output file
     shell:
         """        
@@ -192,6 +192,7 @@ rule curate:
             --expected-date-formats {params.expected_date_formats} \
             --id-column {params.strain_id_field} \
             --output-metadata {output.meta}
+        echo "Curated metadata saved to {output.meta}"
         """
 
 
@@ -451,56 +452,56 @@ rule align:
         """
 
 #  one-by-one genes
-# rule sub_alignments:
-#     input:
-#         alignment=rules.align.output.alignment,
-#         reference=files.reference
-#     output:
-#         alignment = "{seg}/results/aligned{gene}{protein}.fasta"
-#     benchmark:
-#         "benchmark/sub_alignments.{seg}{gene}{protein}.log"
-#     run:
-#         from Bio import SeqIO
-#         from Bio.Seq import Seq
+rule sub_alignments:
+    input:
+        alignment=rules.align.output.alignment,
+        reference=files.reference
+    output:
+        alignment = "{seg}/results/aligned{gene}{protein}.fasta"
+    benchmark:
+        "benchmark/sub_alignments.{seg}{gene}{protein}.log"
+    run:
+        from Bio import SeqIO
+        from Bio.Seq import Seq
 
-#         if wildcards.protein:
-#             real_gene = wildcards.protein.replace("-", "", 1)
-#             boundaries = {
-#                 'P1': (744, 3329),
-#                 'P2': (3330, 5063),
-#                 'P3': (5064, 7322)
-#             }
-#             b = boundaries[real_gene]
-#         else:
-#             real_gene = wildcards.gene.replace("-", "", 1)
+        if wildcards.protein:
+            real_gene = wildcards.protein.replace("-", "", 1)
+            boundaries = {
+                'P1': (744, 3329),
+                'P2': (3330, 5063),
+                'P3': (5064, 7322)
+            }
+            b = boundaries[real_gene]
+        else:
+            real_gene = wildcards.gene.replace("-", "", 1)
 
-#             # Extract boundaries from the reference GenBank file
-#             gene_boundaries = {}
-#             with open(input.reference) as handle:
-#                 for record in SeqIO.parse(handle, "genbank"):
-#                     for feature in record.features:
-#                         if feature.type == "CDS" and 'Name' in feature.qualifiers:
-#                             product = feature.qualifiers['Name'][0].upper()
-#                             if product == real_gene.upper():
-#                                 # Corrected: Use .start and .end directly
-#                                 gene_boundaries[product] = (feature.location.start, feature.location.end)
+            # Extract boundaries from the reference GenBank file
+            gene_boundaries = {}
+            with open(input.reference) as handle:
+                for record in SeqIO.parse(handle, "genbank"):
+                    for feature in record.features:
+                        if feature.type == "CDS" and 'Name' in feature.qualifiers:
+                            product = feature.qualifiers['Name'][0].upper()
+                            if product == real_gene.upper():
+                                # Corrected: Use .start and .end directly
+                                gene_boundaries[product] = (feature.location.start, feature.location.end)
 
-#             if real_gene.upper() not in gene_boundaries:
-#                 raise ValueError(f"Gene {real_gene} not found in reference file.")
+            if real_gene.upper() not in gene_boundaries:
+                raise ValueError(f"Gene {real_gene} not found in reference file.")
 
-#             b = gene_boundaries[real_gene.upper()]
+            b = gene_boundaries[real_gene.upper()]
 
-#         alignment = SeqIO.parse(input.alignment, "fasta")
-#         with open(output.alignment, "w") as oh:
-#             for record in alignment:
-#                 sequence = Seq(record.seq)
-#                 gene_keep = sequence[b[0]:b[1]]
-#                 if set(gene_keep) in [{"N"}, {"-"}, set()]:
-#                     continue  # Skip sequences that are entirely masked
-#                 sequence = len(sequence) * "-"
-#                 sequence = sequence[:b[0]] + gene_keep + sequence[b[1]:]
-#                 record.seq = Seq(sequence)
-#                 SeqIO.write(record, oh, "fasta")
+        alignment = SeqIO.parse(input.alignment, "fasta")
+        with open(output.alignment, "w") as oh:
+            for record in alignment:
+                sequence = Seq(record.seq)
+                gene_keep = sequence[b[0]:b[1]]
+                if set(gene_keep) in [{"N"}, {"-"}, set()]:
+                    continue  # Skip sequences that are entirely masked
+                sequence = len(sequence) * "-"
+                sequence = sequence[:b[0]] + gene_keep + sequence[b[1]:]
+                record.seq = Seq(sequence)
+                SeqIO.write(record, oh, "fasta")
 
 ##############################
 # Tree building
@@ -511,8 +512,8 @@ rule tree:
         Creating a maximum likelihood tree
         """
     input:
-        alignment = rules.align.output.alignment
-        # alignment = rules.sub_alignments.output.alignment
+        # alignment = rules.align.output.alignment
+        alignment = rules.sub_alignments.output.alignment
     benchmark:
         "benchmark/tree.{seg}{gene}{protein}.log"
     output:
@@ -545,8 +546,8 @@ rule refine:
         """
     input:
         tree = rules.tree.output.tree,
-        # alignment = rules.sub_alignments.output.alignment,
-        alignment = rules.align.output.alignment,
+        alignment = rules.sub_alignments.output.alignment,
+        # alignment = rules.align.output.alignment,
         metadata =  rules.add_metadata.output.metadata,
         reference = rules.reference_gb_to_fasta.output.reference
     benchmark:
@@ -565,13 +566,13 @@ rule refine:
         strain_id_field = config["id_field"],
         clock_rate = 0.004, # remove for estimation
         clock_std_dev = 0.0015,
-        # rooting = "",
+        rooting = "--root mid_point",
         # rooting = "--root DQ341364 KF501389",
-        rooting = lambda wildcards: (
-            "--root DQ341364 KF501389" if (wildcards.seg == "whole_genome" and not wildcards.gene)
-            else "--root JN204010 DQ341364" if wildcards.seg == "vp1"
-            else ""
-        )
+        # rooting = lambda wildcards: (
+        #     "--root DQ341364 KF501389" if (wildcards.seg == "whole_genome" and not wildcards.gene)
+        #     else "--root JN204010 DQ341364" if wildcards.seg == "vp1"
+        #     else ""
+        # )
 
     log:
         reasons_refine = "logs/refine.{seg}{gene}{protein}.log" # number of dropped sequences
@@ -600,8 +601,8 @@ rule ancestral:
     message: "Reconstructing ancestral sequences and mutations"
     input:
         tree = rules.refine.output.tree,
-        # alignment = rules.sub_alignments.output.alignment,
-        alignment = rules.align.output.alignment,
+        alignment = rules.sub_alignments.output.alignment,
+        # alignment = rules.align.output.alignment,
         annotation = files.reference,
     output:
         node_data = "{seg}/results/muts{gene}{protein}.json",
@@ -685,8 +686,13 @@ rule clade_published:
         final_metadata = "data/final_metadata.tsv"
     shell:
         """
-        python scripts/published_clades.py --input {input.metadata} --rivm {input.rivm_data}\
-        --sgt {input.subgenotypes} --alignment {input.alignment} --id {params.strain_id_field} --output {output.final_metadata}
+        python scripts/published_clades.py \
+            --input {input.metadata} \
+            --rivm {input.rivm_data} \
+            --sgt {input.subgenotypes} \
+            --alignment {input.alignment} \
+            --id {params.strain_id_field} \
+            --output {output.final_metadata}
         """
 
 ##############################
@@ -783,7 +789,7 @@ rule export:
     params:
         epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else "", ## please run the epitopes function
         strain_id_field= config["id_field"],
-        muts_flag = lambda wildcards: "" if wildcards.gene else f"{wildcards.seg}/results/muts.json",
+        muts_flag = lambda wildcards: f"{wildcards.seg}/results/muts.json" if wildcards.seg else "",
     benchmark:
         "benchmark/export.{seg}{gene}{protein}.log"
     output:
@@ -836,7 +842,7 @@ rule rename_proteins:
     message: 
         "Rename the single genome builts"
     input: 
-        json="auspice/enterovirus_A71_whole-genome{protein}.json"
+        json="auspice/enterovirus_A71_whole_genome{protein}.json"
 
     output:
         json="auspice/enterovirus_A71_protein_{protein}.json"
