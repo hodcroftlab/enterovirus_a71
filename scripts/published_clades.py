@@ -26,6 +26,7 @@ if __name__ == '__main__':
     parser.add_argument('--alignment', help="input alignment file")
     parser.add_argument('--id', help="id: strain or accession", choices=["strain","accession"],default="accession")
     parser.add_argument('--output', help="output meta file")
+    parser.add_argument('--annotation', help="input annotation file (GenBank format)", required=False)
     args = parser.parse_args()
 
     meta = pd.read_csv(args.input, sep='\t', index_col=False)
@@ -79,26 +80,46 @@ if __name__ == '__main__':
     # Read alignment
     seqs = list(SeqIO.parse(args.alignment, "fasta"))
 
-    # Calculate VP1 lengths for each sequence without gaps ("-") and Ns
+    # Extract VP1 coordinates from annotation file
+    vp1_start = None
+    vp1_end = None
+    if args.annotation:
+        for record in SeqIO.parse(args.annotation, "genbank"):
+            for feature in record.features:
+                if feature.type == "CDS":
+                    product_list = feature.qualifiers.get("product", [])
+                    gene_list = feature.qualifiers.get("gene", [])
+                    if any("vp1" in p.lower() for p in product_list + gene_list):
+                        vp1_start = int(feature.location.start)
+                        vp1_end = int(feature.location.end)
+                        break
+            if vp1_start is not None:
+                break
+
+    # Calculate lengths for each sequence without gaps ("-") and Ns
     ids = [record.id for record in seqs]
-    vp1_lengths = [len(record.seq.replace("N", "").replace("-", "")) for record in seqs]
+    total_lengths = [len(record.seq.replace("N", "").replace("-", "")) for record in seqs]
 
-    # Create a DataFrame with sequence IDs and VP1 lengths
-    len_df = pd.DataFrame({"accession": ids, "l_vp1": vp1_lengths})
+    # Calculate VP1 lengths if coordinates were found
+    if vp1_start is not None and vp1_end is not None:
+        vp1_lengths = [len(record.seq[vp1_start:vp1_end].replace("N", "").replace("-", "")) for record in seqs]
+    else:
+        # Fallback: use total length if VP1 not found
+        vp1_lengths = total_lengths
+        print("Warning: VP1 coordinates not found in annotation file. Using total sequence length.")
 
-    # Add the length to the metadata
+    # Create a DataFrame with sequence IDs and lengths
+    len_df = pd.DataFrame({"accession": ids, "l_vp1": vp1_lengths, "l_total": total_lengths})
+
+    # Add the lengths to the metadata
     final_meta2 = pd.merge(final_meta, len_df, left_on=id_field, right_on="accession", how="left")
 
-    # Define bins and labels for VP1 length ranges
-    bins_length = [-np.inf, 599, 699, 799, 899, np.inf]
-    labels_length = ['<600nt', '600-700nt', '700-800nt', '800-900nt', '>900nt']
+    # Convert lengths to strings for display
+    final_meta2['length_VP1'] = final_meta2['l_vp1'].astype(str) + 'nt'
+    final_meta2['length_total'] = final_meta2['l_total'].astype(str) + 'nt'
 
-    # Create length range column using pd.cut for VP1 length
-    final_meta2['length_VP1'] = pd.cut(final_meta2['l_vp1'], bins=bins_length, labels=labels_length, right=False).astype(str)
-
-    # Drop the original 'l_vp1' column
-    final_meta2 = final_meta2.drop(columns=["l_vp1"])
-
+    # Drop the original numeric length columns
+    final_meta2 = final_meta2.drop(columns=["l_vp1", "l_total"])
 
     # add url with genbank accession
     final_meta2['url'] = "https://www.ncbi.nlm.nih.gov/nuccore/" + final_meta2['accession']

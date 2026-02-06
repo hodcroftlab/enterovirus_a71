@@ -1,5 +1,5 @@
 {
-  "title": "Genomic Epidemiology of Enterovirus A71 Whole Genome",
+  "title": "Genomic Epidemiology of Enterovirus A71 - Whole Genome",
   "maintainers": [
     {
       "name": "Nadia Neuner-Jehle",
@@ -100,7 +100,12 @@
     {
       "key": "length_VP1",
       "title": "Length of VP1",
-      "type": "ordinal"
+      "type": "continuous"
+    },
+    {
+      "key": "total_length",
+      "title": "Length of sequence",
+      "type": "continuous"
     },
     {
       "key": "NCBI_length_genome",

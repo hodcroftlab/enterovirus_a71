@@ -36,60 +36,60 @@ FEATURES             Location/Qualifiers
      CDS             744..950
                      /Note="capsid protein"
                      /gbkey="Prot"
-                     /gene="VP4"
+                     /product="VP4"
                      /Name="VP4"
                      /locus_tag="VP4"
      CDS             951..1712
                      /Note="capsid protein"
                      /gbkey="Prot"
-                     /gene="VP2"
+                     /product="VP2"
                      /Name="VP2"
                      /locus_tag="VP2"
      CDS             1713..2438
                      /Note="capsid protein"
                      /gbkey="Prot"
-                     /gene="VP3"
+                     /product="VP3"
                      /Name="VP3"
                      /locus_tag="VP3"
      CDS             2439..3329
                      /Note="capsid protein"
                      /gbkey="Prot"
-                     /gene="VP1"
+                     /product="VP1"
                      /Name="VP1"
                      /locus_tag="VP1"
      CDS             3330..3779
                      /gbkey="Prot"
-                     /gene="2A"
+                     /product="2A"
                      /Name="2A"
                      /locus_tag="2A"
      CDS             3780..4076
                      /gbkey="Prot"
-                     /gene="2B"
+                     /product="2B"
                      /Name="2B"
                      /locus_tag="2B"
      CDS             4077..5063
                      /gbkey="Prot"
-                     /gene="2C"
+                     /product="2C"
                      /Name="2C"
                      /locus_tag="2C"
      CDS             5064..5321
                      /gbkey="Prot"
-                     /gene="3A"
+                     /product="3A"
                      /Name="3A"
                      /locus_tag="3A"
      CDS             5322..5387
                      /gbkey="Prot"
-                     /gene="3B"
+                     /product="3B"
                      /Name="3B"
                      /locus_tag="3B"
      CDS             5388..5936
                      /gbkey="Prot"
-                     /gene="3C"
+                     /product="3C"
                      /Name="3C"
                      /locus_tag="3C"
      CDS             5937..7322
                      /gbkey="Prot"
-                     /gene="3D"
+                     /product="3D"
                      /Name="3D"
                      /locus_tag="3D"
      CDS             7323..7408
@@ -97,7 +97,25 @@ FEATURES             Location/Qualifiers
                      /gbkey="Prot"
                      /product="3UTR"
                      /Name="3UTR"
-                     /locus_tag="3UTR"                     
+                     /locus_tag="3UTR"
+     CDS             744..3329
+                     /Note="P1; capsid protein precursor"
+                     /gbkey="Prot"
+                     /product="P1"
+                     /Name="P1"
+                     /locus_tag="P1"
+     CDS             3330..5321
+                     /Note="P2; capsid protein precursor"
+                     /gbkey="Prot"
+                     /product="P2"
+                     /Name="P2"
+                     /locus_tag="P2"
+     CDS             5322..7322
+                     /Note="P3; capsid protein precursor"
+                     /gbkey="Prot"
+                     /product="P3"
+                     /Name="P3"
+                     /locus_tag="P3"
 ORIGIN
         1 ttaaaacagc tgtgggttgt cacccaccca cagggtccac tgggcgctag tacactggta
        61 tctcggtacc tttgtacgcc tgttttatac cccctccctg atttgcaact tagaagcaac
