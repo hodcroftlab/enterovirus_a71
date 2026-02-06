@@ -13,6 +13,9 @@
 # To run specific proteins for tanglegrams:
 # snakemake --cores 9 all_proteins
 
+###############
+TAXID = "39054"  # NCBI Taxonomy ID for Enterovirus A71
+
 if not config:
     configfile: "config/config.yaml"
 
@@ -27,25 +30,17 @@ try:
 except:
     pass
 
-# Load environment variables
-# Try to load .env, but don't fail if it doesn't exist (for Actions)
-try:
-    from dotenv import load_dotenv
-    load_dotenv(".env")
-except:
-    pass
-
 REMOTE_GROUP = os.getenv("REMOTE_GROUP")
 UPLOAD_DATE = date.today().isoformat()
 
 ###############
 wildcard_constraints:
-    seg="vp1|whole_genome",
+    seg="vp1|whole_genome|P1",
     gene="|-5utr|-vp4|-vp2|-vp3|-vp1|-2A|-2B|-2C|-3A|-3B|-3C|-3D|-3utr",
     protein="|-P1|-P2|-P3"
    
 # Define segments to analyze
-segments = ['vp1', 'whole-genome']
+segments = ['vp1', 'whole-genome', "P1"]
 GENES=["-5utr","-vp4", "-vp2", "-vp3", "-vp1", "-2A", "-2B", "-2C", "-3A", "-3B", "-3C", "-3D","-3utr"]
 PROT = ["-P1", "-P2", "-P3"]
 CODING_GENES = ["VP4", "VP2", "VP3", "VP1", "2A", "2B", "2C", "3A", "3B", "3C", "3D"]
@@ -57,23 +52,26 @@ FETCH_SEQUENCES = True
 # Rule to handle configuration files
 rule files:
     input:
-        sequence_length =   "{seg}",
         dropped_strains =   "config/dropped_strains.txt",
         incl_strains =      "config/kept_strains.txt",
-        reference =         "{seg}/config/reference_sequence.gb",
+        reference =         "config/reference_sequence.gb",
         gff_reference =     "{seg}/config/annotation.gff3",
         lat_longs =         "config/lat_longs.tsv",
         auspice_config =    "{seg}/config/auspice_config.json",
         colors =            "config/colors.tsv",
         clades =            "{seg}/config/clades_genome.tsv",
         regions=            "config/geo_regions.tsv",
+        
         meta_public=        "data/meta_public.tsv",
         meta_collab =       "data/meta_ENPEN.tsv",
         meta_genbank =      "data/genbank_metadata.tsv",
         last_updated_file = "data/date_last_updated.txt",
         local_accn_file =   "data/local_accn.txt",
         SEQUENCES =         "data/sequences.fasta",
-        METADATA =          "data/metadata.tsv"
+        METADATA =          "data/metadata.tsv",
+        RIVM_CLADES =       "data/subgenotypes_rivm.csv",
+        VP1_CLADES =        "data/clades_vp1.tsv",
+
 
 
 files = rules.files.input
@@ -236,42 +234,67 @@ rule update_sequences:
 
 ##############################
 # BLAST
-# blast fasta files for vp1 
+# blast fasta files for your specific proteins
+# cut out your protein from fasta sequences
 ###############################
+
+rule extract:
+    input: 
+        genbank_file = files.reference
+    output: 
+        extracted_fasta = "{seg}/config/reference.fasta",    
+        extracted_genbank = "{seg}/config/reference.gbk",
+    params:
+        product_name = "{seg}",
+        taxid = TAXID,
+        annotation = lambda wildcards: f'--output_gff {wildcards.seg}/config/annotation.gff3' if wildcards.seg != "whole_genome" else ""
+
+    shell:
+        """
+        python scripts/extract_gene_from_whole_genome.py \
+        --genbank_file {input.genbank_file} \
+        --output_fasta {output.extracted_fasta} \
+        --product_name {params.product_name} \
+        --output_genbank {output.extracted_genbank} \
+        --taxid {params.taxid} \
+        {params.annotation}
+        """
 
 rule blast:
     input: 
-        blast_db_file = "data/references/reference_vp1_blast.fasta",
-        seqs_to_blast = rules.update_sequences.output.sequences
+        blast_db_file = rules.extract.output.extracted_fasta,  
+        seqs_to_blast = rules.fetch.output.sequences
     output:
-        blast_out = "vp1/temp/blast_out.csv"
+        blast_out = "temp/{seg}/blast_out.csv"
     params:
-        blast_db = "vp1/temp/blast_database"
+        blast_db =  "temp/{seg}/blast_database"
     shell:
         """
         sed -i 's/-//g' {input.seqs_to_blast}
         makeblastdb -in {input.blast_db_file} -out {params.blast_db} -dbtype nucl
-        blastn -task blastn -query {input.seqs_to_blast} -db {params.blast_db} -outfmt '10 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -out {output.blast_out} -evalue 0.0005
+        blastn -task blastn -query {input.seqs_to_blast} -db {params.blast_db} \
+        -outfmt '10 qseqid sseqid pident length mismatch gapopen qstart qend sstart send evalue bitscore qcovs' -out {output.blast_out} -evalue 0.0005
         """
 
 rule blast_sort:
     input:
         blast_result = rules.blast.output.blast_out, # output blast (for your protein)
-        input_seqs = rules.update_sequences.output.sequences
+        input_seqs = rules.fetch.output.sequences
     output:
         sequences = "{seg}/results/sequences.fasta"
         
     params:
-        protein = [600,900], #TODO: min & max length for protein
-        whole_genome = [6400,8000], #TODO: min & max length for whole genome
-        range = "{seg}" # this is determining the path it takes in blast_sort (protein-specific or whole genome)
+        range = "{seg}",  # Determines which protein (or whole genome) is processed
+        min_length = lambda wildcards: {"vp1": 600, "whole_genome": 6400, "P1": 2000}[wildcards.seg],  # Min length
+        max_length = lambda wildcards: {"vp1": 900, "whole_genome": 8000, "P1": 2600}[wildcards.seg]  # Max length
     shell:
         """
         python scripts/blast_sort.py --blast {input.blast_result} \
-            --protein_length {params.protein}  --whole_genome_length {params.whole_genome} \
             --seqs {input.input_seqs} \
             --out_seqs {output.sequences} \
-            --range {params.range}
+            --range {params.range} \
+            --min_length {params.min_length} \
+            --max_length {params.max_length}
         """
 
 
@@ -289,11 +312,11 @@ rule add_metadata:
         metadata=files.METADATA,
         new_data=rules.curate.output.meta,
         regions=ancient(files.regions),
+        C1like_accn = "data/list_C1like_accn.txt",
     params:
         strain_id_field=config["id_field"],
         last_updated = files.last_updated_file,
         local_accn = files.local_accn_file,
-        C1like_accn = "data/list_C1like_accn.txt",
     output:
         metadata="data/all_metadata.tsv"
     shell:
@@ -302,7 +325,7 @@ rule add_metadata:
             --input {input.metadata} \
             --add {input.new_data} \
             --local {params.local_accn} \
-            --C1like {params.C1like_accn} \
+            --C1like {input.C1like_accn} \
             --update {params.last_updated}\
             --regions {input.regions} \
             --id {params.strain_id_field} \
@@ -313,6 +336,7 @@ rule add_metadata:
 rule deduplicate:
     message:
         """
+        Segment: {wildcards.seg}
         Deduplicating sequences with identical strain names and sequences
         """
     input:
@@ -340,6 +364,7 @@ rule deduplicate:
 rule index_sequences:
     message:
         """
+        Segment: {wildcards.seg}
         Creating an index of sequence composition for filtering
         """
     input:
@@ -356,6 +381,8 @@ rule index_sequences:
 rule filter:
     message:
         """
+        Segment: {wildcards.seg}
+
         Filtering to
           - {params.sequences_per_group} sequence(s) per {params.group_by!s}
           - from {params.min_date} onwards
@@ -370,11 +397,13 @@ rule filter:
     output:
         sequences = "{seg}/results/filtered.fasta",
         reason ="{seg}/results/reasons.tsv",
+    log:
+        "logs/filter.{seg}.log"
     params:
         group_by = "country year", # dropped because of ambiguous year information
         sequences_per_group = 500, # set lower if you want to have a max sequences per group
         strain_id_field = config["id_field"],
-        min_date = 1970,  # BrCr was collected in 1970
+        min_date = 1975,  # BrCr was collected in 1970
         exclude_enpen = "--exclude-where ENPEN=True" if not INCL_ENPEN else "" # INCL_ENPEN was defined on line 32
     shell:
         """
@@ -390,36 +419,26 @@ rule filter:
             --sequences-per-group {params.sequences_per_group} \
             --min-date {params.min_date} \
             --output-sequences {output.sequences}\
-            --output-log {output.reason}
+            --output-log {output.reason} \
+            >> {log} 2>&1
+
+        echo "Filtered sequences saved to {output.sequences}"
         """
 
 ##############################
 # Reference sequence &
 # Alignment
 ###############################
-rule reference_gb_to_fasta:
-    message:
-        """
-        Converting reference sequence from genbank to fasta format
-        """
-    input:
-        reference = files.reference
-
-    output:
-        reference = "{seg}/results/reference_sequence.fasta"
-    run:
-        from Bio import SeqIO 
-        SeqIO.convert(input.reference, "genbank", output.reference, "fasta")
-
 rule align: 
     message:
         """
+        Segment: {wildcards.seg}
         Aligning sequences to {input.reference} using Nextclade.
         """
     input:
         gff_reference = files.gff_reference,
         sequences = rules.filter.output.sequences,
-        reference = rules.reference_gb_to_fasta.output.reference
+        reference = rules.extract.output.extracted_fasta,
     output:
         alignment = "{seg}/results/aligned.fasta",
         tsv = "{seg}/results/nextclade.tsv",    
@@ -461,6 +480,11 @@ rule align:
 
 #  one-by-one genes
 rule sub_alignments:
+    message:
+        """
+        Segment: {wildcards.seg}
+        Creating sub-alignments for {wildcards.gene}{wildcards.protein}
+        """
     input:
         alignment=rules.align.output.alignment,
         reference=files.reference
@@ -517,6 +541,7 @@ rule sub_alignments:
 rule tree:
     message:
         """
+        Segment: {wildcards.seg}
         Creating a maximum likelihood tree
         """
     input:
@@ -545,6 +570,7 @@ rule tree:
 rule refine:
     message:
         """
+        Segment: {wildcards.seg}
         Refining tree by rerooting and resolving polytomies
           - estimate timetree
           - use {params.coalescent} coalescent timescale
@@ -557,7 +583,6 @@ rule refine:
         alignment = rules.sub_alignments.output.alignment,
         # alignment = rules.align.output.alignment,
         metadata =  rules.add_metadata.output.metadata,
-        reference = rules.reference_gb_to_fasta.output.reference
     benchmark:
         "benchmark/refine.{seg}{gene}{protein}.log"
     output:
@@ -570,7 +595,7 @@ rule refine:
     params:
         coalescent = "opt",
         date_inference = "marginal",
-        clock_filter_iqd = 3, # originally 3; set to 6 if you want more control over outliers
+        clock_filter_iqd = 4, # originally 3; set to 6 if you want more control over outliers
         strain_id_field = config["id_field"],
         clock_rate = 0.004, # remove for estimation
         clock_std_dev = 0.0015,
@@ -583,7 +608,7 @@ rule refine:
         # )
 
     log:
-        reasons_refine = "logs/refine.{seg}{gene}{protein}.log" # number of dropped sequences
+        "logs/refine.{seg}{gene}{protein}.log" # number of dropped sequences
     shell:
         """
         augur refine \
@@ -601,22 +626,34 @@ rule refine:
             --clock-std-dev {params.clock_std_dev} \
             --date-inference {params.date_inference} \
             --clock-filter-iqd {params.clock_filter_iqd} \
-            {params.rooting} >> {log.reasons_refine} 2>&1
+            {params.rooting} \
+            2>&1 | (grep -i "pruning leaf" || cat > /dev/null) > {log}
+
+        echo "Refined tree saved to {output.tree}"
         """
        
 
 rule ancestral:
-    message: "Reconstructing ancestral sequences and mutations"
+    message: 
+        """
+        Reconstructing ancestral sequences and mutations
+
+        Segment: {wildcards.seg}
+        """
     input:
         tree = rules.refine.output.tree,
         alignment = rules.sub_alignments.output.alignment,
         # alignment = rules.align.output.alignment,
-        annotation = files.reference,
+        annotation = rules.extract.output.extracted_genbank,
     output:
         node_data = "{seg}/results/muts{gene}{protein}.json",
     params:
         inference = "joint",
-        genes = lambda wildcards: "VP1" if wildcards.seg == "vp1" else (wildcards.gene.replace("-", "", 1).upper() if wildcards.gene else CODING_GENES), 
+        genes = lambda wildcards: (
+            CODING_GENES if wildcards.seg == "whole_genome" 
+            else [wildcards.seg.upper()] if not wildcards.gene and not wildcards.protein
+            else []
+        ),
         translation_template= r"{seg}/results/translations/cds_%GENE.translation.fasta",
         output_translation_template=r"{seg}/results/translations/cds_%GENE.ancestral.fasta",
         root = "{seg}/results/ancestral_sequences.fasta",
@@ -684,14 +721,15 @@ rule clade_published:
     message: "Assigning clades from publications"
     input:
         metadata = rules.add_metadata.output.metadata,
-        subgenotypes = "data/clades_vp1.tsv",
-        rivm_data = "data/subgenotypes_rivm.csv",
-        alignment= "vp1/results/aligned.fasta"
+        alignment= rules.align.output.alignment,
+        subgenotypes = files.VP1_CLADES,
+        rivm_data = files.RIVM_CLADES,
+        annotation = files.reference
     params:
         strain_id_field= config["id_field"],
         rerun=True
     output:
-        final_metadata = "data/final_metadata.tsv"
+        final_metadata = "{seg}/results/final_metadata.tsv"
     shell:
         """
         python scripts/published_clades.py \
@@ -699,6 +737,7 @@ rule clade_published:
             --rivm {input.rivm_data} \
             --sgt {input.subgenotypes} \
             --alignment {input.alignment} \
+            --annotation {input.annotation} \
             --id {params.strain_id_field} \
             --output {output.final_metadata}
         """

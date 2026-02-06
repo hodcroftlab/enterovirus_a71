@@ -9,13 +9,14 @@ ingest/benchmarks/
 ingest/logs/
 ingest/data/*
 !ingest/data/references/
-ingest/data/references/reference_a71_manual.gff3
 ingest/data/references/nextclade.tsv
 
 
 # all results and temporary folders
 */results/
 */temp/
+
+auspice/*/*_gene*
 
 scripts/__pycache__/
 
@@ -29,6 +30,8 @@ Simplot
 strain_accession.txt
 
 backup*
+
+temp/*
 
 #scicore
 *slurm.sh

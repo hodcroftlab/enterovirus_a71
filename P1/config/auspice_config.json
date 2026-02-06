@@ -1,0 +1,179 @@
+{
+  "title": "Genomic Epidemiology of Enterovirus A71 - P1 protein",
+  "maintainers": [
+    {
+      "name": "Nadia Neuner-Jehle",
+      "url": "https://eve-lab.org/people/nadia-neuner-jehle/"
+    },
+    {
+      "name": "Emma Hodcroft",
+      "url": "https://eve-lab.org/people/emma-hodcroft/"
+    }
+  ],
+  "data_provenance": [
+    {
+      "name": "GenBank",
+      "url": "https://www.ncbi.nlm.nih.gov/genbank/"
+    }
+  ],
+  "build_url": "https://github.com/hodcroftlab/enterovirus_a71/tree/master",
+  "colorings": [
+    {
+      "key": "gt",
+      "title": "Subgenotype",
+      "type": "categorical"
+    },
+    {
+      "key": "subgenogroup",
+      "title": "Subgenotype: Publications",
+      "type": "categorical"
+    },
+    {
+      "key": "RIVM_subgenogroup",
+      "title": "Subgenogroup: RIVM",
+      "type": "categorical"
+    },
+    {
+      "key": "clade_assignment",
+      "title": "Subclade Annotation (VP1-based)",
+      "type": "categorical"
+    },
+    {
+      "key": "num_date",
+      "title": "Date",
+      "type": "continuous"
+    },
+    {
+      "key": "age_yrs",
+      "title": "Age (years)",
+      "type": "continuous",
+      "scale": [
+        [0, "#3f63cf"],
+        [0.125, "#3f63cf"],
+        [0.375, "#529ab6"],
+        [0.75, "#75b681"],
+        [3, "#a6be55"],
+        [7.5, "#d4b13f"],
+        [13.5, "#e68133"],
+        [20, "#dc2f24"]
+      ],
+      "legend": [
+        {"value": 0.125, "display": "0-3 m/o", "bounds":  [0, 0.25]},
+        {"value": 0.375, "display": "4-6 m/o", "bounds":  [0.25, 0.5]},
+        {"value":  0.75, "display": "7-12 m/o", "bounds":  [0.5, 1]},
+        {"value": 3, "display": "1-5 y/o", "bounds": [1, 5]},
+        {"value": 7.5, "display": "6-10 y/o", "bounds": [5, 10]},
+        {"value": 13.5, "display": "11-17 y/o", "bounds": [10, 17]},
+        {"value": 20, "display": "18+ y/o", "bounds": [17, 100]}
+      ]
+    },
+    {
+      "key": "med_diagnosis_all",
+      "title": "Medical Diagnosis: detailed",
+      "type": "categorical"
+    },
+    {
+      "key": "med_diagnosis_major",
+      "title": "Medical Diagnosis: major",
+      "type": "categorical"
+    },
+    {
+      "key": "country",
+      "title": "Country",
+      "type": "categorical"
+    },
+    {
+      "key": "region",
+      "title": "Global Regions",
+      "type": "categorical"
+    },
+    {
+      "key": "isolation_source",
+      "title": "Isolation Source",
+      "type": "categorical"
+    },
+    {
+      "key": "gender",
+      "title": "Gender",
+      "type": "categorical"
+    },
+    {
+      "key": "length_VP1",
+      "title": "Length of VP1",
+      "type": "continuous"
+    },
+    {
+      "key": "total_length",
+      "title": "Length of sequence",
+      "type": "continuous"
+    },
+    {
+      "key": "NCBI_length_genome",
+      "title": "NCBI-reported Length",
+      "type": "continuous"
+    },
+    {
+      "key": "has_age",
+      "type": "boolean",
+      "title": "Age available"
+    },
+    {
+      "key": "has_diagnosis",
+      "type": "boolean",
+      "title": "Diagnosis available"
+    },
+    {
+      "key": "abbr_authors",
+      "title": "Authors",
+      "type": "categorical"
+    },
+    {
+      "key": "date_added",
+      "title": "Date when added to build",
+      "type": "categorical"
+    }
+  ],
+  "geo_resolutions": [
+    {
+      "key": "country",
+      "title": "Country"
+    },
+    {
+      "key": "place",
+      "title": "Areas"
+    },
+    {
+      "key": "region",
+      "title": "Global Regions"
+    }
+  ],
+  "panels": [
+    "tree",
+    "map",
+    "entropy"
+  ],
+  "display_defaults": {
+    "color_by": "clade_membership",
+    "geo_resolution": "country",
+    "distance_measure": "num_date",
+    "tip_label": "strain",
+    "map_triplicate": true
+  },
+  "metadata_columns": [
+    "strain"
+  ],
+  "filters": [
+    "RIVM_subgenogroup",
+    "subgenogroup",
+    "country",
+    "author",
+    "doi",
+    "ENPEN",
+    "length_VP1",
+    "med_diagnosis_major",
+    "isolation_source",
+    "has_age",
+    "has_diagnosis",
+    "date_added"
+  ]
+}
