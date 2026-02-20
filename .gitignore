@@ -17,6 +17,8 @@ ingest/data/references/nextclade.tsv
 */temp/
 
 auspice/*/*_gene*
+auspice/*.*
+
 
 scripts/__pycache__/
 

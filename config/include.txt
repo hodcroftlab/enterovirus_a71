@@ -1,0 +1,43 @@
+# vaccine strains
+HQ328793
+JX025561
+MK307344
+
+# subgenotype B5
+MH716334
+JN316089
+DQ341364
+OR766732
+MH557107
+MG756726
+KR045293
+
+# subgenotype B4
+HQ283606
+
+# subgenotype B3
+EU376004
+
+# subgenotype F
+HG421068
+LT719065
+
+# subgenotype E
+MG672478
+
+# subgenotype A
+U22521
+
+# subgenotype C1-like
+OQ026336
+PP548272
+PP585435
+MT747892
+OR766776
+
+# subgenotype C5
+KJ686262
+KJ686178
+
+# subgenotype C4-like
+# KF982854

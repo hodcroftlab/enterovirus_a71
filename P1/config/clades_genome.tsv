@@ -1,4 +1,13 @@
 clade	gene	site	alt
+C	nuc	573	C
+C	nuc	1149	G
+C	nuc	1685	G
+C	nuc	2433	A
+
+C2	nuc	918	T
+C2	nuc	1239	C
+C2	nuc	1956	A
+
 C4	nuc	633	A
 C4	nuc	1269	A
 C4	nuc	1791	A
@@ -7,25 +16,23 @@ C5	nuc	618	A
 C5	nuc	1179	G
 C5	nuc	2439	T
 
-C1	nuc	1533	T
-C1	nuc	1815	T
-C1	nuc	2229	G
+C1	nuc	1644	T
+C1	nuc	2250	T
+C1	nuc	2334	G
 
-C1-like	nuc	1083	G
-C1-like	nuc	1809	A
-C1-like	nuc	2055	G
+C1.2	nuc	790	A
+C1.2	nuc	1827	G
 
-C2	nuc	878	A
-C2	nuc	1509	C
-C2	nuc	1959	A
-C2	nuc	2292	C
+C1.3	nuc	1083	G
+C1.3	nuc	1809	A
+C1.3	nuc	2055	G
 
 C3	nuc	1128	C
 C3	nuc	1513	A
 
-C2.r	clade	C2
-C2.r	nuc	1068	C
-C2.r	nuc	1638	C
+r.C2	clade	C2
+r.C2	nuc	1314	T
+
 
 A	nuc	552	C
 A	nuc	1794	A
@@ -44,15 +51,19 @@ B5	nuc	531	C
 B5	nuc	1260	G
 B5	nuc	2043	T
 
-B1	nuc	375	G
-B1	nuc	1557	C
-B1	nuc	1965	A
+
+B	nuc	1557	C
+B	nuc	1822	G
+B	nuc	2391	T
+
+B1	nuc	966	T
+B1	nuc	1251	C
+B1	nuc	1741	A
 
 
-B2	nuc	528	C
-B2	nuc	852	G
+B2	nuc	195	C
 B2	nuc	1393	T
-B2	nuc	1725	C
+B2	nuc	1221	C
 
 B3	nuc	627	T
 B3	nuc	2211	A
@@ -61,6 +72,6 @@ B4 	nuc	117	G
 B4	nuc	585	A
 B4	nuc	2187	G
 
+B5	nuc	288	A
 B5	nuc	666	A
-B5	nuc	1221	T
-B5	nuc	2415	T
+B5	nuc	1266	G
