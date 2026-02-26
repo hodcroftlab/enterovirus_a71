@@ -1,6 +1,6 @@
 # Enterovirus A71 Nextstrain Analysis
 
-This repository provides a comprehensive Nextstrain analysis of Enterovirus A71. You can choose to perform either a **VP1 run (>=600 base pairs)** or a **whole genome run (>=6400 base pairs)**.
+This repository provides a comprehensive Nextstrain analysis of Enterovirus A71. You can choose to perform either a **VP1 run (>=600 base pairs)**, a **P1 run (>=2000 base pairs)** or a **whole genome run (>=6400 base pairs)**.
 
 For those unfamiliar with Nextstrain or needing installation guidance, please refer to the [Nextstrain documentation](https://docs.nextstrain.org/en/latest/).
 
@@ -46,17 +46,13 @@ micromamba activate nextstrain
 
 To perform a build, run:
 ```bash
-snakemake --cores 9 all
+snakemake all --cores 9 
 ```
 
 For specific builds:
 - VP1 build:
 ```bash
-snakemake auspice/ev_a71_vp1.json --cores 9
-```
-- Whole genome build:
-```bash
-snakemake auspice/ev_a71_whole-genome.json --cores 9
+snakemake auspice/enterovirus_A71_vp1.json --cores 9
 ```
 
 For tanglegrams, we can run the build on sub-alignments of the whole genome alignment. 
@@ -71,8 +67,8 @@ snakemake all_proteins --cores 9
 ```
 
 > [!NOTE]
-> Version of <ins> augur</ins>: `augur 27.0.0`\
-> Version of <ins> auspice</ins>: `auspice 2.59.1`
+> Version of <ins> augur</ins>: `augur 30.0.1`\
+> Version of <ins> auspice</ins>: `auspice 2.62.0`
 
 ## Ingest
 For more information on how to run the `ingest`, please refer to the [README](ingest/README.md) in the `ingest` folder.
@@ -93,18 +89,8 @@ Sequences can be downloaded manually or automatically.
 1. **Manual Download**: Visit [NCBI Virus](https://www.ncbi.nlm.nih.gov/labs/virus/vssi/#/), search for `EV-A71` or Taxid `39054`, and download the sequences.
 2. **Automated Download**: The `ingest` functionality, included in the main `snakefile`, handles automatic downloading.
 
-The ingest pipeline is based on the Nextstrain [RSV ingest workflow](https://github.com/nextstrain/rsv.git). Running the **ingest** pipeline produces `data/metadata.tsv` and `data/sequences.fasta`.
-
 ## Feedback
 For questions or comments, contact me via GitHub or [nadia.neuner-jehle@swisstph.ch](mailto:nadia.neuner-jehle@swisstph.ch)
-
-## To Do:
-- [X] Overwrite NCBI virus metadata with "corrected" collection dates
-- [X] Replace `parse_date` with `augur curate`
-- [X] Provide a way to create and use "local" accession numbers for sequences not on Genbank yet.
-- [ ] Update symptom list
-- [X] Get [update_strain.sh](scripts/update_strain.sh) to work
-
 
 ## Acknowledgments
 - [Nextstrain](https://nextstrain.org/)
