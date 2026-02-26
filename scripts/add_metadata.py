@@ -165,17 +165,29 @@ if __name__ == '__main__':
         'ivory coast': 'côte d\'ivoire',
     }
 
-    # Function to correct country names
-    def correct_country_name(country):
-        if pd.notna(country):
-            country = country.strip().lower()
-            corrected_country = corrections.get(country, country).title().replace('_', ' ')
-            # print(f"Correcting '{country}' to '{corrected_country}'")  # Debugging statement
-            return corrected_country
-        return country
+    # Consolidated function to correct and normalize country names
+    def normalize_and_correct_country(country):
+        if pd.isna(country):
+            return country
+        s = str(country).strip()
+        if s == "":
+            return np.nan
 
-    # Apply the corrections to the 'country' column
-    new_meta['country'] = new_meta['country'].apply(correct_country_name)
+        key = s.lower()
+        if key in corrections:
+            out = corrections[key].title().replace('_', ' ')
+        else:
+            out = s.replace('_', ' ')
+            # Normalize multiple spaces
+            out = " ".join(out.split())
+            # If the country is ALL CAPS, convert to title case
+            if out.lower() == "usa":
+                out = out.upper()
+            elif out.isupper():
+                out = out.title()
+        return out
+
+    new_meta['country'] = new_meta['country'].apply(normalize_and_correct_country)
 
     # Check if the regions file is supplied
     if con_reg_table:
@@ -188,7 +200,7 @@ if __name__ == '__main__':
             if pd.notna(coun):
                 coun = coun.strip().lower()
                 return regions.get(coun, regions.get(coun.replace(' ', '_'), "NA")).replace('_', ' ').title()
-            return "NA"
+            return ""
 
         # Update the 'region' column in the new_meta DataFrame with the new region values
         new_meta['region'] = new_meta['country'].apply(get_region)

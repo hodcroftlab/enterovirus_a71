@@ -25,9 +25,6 @@ LT719065
 # subgenotype E
 MG672478
 
-# subgenotype A
-U22521
-
 # subgenotype C1-like
 OQ026336
 PP548272

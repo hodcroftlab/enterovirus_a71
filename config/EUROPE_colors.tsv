@@ -1,0 +1,78 @@
+country	United Kingdom	#48D1CC
+country	France	#3f55ce
+country	Netherlands	#1877F2
+country	Switzerland	#082567
+country	Austria	#00356B
+country	Germany	#1da1f2
+country	Norway	#81D8D0
+country	Denmark	#008080
+country	Finland	#00AA99
+country	Latvia	#7FFFD4
+country	Poland	#9900CC
+country	Czechia	#720e9e
+country	Hungary	#6A5ACD
+country	Russia	#4B0082
+country	Spain	#002fa7
+country	Greece	#7788CC
+country	Slovenia	#1C39BB
+country	Cyprus	#33006F
+
+country	China	#FF0000
+country	Hong Kong	#FF0000
+country	Taiwan	#CC3333
+country	South Korea	#A91101
+country	Japan	#660000
+country	Cambodia	#FF6969
+country	Laos	#F88379
+country	Thailand	#CD5700
+country	Vietnam	#FF4500
+country	Malaysia	#FFBAB8
+country	Singapore	#FBCEB1
+
+country	Senegal	#9ACD32
+country	Cameroon	#006400
+country	Algeria	#6B8E23
+country	Guinea	#8FBC8B
+country	Central African Republic	#00A86B
+country	Mauritania	#4B5320
+country	Niger	#55DD33
+country	Madagascar	#009150
+
+country	Canada	#FEBE10
+country	USA	#FFD700
+country	Uruguay	#F0E68C
+
+country	Australia	#424d4c
+
+region	northern africa	#023618
+region	eastern africa	#058A3C
+region	central africa	#13F672
+region	western africa	#9DFBC4
+region	southern africa	#C8E6C9
+
+region	northern europe	#00BBAA
+region	southern europe	#5566CC
+region	eastern europe	#9900CC
+region	western europe	#335588
+
+region	caribbean	#FFB326
+region	central america	#C99739
+region	north america	#FEC601
+region	south america	#BF6109
+
+region	eastern asia	#CC1111
+region	japan korea	#F38700
+region	central asia	#430000
+region	southern asia	#FF5F4D
+region	south-eastern asia	#FF6969
+region	western asia	#882060
+
+region	oceania	#424d4c
+
+Esc_CHN	SA	#5da8a3
+Esc_CHN	TX	#f58231
+Esc_CHN	TA	#b5c751
+Esc_CHN	TS	#bf3227
+Esc_CHN	SS	#4273ce
+Esc_CHN	XX	#D3D3D3
+Esc_CHN	other	#c5d3e6

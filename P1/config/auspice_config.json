@@ -87,6 +87,21 @@
       "title": "Global Regions",
       "type": "categorical"
     },
+    {       
+      "key": "C1",
+      "title": "C1 key mutations (VP4:54, VP2:170 195 219, VP3:93 232, VP1:16 19 119 262 289)",
+      "type": "categorical"
+    },
+    {
+      "key": "C2",
+      "title": "C2 key mutations (VP4:7, VP2:144 170 224, VP3:62 93 155, VP1:22 31 145 262)",
+      "type": "categorical"
+    },
+    {
+      "key": "clade_c1",
+      "title": "C1 colors",
+      "type": "categorical"
+    },
     {
       "key": "isolation_source",
       "title": "Isolation Source",
@@ -98,29 +113,14 @@
       "type": "categorical"
     },
     {
-      "key": "length_VP1",
-      "title": "Length of VP1",
-      "type": "continuous"
-    },
-    {
-      "key": "total_length",
-      "title": "Length of sequence",
+      "key": "length_blast",
+      "title": "Length of BLAST",
       "type": "continuous"
     },
     {
       "key": "NCBI_length_genome",
       "title": "NCBI-reported Length",
       "type": "continuous"
-    },
-    {
-      "key": "has_age",
-      "type": "boolean",
-      "title": "Age available"
-    },
-    {
-      "key": "has_diagnosis",
-      "type": "boolean",
-      "title": "Diagnosis available"
     },
     {
       "key": "abbr_authors",
@@ -156,6 +156,7 @@
     "color_by": "clade_membership",
     "geo_resolution": "country",
     "distance_measure": "num_date",
+    "branch_label": "aa",
     "tip_label": "strain",
     "map_triplicate": true
   },
@@ -172,8 +173,8 @@
     "length_VP1",
     "med_diagnosis_major",
     "isolation_source",
-    "has_age",
-    "has_diagnosis",
+    "Age available",
+    "Diagnosis available",
     "date_added"
   ]
 }

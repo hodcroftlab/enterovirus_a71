@@ -15,6 +15,7 @@
 
 ###############
 TAXID = "39054"  # NCBI Taxonomy ID for Enterovirus A71
+REFERENCE = "U22521"
 
 if not config:
     configfile: "config/config.yaml"
@@ -44,16 +45,18 @@ segments = ['vp1', 'whole-genome', "P1"]
 GENES=["-5utr","-vp4", "-vp2", "-vp3", "-vp1", "-2A", "-2B", "-2C", "-3A", "-3B", "-3C", "-3D","-3utr"]
 PROT = ["-P1", "-P2", "-P3"]
 CODING_GENES = ["VP4", "VP2", "VP3", "VP1", "2A", "2B", "2C", "3A", "3B", "3C", "3D"]
+PROTEIN1 = ["VP4", "VP2", "VP3", "VP1"]
 
 # parameters
 INCL_ENPEN = True # include or exclude ENPEN data
 FETCH_SEQUENCES = True
+INCLUDE_REF = False
 
 # Rule to handle configuration files
 rule files:
     input:
-        dropped_strains =   "config/dropped_strains.txt",
-        incl_strains =      "config/kept_strains.txt",
+        dropped_strains =   "config/exclude.txt",
+        incl_strains =      "config/include.txt",   
         reference =         "config/reference_sequence.gb",
         gff_reference =     "{seg}/config/annotation.gff3",
         lat_longs =         "config/lat_longs.tsv",
@@ -80,7 +83,7 @@ files = rules.files.input
 rule all:
     input:
         augur_jsons = expand("auspice/enterovirus_A71_{segs}.json", segs=segments),
-        # epitopes = "vp1/results/epitopes.json",
+        epitopes = "vp1/results/epitopes.json",
         meta = files.METADATA,
         seq = files.SEQUENCES
 
@@ -104,10 +107,15 @@ rule all_proteins:
 
 rule next_update:
     input:
+        "vp1/results/epitopes.json",
         "auspice/enterovirus_A71_vp1.json", 
         "auspice/enterovirus_A71_whole-genome.json"
         # "auspice/enterovirus_A71_gene_-vp1.json", 
         # "auspice/enterovirus_A71_gene_-3D.json"
+
+rule ENPEN:
+    input:
+        "auspice/enterovirus_A71_P1.json", 
 
 
 ##############################
@@ -281,8 +289,7 @@ rule blast_sort:
         blast_result = rules.blast.output.blast_out, # output blast (for your protein)
         input_seqs = rules.fetch.output.sequences
     output:
-        sequences = "{seg}/results/sequences.fasta"
-        
+        sequences = "{seg}/results/sequences.fasta",
     params:
         range = "{seg}",  # Determines which protein (or whole genome) is processed
         min_length = lambda wildcards: {"vp1": 600, "whole_genome": 6400, "P1": 2000}[wildcards.seg],  # Min length
@@ -397,6 +404,7 @@ rule filter:
     output:
         sequences = "{seg}/results/filtered.fasta",
         reason ="{seg}/results/reasons.tsv",
+        include = "{seg}/results/include.txt"
     log:
         "logs/filter.{seg}.log"
     params:
@@ -404,9 +412,12 @@ rule filter:
         sequences_per_group = 500, # set lower if you want to have a max sequences per group
         strain_id_field = config["id_field"],
         min_date = 1975,  # BrCr was collected in 1970
-        exclude_enpen = "--exclude-where ENPEN=True" if not INCL_ENPEN else "" # INCL_ENPEN was defined on line 32
+        exclude_enpen = "--exclude-where ENPEN=True" if not INCL_ENPEN else "", # INCL_ENPEN was defined on line 32
+        ref = REFERENCE if INCLUDE_REF else "" # add reference sequence to the include list if you want to keep it in the tree
     shell:
         """
+        cat {input.include} > {output.include}
+        echo "{params.ref}" >> {output.include}
         augur filter \
             --sequences {input.sequences} \
             --sequence-index {input.sequence_index} \
@@ -414,7 +425,7 @@ rule filter:
             --metadata-id-columns {params.strain_id_field} \
             --exclude {input.exclude} \
             {params.exclude_enpen} \
-            --include {input.include} \
+            --include {output.include} \
             --group-by {params.group_by} \
             --sequences-per-group {params.sequences_per_group} \
             --min-date {params.min_date} \
@@ -595,12 +606,13 @@ rule refine:
     params:
         coalescent = "opt",
         date_inference = "marginal",
-        clock_filter_iqd = 4, # originally 3; set to 6 if you want more control over outliers
+        clock_filter_iqd = 10, # originally 3; set to 6 if you want more control over outliers
         strain_id_field = config["id_field"],
         clock_rate = 0.004, # remove for estimation
         clock_std_dev = 0.0015,
-        # rooting = "--root mid_point",
-        rooting = "--root DQ341364 KF501389",
+        rooting = lambda wildcards: "--root mid_point" if wildcards.seg == "P1" else "--root mid_point"
+        # rooting = F"--root {REFERENCE}",
+        # rooting = "--root AB575916 AB575939", ## B and C sequence
         # rooting = lambda wildcards: (
         #     "--root DQ341364 KF501389" if (wildcards.seg == "whole_genome" and not wildcards.gene)
         #     else "--root JN204010 DQ341364" if wildcards.seg == "vp1"
@@ -627,7 +639,7 @@ rule refine:
             --date-inference {params.date_inference} \
             --clock-filter-iqd {params.clock_filter_iqd} \
             {params.rooting} \
-            2>&1 | (grep -i "pruning leaf" || cat > /dev/null) > {log}
+            2>&1 | tee {log}
 
         echo "Refined tree saved to {output.tree}"
         """
@@ -650,14 +662,16 @@ rule ancestral:
     params:
         inference = "joint",
         genes = lambda wildcards: (
-            CODING_GENES if wildcards.seg == "whole_genome" 
-            else [wildcards.seg.upper()] if not wildcards.gene and not wildcards.protein
+            CODING_GENES if wildcards.seg == "whole_genome"
+            else PROTEIN1 if wildcards.seg == "P1"
+            else "VP1" if wildcards.seg == "vp1"
             else []
-        ),
+        ),        
         translation_template= r"{seg}/results/translations/cds_%GENE.translation.fasta",
         output_translation_template=r"{seg}/results/translations/cds_%GENE.ancestral.fasta",
         root = "{seg}/results/ancestral_sequences.fasta",
-
+    log:
+        "logs/ancestral.{seg}{gene}{protein}.log"
     shell:
         """
             augur ancestral \
@@ -669,7 +683,7 @@ rule ancestral:
             --output-node-data {output.node_data} \
             --output-translations {params.output_translation_template} \
             --output-sequences {params.root} \
-            --skip-validation
+            > {log} 2>&1
         """
         # --keep-ambiguous\ #do not infer nucleotides at ambiguous (N) sites on tip sequences (leave as N).
         # --root-sequence {input.annotation} \  -> assigns mutations to the root relative to the reference, not wanted here
@@ -718,29 +732,61 @@ rule clades:
         """
 
 rule clade_published:
-    message: "Assigning clades from publications"
+    message: "Assigning clades from publications for {wildcards.seg}"
     input:
-        metadata = rules.add_metadata.output.metadata,
-        alignment= rules.align.output.alignment,
+        metadata     = rules.add_metadata.output.metadata,
         subgenotypes = files.VP1_CLADES,
-        rivm_data = files.RIVM_CLADES,
-        annotation = files.reference
+        rivm_data    = files.RIVM_CLADES,
+        c1           = "data/C1_colors_P1.csv"
     params:
-        strain_id_field= config["id_field"],
-        rerun=True
+        strain_id_field = config["id_field"],
+        blast           = "{seg}/results/blast_{seg}_length.csv",
+
     output:
         final_metadata = "{seg}/results/final_metadata.tsv"
-    shell:
-        """
-        python scripts/published_clades.py \
-            --input {input.metadata} \
-            --rivm {input.rivm_data} \
-            --sgt {input.subgenotypes} \
-            --alignment {input.alignment} \
-            --annotation {input.annotation} \
-            --id {params.strain_id_field} \
-            --output {output.final_metadata}
-        """
+    run:
+        import pandas as pd
+
+        sid = params.strain_id_field
+
+        meta             = pd.read_csv(input.metadata,     sep='\t', index_col=False)
+        rivm_subtypes    = pd.read_csv(input.rivm_data,    index_col=False)
+        vp1_subgenotypes = pd.read_csv(input.subgenotypes, sep='\t')
+        blast_length     = pd.read_csv(params.blast, names=["accession", "length"])
+        C1_colors        = pd.read_csv(input.c1)
+
+        meta          = meta.drop_duplicates(subset=sid)
+        rivm_subtypes = rivm_subtypes.drop_duplicates(subset="name")
+
+        meta = pd.merge(meta, vp1_subgenotypes, on=sid, how="left")
+
+        mask = (
+            (rivm_subtypes["VP1 subgenogroup"] != "Could not assign") &
+            (rivm_subtypes["type"] == "EV-A71")
+        )
+        rivm_subtypes = rivm_subtypes.loc[mask, ["name", "VP1 subgenogroup"]].copy()
+        rivm_subtypes.rename(
+            columns={"name": sid, "VP1 subgenogroup": "RIVM_subgenogroup"},
+            inplace=True
+        )
+        meta = pd.merge(meta, rivm_subtypes, on=sid, how="left")
+        meta["RIVM_subgenogroup"] = meta["RIVM_subgenogroup"].str.strip()
+
+        meta = pd.merge(meta, blast_length, left_on=sid, right_on="accession", how="left")
+        if sid != "accession" and "accession" in meta.columns:
+            meta.drop(columns=["accession"], inplace=True)
+
+        meta["length_blast"] = meta["length"].astype(str)
+        meta.drop(columns=["length"], inplace=True)
+
+        meta["url"] = "https://www.ncbi.nlm.nih.gov/nuccore/" + meta[sid]
+
+        meta.rename(columns={'has_age':'Age available'}, inplace=True)
+        meta.rename(columns={'has_diagnosis':'Diagnosis available'}, inplace=True)
+
+        meta = pd.merge(meta, C1_colors, left_on=sid, right_on="accession", how="left")
+
+        meta.to_csv(output.final_metadata, sep='\t', index=False)
 
 ##############################
 # Assign epitopes to the tree colors
@@ -768,8 +814,6 @@ rule epitopes:
 
         manyXList = ["XXXXXXXXXXXX", "KEXXXXXXXXXX", "KERANXXXXXXX", "KERXXXXXXXXX", "KERAXXXXXXXX"]
         valid_esc_chn = {"SA", "TA", "TX", "TS", "SS", "XX"}  # Set of valid values for Esc_CHN
-        # with open(input.anc_seqs) as fh:
-        #     anc = json.load(fh)["nodes"]
 
         # Read translation files
         vp1_anc = SeqIO.to_dict(SeqIO.parse(params.translation, "fasta"))
@@ -811,6 +855,143 @@ rule epitopes:
         with open(output.node_data, 'w') as fh:
             json.dump({"epitopes": params.epitopes, "nodes":nodes}, fh)
 
+##############################
+# Assign key mutations to tree nodes for coloring in Nextstrain
+# Output: node_data JSON for use with augur export --node-data
+##############################
+
+rule key_muts:
+    input:
+        anc_seqs = rules.ancestral.output.node_data,
+        tree = rules.refine.output.tree,
+        gff = files.gff_reference
+    output:
+        node_data = "{seg}/results/key_muts{gene}{protein}.json"
+    params:
+        muts = {
+            "C1": {
+                "VP1": ["16M","19V", "119L","262V", "262I", "289T"],
+                "VP2": ["170V", "170I", "195M", "219V"],
+                "VP3": ["93D", "232S"],
+                "VP4": ["54T"],
+            },
+            "C2": {
+                "VP1": ["22R", "31D", "145Q", "262V"],
+                "VP2": ["144T", "170V", "224Y"],
+                "VP3": ["62D", "93S", "155I"],
+                "VP4": ["7A"],
+            },
+        },
+        min_count = 1
+    run:
+        import json
+        from collections import defaultdict
+        from Bio import Phylo
+        from augur.translate import safe_translate
+
+        def mut_to_pos(mut_str: str) -> int:
+            digits = "".join(ch for ch in mut_str if ch.isdigit())
+            if not digits:
+                raise ValueError(f"No position found in mutation string: {mut_str!r}")
+            return int(digits)
+
+        def parse_gff_cds_coords(gff_path: str) -> dict[str, tuple[int, int]]:
+            coords = {}
+            with open(gff_path) as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not line or line.startswith("#"):
+                        continue
+                    seqid, source, ftype, start, end, score, strand, phase, attrs = line.split("\t")
+                    if ftype != "CDS":
+                        continue
+
+                    # attributes are semicolon-separated key=value
+                    attr_map = {}
+                    for item in attrs.split(";"):
+                        if "=" in item:
+                            k, v = item.split("=", 1)
+                            attr_map[k] = v
+
+                    name = attr_map.get("Name")
+                    if not name:
+                        continue
+                    # We only want the protein sub-CDSs, not the full P1 CDS
+                    if name not in {"VP1", "VP2", "VP3", "VP4"}:
+                        continue
+
+                    coords[name] = (int(start), int(end))
+
+            missing = {"VP1", "VP2", "VP3", "VP4"} - set(coords)
+            if missing:
+                raise ValueError(f"GFF missing CDS coords for: {sorted(missing)}")
+            return coords
+
+        def protein_aa_to_p1_aa_pos0(protein: str, aa_pos_in_protein_1based: int, cds_coords: dict[str, tuple[int, int]]) -> int:
+            start_nt_1based, end_nt_1based = cds_coords[protein]
+            protein_len_aa = (end_nt_1based - start_nt_1based + 1) // 3
+            if not (1 <= aa_pos_in_protein_1based <= protein_len_aa):
+                raise ValueError(
+                    f"{protein} AA position {aa_pos_in_protein_1based} out of range (1..{protein_len_aa}) "
+                    f"based on GFF coords {start_nt_1based}..{end_nt_1based}"
+                )
+
+            p1_start_aa0 = (start_nt_1based - 1) // 3
+            return p1_start_aa0 + (aa_pos_in_protein_1based)
+
+        with open(input.anc_seqs) as fh:
+            anc = json.load(fh)["nodes"]
+
+        cds_coords = parse_gff_cds_coords(input.gff)
+
+        T = Phylo.read(input.tree, 'newick')
+        for node in T.find_clades(order='preorder'):
+            for child in node:
+                child.parent = node
+
+        pos0_by_feature = {}
+        feature_order = []
+        for mapping_name, proteins in params.muts.items():
+            feature_order.append(mapping_name)
+
+            seen = set()
+            pos0_list = []
+
+            # iterate proteins in a stable order (optional, but keeps output reproducible)
+            for protein in sorted(proteins.keys()):
+                for mut in proteins[protein]:
+                    aa_pos_in_protein = mut_to_pos(mut)
+                    pos0 = protein_aa_to_p1_aa_pos0(protein, aa_pos_in_protein, cds_coords)
+                    if pos0 not in seen:
+                        pos0_list.append(pos0)
+                        seen.add(pos0)
+
+            pos0_by_feature[mapping_name] = pos0_list
+        ## flatten pos0_by_feature to two list of positions (C1 and C2) and check for duplicates
+
+        nodes = {}
+        epitope_counts = {feature: defaultdict(int) for feature in feature_order}
+
+        for node in T.find_clades(order="preorder"):
+            n = node.name
+            aa = safe_translate(anc[n]["sequence"])
+            nodes[n] = {}
+
+            for feature in feature_order:  # feature is "C1" or "C2"
+                pos0_list = pos0_by_feature[feature]
+                pos0_list.sort()
+                nodes[n][feature] = "".join(aa[p-1] for p in pos0_list)
+
+                if not n.startswith("NODE_"):
+                    epitope_counts[feature][nodes[n][feature]] += 1
+
+        for n in nodes:
+            for feature, seq in nodes[n].items():
+                if epitope_counts[feature][seq] < params.min_count:
+                    nodes[n][feature] = "other"
+
+        with open(output.node_data, "w") as fh:
+            json.dump({"epitopes": params.muts, "nodes": nodes}, fh)
 
 
 #########################
@@ -832,11 +1013,12 @@ rule export:
         auspice_config = files.auspice_config,
         config_dates = "config/date_bounds.json",
         muts = rules.ancestral.output.node_data,
-        epi = "vp1/results/epitopes.json"
+        epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else [], ## please run the epitopes function
+        key_muts =  lambda wildcards: "P1/results/key_muts.json" if wildcards.seg == "P1" else [],
     params:
-        epis = lambda wildcards: "vp1/results/epitopes.json" if wildcards.seg == "vp1" else "", ## please run the epitopes function
         strain_id_field= config["id_field"],
         muts_flag = lambda wildcards: f"{wildcards.seg}/results/muts.json" if wildcards.seg else "",
+        europe_col = lambda wildcards: "config/EUROPE_colors.tsv" if wildcards.seg == "P1" else files.colors,
     benchmark:
         "benchmark/export.{seg}{gene}{protein}.log"
     output:
@@ -850,8 +1032,8 @@ rule export:
             --metadata {input.metadata} \
             --metadata-id-columns {params.strain_id_field} \
             --node-data {input.branch_lengths} {input.traits} {params.muts_flag} {input.clades} \
-                {input.vaccine} {params.epis} \
-            --colors {input.colors} \
+                {input.vaccine} {input.epis} {input.key_muts} \
+            --colors {params.europe_col}\
             --lat-longs {input.lat_longs} \
             --auspice-config {input.auspice_config} \
             --output {output.auspice_json}

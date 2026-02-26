@@ -59,3 +59,4 @@ data/strain_names_previous_run.tsv
 
 auspice/enterovirus_A71_whole-genome.json
 auspice/enterovirus_A71_vp1.json
+auspice/ENPEN_Paper/*

@@ -1,12 +1,10 @@
 clade	gene	site	alt
-C	nuc	573	C
+C	nuc	805	G
 C	nuc	1149	G
-C	nuc	1685	G
-C	nuc	2433	A
+C	nuc	1764	T
 
-C2	nuc	918	T
-C2	nuc	1239	C
-C2	nuc	1956	A
+C2	nuc	2010	G
+C2	nuc	2238	G
 
 C4	nuc	633	A
 C4	nuc	1269	A

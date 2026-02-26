@@ -98,29 +98,14 @@
       "type": "categorical"
     },
     {
-      "key": "length_VP1",
-      "title": "Length of VP1",
-      "type": "continuous"
-    },
-    {
-      "key": "total_length",
-      "title": "Length of sequence",
+      "key": "length_blast",
+      "title": "Length of BLAST",
       "type": "continuous"
     },
     {
       "key": "NCBI_length_genome",
       "title": "NCBI-reported Length",
       "type": "continuous"
-    },
-    {
-      "key": "has_age",
-      "type": "boolean",
-      "title": "Age available"
-    },
-    {
-      "key": "has_diagnosis",
-      "type": "boolean",
-      "title": "Diagnosis available"
     },
     {
       "key": "abbr_authors",
