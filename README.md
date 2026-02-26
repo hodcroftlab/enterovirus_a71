@@ -16,6 +16,7 @@ This repository includes the following directories and files:
 - `snakefile`: The entire computational pipeline, managed using Snakemake. Snakemake documentation can be found [here](https://snakemake.readthedocs.io/en/stable/).
 - `ingest`: Contains Python scripts and the `snakefile` for automatic downloading of EV-A71 sequences and metadata.
 - `vp1`: Sequences and configuration files for the **VP1 run**.
+- `P1`: Sequences and configuration files for the **P1 run**.
 - `whole_genome`: Sequences and configuration files for the **whole genome run**.
 
 ### Configuration Files
@@ -23,7 +24,8 @@ The `config`, `vp1/config`, and `whole_genome/config` directories contain necess
 - `colors.tsv`: Color scheme
 - `geo_regions.tsv`: Geographical locations
 - `lat_longs.tsv`: Latitude data
-- `dropped_strains.txt`: Dropped strains
+- `exclude.txt`: Dropped strains
+- `include.txt`: Included strains
 - `clades_genome.tsv`: Virus clade assignments
 - `reference_sequence.gb`: Reference sequence
 - `auspice_config.json`: Auspice configuration file
