@@ -752,7 +752,7 @@ rule extract_clades_tsv:
 
         with open(output.tsv, "w", newline="") as out_f:
             writer = csv.writer(out_f, delimiter="\t")
-            writer.writerow(["accession", "clade"])
+            writer.writerow(["accession", "clade_assignment"])
 
             for accession, values in nodes.items():
                 clade = values.get("clade_membership", None)
