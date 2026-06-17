@@ -35,7 +35,7 @@
     },
     {
       "key": "clade_assignment",
-      "title": "Subclade Annotation (VP1-based)",
+      "title": "Clade (VP1-based)",
       "type": "categorical"
     },
     {
@@ -69,12 +69,12 @@
     },
     {
       "key": "med_diagnosis_all",
-      "title": "Medical Diagnosis: detailed",
+      "title": "Detailed Symptom List",
       "type": "categorical"
     },
     {
       "key": "med_diagnosis_major",
-      "title": "Medical Diagnosis: major",
+      "title": "Disease",
       "type": "categorical"
     },
     {
