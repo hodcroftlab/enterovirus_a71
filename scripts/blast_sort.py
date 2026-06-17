@@ -6,10 +6,11 @@ def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument('--blast', required=True, help='BLAST results file (CSV)')
     parser.add_argument('--seqs', required=True, help='Input sequences file (FASTA)')
-    parser.add_argument('--out_seqs', required=True, help='Output sequences file (FASTA)')
+    parser.add_argument('--out-seqs', required=True, help='Output sequences file (FASTA)')
     parser.add_argument('--range', required=True, help='Specify the region to filter: protein_xy')
-    parser.add_argument('--min_length', type=int, required=True, help='Minimum length for the specified range')
-    parser.add_argument('--max_length', type=int, required=True, help='Maximum length for the specified range')
+    parser.add_argument('--len-tbl', type = str, help = "Name of Length Table File")
+    parser.add_argument('--min-length', type=int, required=True, help='Minimum length for the specified range')
+    parser.add_argument('--max-length', type=int, required=True, help='Maximum length for the specified range')
     return parser.parse_args()
 
 def main():
@@ -26,7 +27,7 @@ def main():
     # Filter blast results and remove duplicates
     blast_results=blast_results.sort_values(['length','evalue'],ascending=[False,True]).drop_duplicates(subset='qseqid', keep='first')
     blast_results["diff_length_ref"]=abs(blast_results["send"]-blast_results["sstart"])
-    blast_results.loc[:,["qseqid","diff_length_ref"]].to_csv(f"{args.range}/results/blast_{args.range}_length.csv",index=False,header=False) # needed later for adding to metadata
+    blast_results.loc[:,["qseqid","diff_length_ref"]].to_csv(args.len_tbl,index=False,header=False) # needed later for adding to metadata
     selected_seqs = []
 
     # Process sequences based on the specified length range
