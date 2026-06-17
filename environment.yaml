@@ -35,3 +35,6 @@ dependencies:
   - fuzzywuzzy
   - python-levenshtein
   - requests
+  - zip
+  - tqdm
+  - jq
