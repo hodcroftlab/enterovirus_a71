@@ -314,6 +314,6 @@ align:
     kmer_length : 6 #reduce to find more matches - default is 10
     kmer_distance : 25 #reduce to try more seeds - default is 50
     min_match_length : 30 #reduce to keep more seeds - default is 40
-    allowed_mismatches : 15 #increase to keep more seeds - default is 8
-    min_length : 30 # min_length - default is 100
+    allowed_mismatches : 12 #increase to keep more seeds - default is 8
+    min_length : 100 # min_length - default is 100
     #cost of a mutation is 4
