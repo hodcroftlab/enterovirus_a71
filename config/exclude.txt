@@ -63,8 +63,6 @@ AB936544
 ## Lab/Model-adapted strains
 PP101991
 LC375765	#Transgenic Mice
-LC506515	#Transgenic Mice
-LC506516	#Transgenic Mice
 JN992282
 JN992283
 JN992284
@@ -140,8 +138,11 @@ KT354873
 KT354874
 KT354875
 
-## other EVs 
-JF420566	#CV-A16
+## CVA16
+JF420566
+LC506515 #mouse
+LC506516 #mouse
+
 
 #cDNA clone pEV71
 KF312457

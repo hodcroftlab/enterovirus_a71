@@ -202,6 +202,7 @@ country	zambia	-15.0	30.0
 country	zimbabwe	-20.0	30.0
 
 country	usa	38.0	-97.0
+place	usa	38.0	-97.0
 place	Alabama	33.2588817	-86.8295336
 place	Alaska	64.4459613	-149.6809089
 place	Arizona	34.395342	-111.7632754
@@ -433,6 +434,7 @@ place	Xinhui	22.4560	113.0482
 place	Xinjiang	42.5246	84.2484
 place	Xiangyang	32.0090	112.1224
 place	Xianghe	39.7642	117.0056
+place	Xinxiang	35.3036	113.9268
 place	Yancheng	33.3851	120.1492
 place	Yantai	37.4638	121.4479
 place	Yunnan	24.3570	102.7090
@@ -470,6 +472,7 @@ place	Kolhapur	16.7050	74.2433
 place	Kolkata	22.5726	88.3639
 place	Maharashtra	19.7515	75.7139
 place	Maharashtra State	19.7515	75.7139
+place	Maharashta	19.751480	75.713888
 place	Mumbai	19.0760	72.8777
 place	Mumbai City	19.0760	72.8777
 place	Mumbai City, Maharashtra State	19.0760	72.8777
@@ -719,12 +722,27 @@ place	Kataysk	56.2900	62.5830
 place	Kostroma Region	57.767193	40.976257
 place	Kostroma	57.767193	40.976257
 place	Moscow	55.7558	37.6173
+place	Novgorod	58.242755	32.566519
 place	Rostov-Na-Donu	47.2357137	39.701505
 place	Saint-Petersburg	59.9342802	30.3350986
 place	St. Petersburg	59.9342802	30.3350986
 place	Surgut	61.2530	73.3960
 place	Pskov	57.8194	28.3318
 place	Pscov	57.8194	28.3318
+place	Perm	58.0105	56.2502
+place	Rostov-on-Don	47.2357	39.7015
+place	Stavropol	45.0445	41.9691
+place	Vladimir	56.1290	40.4066
+place	Kalmykia	46.5700	44.3000
+place	Belgorod	50.5954	36.5870
+place	Krasnodar	45.0355	38.9753
+place	Yaroslavl	57.6261	39.8845
+place	Anapa	44.8950	37.3167
+place	Tuapse	44.1053	39.0802
+place	Karelia	63.1559	32.9906
+place	Komi	63.8631	54.8313
+place	Dagestan	42.9849	47.5047
+place	N.Novgorod	56.2965	43.9361
 
 country	bulgaria	42.6073975	25.4856617
 place	Sofia	42.6977	23.3219
