@@ -14,9 +14,9 @@ C5	nuc	618	A
 C5	nuc	1179	G
 C5	nuc	2439	T
 
-C1	nuc	1644	T
-C1	nuc	2250	T
-C1	nuc	2334	G
+C1	nuc	1392	T
+C1	nuc	1752	T
+C1	nuc	2229	G
 
 C1.2	nuc	790	A
 C1.2	nuc	1827	G
@@ -28,9 +28,12 @@ C1.3	nuc	2055	G
 C3	nuc	1128	C
 C3	nuc	1513	A
 
-r.C2	clade	C2
-r.C2	nuc	1314	T
+C2.2	nuc	714	A
+C2.2	nuc	1545	G
+C2.2	nuc	2112	C
 
+C2.3	clade	C2
+C2.3	nuc	1314	T
 
 A	nuc	552	C
 A	nuc	1794	A

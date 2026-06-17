@@ -27,21 +27,25 @@ B	nuc	3134	T
 B	nuc	4739	T
 B	VP1	58	T
 
-B1	nuc	2009	C
-B1	nuc	4219	A
-B1	nuc	6263	G
+B1	nuc	1505	A
+B1	nuc	3392	T
+B1	nuc	7283	A
 
 C	nuc	1892	G
 C	nuc	2428	G
 C	nuc	3191	T
 
-C2.r	nuc	2057	T
-C2.r	nuc	4706	C
-
 C2	nuc	2972	A
 C2	nuc	4061	G
 C2	nuc	5202	T
 C2	nuc	7355	T
+
+C2.2	nuc	505	G
+C2.2	nuc	2855	C
+C2.2	nuc	6884	T
+
+C2.3	nuc	2057	T
+C2.3	nuc	4706	C
 
 C3	nuc	809	G
 C3	3A	12	M
@@ -51,16 +55,19 @@ C3	nuc	4193	C
 C1	nuc	6209	A
 C1	nuc	4265	T
 
-C4	nuc	2081	A
-C4	nuc	3866	G
-C4	nuc	6173	T
+C1.2	nuc	779	A
+C1.2	nuc	2606	G
+C1.2	nuc	3146	A
+C1.2	nuc	5691	C
 
-C1-like	clade	C
-C1-like	nuc	4385	A
+C1.3	nuc	1811	T
+C1.3	nuc	2696	G
+C1.3	nuc	3758	T
 
-C2-like	nuc	505	G
-C2-like	nuc	2855	C
-C2-like	nuc	6884	T
+C4	nuc	505	C
+C4	nuc	1331	A
+C4	nuc	3633	C
+C4	nuc	6035	C
 
 C5	nuc	280	A
 C5	nuc	3399	T
