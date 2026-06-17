@@ -42,7 +42,8 @@ wildcard_constraints:
    
 # Define segments to analyze
 segments = ['vp1', 'whole-genome', "P1"]
-GENES=["-5utr","-vp4", "-vp2", "-vp3", "-vp1", "-2A", "-2B", "-2C", "-3A", "-3B", "-3C", "-3D","-3utr"]
+# GENES=["-5utr","-vp4", "-vp2", "-vp3", "-vp1", "-2A", "-2B", "-2C", "-3A", "-3B", "-3C", "-3D","-3utr"]
+GENES=["-vp1","-3D"]
 PROT = ["-P1", "-P2", "-P3"]
 CODING_GENES = ["VP4", "VP2", "VP3", "VP1", "2A", "2B", "2C", "3A", "3B", "3C", "3D"]
 PROTEIN1 = ["VP4", "VP2", "VP3", "VP1"]
@@ -62,6 +63,7 @@ rule files:
         lat_longs =         "config/lat_longs.tsv",
         auspice_config =    "{seg}/config/auspice_config.json",
         colors =            "config/colors.tsv",
+        color_schemes =     "config/color_schemes.tsv",
         clades =            "{seg}/config/clades_genome.tsv",
         regions=            "config/geo_regions.tsv",
         
@@ -73,9 +75,6 @@ rule files:
         SEQUENCES =         "data/sequences.fasta",
         METADATA =          "data/metadata.tsv",
         RIVM_CLADES =       "data/subgenotypes_rivm.csv",
-        VP1_CLADES =        "data/clades_vp1.tsv",
-
-
 
 files = rules.files.input
 
@@ -144,13 +143,13 @@ rule fetch_metadata:
         Retrieving GenBank metadata for the specified accessions. See {log} for details.
         """
     input:
-        accessions="data/metadata/genbank_afm_failed.txt",
+        accessions="data/metadata/genbank_EV_A.txt",
         config="config/config.yaml", # include symptom list and isolation source mapping
         lat_longs=files.lat_longs
     output:
-        metadata="data/metadata/genbank_afm_cases.tsv",
+        metadata="data/metadata/genbank_EV_A.tsv",
     params:
-        virus="Enterovirus A71",
+        virus="Enterovirus A",
         genbank_metadata=files.meta_genbank,
         cols = ["strain", "accession", "country", "place", "region", "subgenogroup", "lineage", "date", "collection_yr", "gender", "age_yrs", "age_mo", "diagnosis", "isolation", "origin", "doi"],
     log:
@@ -271,7 +270,7 @@ rule extract:
 rule blast:
     input: 
         blast_db_file = rules.extract.output.extracted_fasta,  
-        seqs_to_blast = rules.fetch.output.sequences
+        seqs_to_blast = rules.update_sequences.output.sequences
     output:
         blast_out = "temp/{seg}/blast_out.csv"
     params:
@@ -287,21 +286,25 @@ rule blast:
 rule blast_sort:
     input:
         blast_result = rules.blast.output.blast_out, # output blast (for your protein)
-        input_seqs = rules.fetch.output.sequences
+        input_seqs = rules.update_sequences.output.sequences
     output:
         sequences = "{seg}/results/sequences.fasta",
+        length_table = "{seg}/results/blast_{seg}_length.csv"
     params:
         range = "{seg}",  # Determines which protein (or whole genome) is processed
         min_length = lambda wildcards: {"vp1": 600, "whole_genome": 6400, "P1": 2000}[wildcards.seg],  # Min length
         max_length = lambda wildcards: {"vp1": 900, "whole_genome": 8000, "P1": 2600}[wildcards.seg]  # Max length
     shell:
         """
-        python scripts/blast_sort.py --blast {input.blast_result} \
+        mkdir -p {params.range}/results
+        python scripts/blast_sort.py \
+            --blast {input.blast_result} \
             --seqs {input.input_seqs} \
-            --out_seqs {output.sequences} \
+            --out-seqs {output.sequences} \
             --range {params.range} \
-            --min_length {params.min_length} \
-            --max_length {params.max_length}
+            --len-tbl {output.length_table} \
+            --min-length {params.min_length} \
+            --max-length {params.max_length}
         """
 
 
@@ -320,6 +323,7 @@ rule add_metadata:
         new_data=rules.curate.output.meta,
         regions=ancient(files.regions),
         C1like_accn = "data/list_C1like_accn.txt",
+        EV_A = "data/EV_A_conversion.csv"
     params:
         strain_id_field=config["id_field"],
         last_updated = files.last_updated_file,
@@ -569,6 +573,7 @@ rule tree:
     shell:
         """
         augur tree \
+            --nthreads {threads} \
             --alignment {input.alignment} \
             --output {output.tree}
         """
@@ -731,11 +736,35 @@ rule clades:
             --output-node-data {output.clade_data}
         """
 
+rule extract_clades_tsv:
+    input:
+        json = rules.clades.output.clade_data,
+    output:
+        tsv = "{seg}/results/clades_metadata{gene}{protein}.tsv"
+    run:
+        import json
+        import csv
+
+        with open(input.json) as f:
+            data = json.load(f)
+
+        nodes = data.get("nodes", {})
+
+        with open(output.tsv, "w", newline="") as out_f:
+            writer = csv.writer(out_f, delimiter="\t")
+            writer.writerow(["accession", "clade"])
+
+            for accession, values in nodes.items():
+                clade = values.get("clade_membership", None)
+                if clade:
+                    writer.writerow([accession, clade])
+
+
 rule clade_published:
     message: "Assigning clades from publications for {wildcards.seg}"
     input:
         metadata     = rules.add_metadata.output.metadata,
-        subgenotypes = files.VP1_CLADES,
+        subgenotypes = "vp1/results/clades_metadata.tsv",
         rivm_data    = files.RIVM_CLADES,
         c1           = "data/C1_colors_P1.csv"
     params:
@@ -993,6 +1022,57 @@ rule key_muts:
         with open(output.node_data, "w") as fh:
             json.dump({"epitopes": params.muts, "nodes": nodes}, fh)
 
+rule get_dates:
+    """Create ordering for color assignment"""
+    input:
+        metadata = rules.add_metadata.output.metadata,
+    output:
+        ordering = "temp/color_ordering.tsv"
+    run:
+        import pandas as pd
+        column = "date_added"
+        meta = pd.read_csv(input.metadata, delimiter='\t')
+
+        if column not in meta.columns:
+            print(f"The column '{column}' does not exist in the file.")
+            sys.exit(1)
+
+        deflist = meta[column].dropna().tolist()
+        # Store unique values (ordered)
+        deflist = sorted(set(deflist))
+        if "XXXX-XX-XX" in deflist:
+            deflist.remove("XXXX-XX-XX")
+
+        result_df = pd.DataFrame({
+            'column': [column] * len(deflist),
+            'value': deflist
+        })
+
+        result_df.to_csv(output.ordering, sep='\t', index=False, header=False)
+
+### Colors for Dates
+rule colors:
+    """Assign colors based on ordering"""
+    input:
+        ordering = rules.get_dates.output.ordering,
+        color_schemes = files.color_schemes,
+        colors = files.colors,
+    params:
+        column = "date_added"
+    output:
+        colors="config/colors_dates.tsv",
+        final_colors="config/final_colors.tsv"
+    shell:
+        """
+        python3 scripts/assign-colors.py \
+            --ordering {input.ordering} \
+            --color-schemes {input.color_schemes} \
+            --output {output.colors}
+
+        echo -e '\n{params.column}\tXXXX-XX-XX\t#a6acaf' >> {output.colors}
+
+        cat {output.colors} {input.colors} >> {output.final_colors}
+        """
 
 #########################
 #  EXPORT
@@ -1007,7 +1087,7 @@ rule export:
         # nt_muts = "{seg}/results/nt_muts.json",
         # aa_muts = "{seg}/results/aa_muts.json",
         clades = rules.clades.output.clade_data,
-        colors = files.colors,
+        colors = "config/final_colors.tsv",
         lat_longs = files.lat_longs,
         vaccine = "config/vaccine.json",
         auspice_config = files.auspice_config,
@@ -1018,7 +1098,7 @@ rule export:
     params:
         strain_id_field= config["id_field"],
         muts_flag = lambda wildcards: f"{wildcards.seg}/results/muts.json" if wildcards.seg else "",
-        europe_col = lambda wildcards: "config/EUROPE_colors.tsv" if wildcards.seg == "P1" else files.colors,
+        europe_col = lambda wildcards: "config/EUROPE_colors.tsv" if wildcards.seg == "P1" else "config/final_colors.tsv",
     benchmark:
         "benchmark/export.{seg}{gene}{protein}.log"
     output:
@@ -1104,7 +1184,7 @@ rule clean:
 rule upload: ## make sure you're logged in to Nextstrain
     message: "Uploading auspice JSONs to Nextstrain"
     input:
-        jsons = ["auspice/enterovirus_A71_vp1.json", "auspice/enterovirus_A71_whole-genome.json"]
+        jsons = ["auspice/enterovirus_A71_P1.json", "auspice/enterovirus_A71_whole-genome.json"]
         # "auspice/enterovirus_A71_gene_-vp1.json", "auspice/enterovirus_A71_gene_-3D.json"]
     params:
         remote_group=REMOTE_GROUP,
