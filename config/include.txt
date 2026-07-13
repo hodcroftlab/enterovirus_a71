@@ -38,3 +38,7 @@ KJ686178
 
 # subgenotype C4-like
 # KF982854
+
+PX260179 # D genotype
+PX260180 # G genotype
+

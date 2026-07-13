@@ -410,8 +410,6 @@ LR798440
 KF982854
 KX372308
 KX372309
-PX260179 # D genotype
-PX260180 # G genotype
 
 # genotype A sequences
 KF501389
