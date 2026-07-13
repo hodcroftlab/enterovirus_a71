@@ -828,13 +828,12 @@ rule epitopes:
         node_data = "{seg}/results/epitopes{gene}{protein}.json"
     params:
         translation = "vp1/results/translations/cds_VP1.ancestral.fasta",
-        epitopes = { #it is minus one!!!!
-        'BC':     list(range(95, 107)),         # Huang et al., 2015; Foo et al., 2008; structural mapping of neutralizing antibodies
-        'DE':     list(range(142, 152)),        # Liu et al., 2011; Zaini et al., 2012.
-        'EF':     list(range(165, 173)),        # Lyu et al., 2014; Wang et al., 2010.
-        'CTERM':  list(range(281, 291)),        # Chang et al., 2012 (monoclonal antibody studies), structural models.
-        'GH':     list(range(209, 224)),        # mutations at S215, K218 have been noted to impact neutralization. Often used in vaccine design (e.g., in VLPs or epitope grafting studies).      
-        'Esc_CHN':[283, 293]},                  # Escape Mutations in C-Terminal in Chinese Samples
+        epitopes = {
+        'BC':     list(range(97, 106)),         # Lyu et al. 2015 (JVI); Crystal structures (PDB:3VBS)
+        'EF':     list(range(163, 178)),        # Foo et al. 2007; Lyu et al. 2015; Known as SP55 epitope
+        'GH':     list(range(208, 223)),        # Foo et al. 2007; Lyu et al. 2015; Known as SP70 epitope; 100% conserved   
+        'Esc_CHN':[283, 293],                   # Escape Mutations in C-Terminal in Chinese Samples
+        'CTERM':  list(range(240, 266))},       # Both ranges appear in Lyu et al. (2015) and JVI crystal structure papers
         min_count = 6 # number of sequences?
     run:
         import json
@@ -875,7 +874,7 @@ rule epitopes:
 
         for node in nodes:
             for epi,seq in nodes[node].items():
-                min_count2 = params.min_count if epi != "CTERM" else 6
+                min_count2 = params.min_count if epi != "CTERM" else 10
                 if epi == "CTERM" and seq in manyXList:
                     nodes[node][epi]='many X'
                 elif epitope_counts[epi][seq]<min_count2:#params.min_count:
@@ -1087,7 +1086,7 @@ rule export:
         # nt_muts = "{seg}/results/nt_muts.json",
         # aa_muts = "{seg}/results/aa_muts.json",
         clades = rules.clades.output.clade_data,
-        colors = "config/final_colors.tsv",
+        colors = rules.colors.output.final_colors,
         lat_longs = files.lat_longs,
         vaccine = "config/vaccine.json",
         auspice_config = files.auspice_config,
@@ -1118,7 +1117,6 @@ rule export:
             --auspice-config {input.auspice_config} \
             --output {output.auspice_json}
         """
-        # {input.epis} 
         
 rule rename_whole_genome:
     message: "Rename whole-genome built"
