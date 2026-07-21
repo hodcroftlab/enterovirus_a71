@@ -5,7 +5,7 @@ on:
     - cron: '0 0 1 * *'  # 1st of month, midnight UTC
   push:
     branches: 
-      - automatic-updates  # Only run on this branch
+      - master
 
 jobs:
   pipeline:
@@ -15,7 +15,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: automatic-updates  # Explicitly checkout this branch
+          ref: master  # Explicitly checkout this branch
 
       - name: Checkout data repository
         uses: actions/checkout@v4
@@ -46,7 +46,7 @@ jobs:
           ls -lh data/
           
           # Check for required files
-          required_files=("meta_public.tsv" "meta_collab.tsv" "subgenotypes_rivm.csv" "clades_vp1.tsv" "strain_names_previous_run.tsv")
+          required_files=("meta_public.tsv" "genbank_metadata.tsv")
           for file in "${required_files[@]}"; do
             if [ ! -f "data/$file" ]; then
               echo "⚠️  Warning: $file not found in data/"
@@ -67,12 +67,24 @@ jobs:
           snakemake --cores 1 clean || echo "Clean completed"
         shell:  micromamba-shell {0}
 
+      - name: Run ingest pipeline
+        env:
+          ENTREZ_EMAIL: ${{ secrets.ENTREZ_EMAIL }}
+        run: |
+          cd ingest
+          snakemake --cores 10 all \
+            --use-conda \
+            --rerun-incomplete \
+            --printshellcmds
+          cd ../
+        shell: micromamba-shell {0}
+
       - name: Run full pipeline
         env:  
           REMOTE_GROUP: ${{ secrets.NEXTSTRAIN_REMOTE_GROUP }}
           ENTREZ_EMAIL: ${{ secrets.ENTREZ_EMAIL }}
         run: |
-          snakemake --cores 10 next_update \
+          snakemake --cores 10 all \
             --use-conda \
             --rerun-incomplete \
             --printshellcmds
@@ -88,15 +100,14 @@ jobs:
           snakemake --cores 2 upload
         shell: micromamba-shell {0}
 
-      - name:  Commit and Push Results
+      - name: Commit and Push Results
         if: success()
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git pull origin automatic-updates
           git add auspice/ data/date_last_updated.txt data/local_accn.txt
-          git commit -m "chore:  update EV-A71 builds [skip ci]" || echo "No changes to commit"
-          git push origin automatic-updates
+          git commit -m "chore: update EV-A71 builds [skip ci]" || echo "No changes to commit"
+          git push origin master
         shell: bash -l {0}
 
       - name: Upload workflow artifacts (optional)
