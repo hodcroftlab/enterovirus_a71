@@ -2,6 +2,7 @@ country	United Kingdom	#48D1CC
 country	France	#3f55ce
 country	Netherlands	#1877F2
 country	Switzerland	#082567
+country	Italy	#0F4C81
 country	Austria	#00356B
 country	Germany	#1da1f2
 country	Norway	#81D8D0
@@ -13,6 +14,7 @@ country	Czechia	#720e9e
 country	Hungary	#6A5ACD
 country	Russia	#4B0082
 country	Spain	#002fa7
+country	Portugal	#1B4B91
 country	Greece	#7788CC
 country	Slovenia	#1C39BB
 country	Cyprus	#33006F
@@ -26,6 +28,7 @@ country	Cambodia	#FF6969
 country	Laos	#F88379
 country	Thailand	#CD5700
 country	Vietnam	#FF4500
+country	India	#E9967A
 country	Malaysia	#FFBAB8
 country	Singapore	#FBCEB1
 
@@ -34,6 +37,7 @@ country	Cameroon	#006400
 country	Algeria	#6B8E23
 country	Guinea	#8FBC8B
 country	Central African Republic	#00A86B
+country	Uganda	#0E8A4B
 country	Mauritania	#4B5320
 country	Niger	#55DD33
 country	Madagascar	#009150

@@ -151,7 +151,6 @@ country	paraguay	-23.0	-58.0
 country	peru	-10.0	-76.0
 country	philippines	13.0	122.0
 country	poland	52.0	20.0
-country	portugal	39.5	-8.0
 country	puerto rico	18.25	-66.5
 country	qatar	25.5	51.25
 country	romania	46.0	25.0
@@ -203,6 +202,7 @@ country	zambia	-15.0	30.0
 country	zimbabwe	-20.0	30.0
 
 country	usa	38.0	-97.0
+place	usa	38.0	-97.0
 place	Alabama	33.2588817	-86.8295336
 place	Alaska	64.4459613	-149.6809089
 place	Arizona	34.395342	-111.7632754
@@ -384,6 +384,7 @@ place	Guangxi	23.8337	108.7881
 place	Guangzhou	23.1291	113.2644
 place	Guigang	23.0964	109.6092
 place	Guilin	25.2819	110.2864
+place	Guizhou	26.8154	106.8748
 place	Hainan	19.5664	109.9497
 place	Haikou	20.0440	110.1999
 place	Hangzhou	30.2741	120.1551
@@ -476,6 +477,7 @@ place	Bulandsahar	28.40696	77.84983
 place	Chennai	13.0827	80.2707
 place	Delhi	28.65381	77.22897
 place	Darbhanga	26.15216	85.89707
+place	Haryana	29.0588	76.0856
 place	Jaunpur	25.74870	82.69844
 place	Jotiba Phule Nagar	28.7716	78.3387
 place	Kandaldal	17.5155	76.9571
@@ -494,6 +496,7 @@ place	Kerala State	10.8505	76.2711
 place	Pune	18.5204	73.8567
 place	Rampur	28.23785	78.33260
 place	Thane	19.21833	72.97809
+place	Up	26.8467	80.9462
 
 country	japan	35.68536	139.75309
 place	Aichi	35.1802	136.9066
@@ -790,6 +793,9 @@ place	San Sebastián	43.318334	-1.9812313
 place	Salamanca	40.9616	-5.6676
 place	Valencia	39.46975	-0.37739
 place	Vigo	42.2406	-8.7207
+
+country	portugal	39.5	-8.0
+place	Porto	41.1579	-8.6291
 
 place	Italy	41.8719	12.5674
 place	Rome	41.9028	12.4964

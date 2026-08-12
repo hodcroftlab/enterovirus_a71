@@ -1203,7 +1203,7 @@ rule upload: ## make sure you're logged in to Nextstrain
         nextstrain remote upload \
             nextstrain.org/groups/{params.remote_group}/ \
             {input.jsons}
-        # nextstrain logout
+        nextstrain logout
         mkdir -p auspice/{params.date}
         cp {input.jsons} auspice/{params.date}/
         """
