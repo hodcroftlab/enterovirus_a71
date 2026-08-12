@@ -149,7 +149,7 @@ rule fetch_metadata:
     output:
         metadata="data/metadata/genbank_EV_A.tsv",
     params:
-        virus="Enterovirus A",
+        virus="Enterovirus A71",
         genbank_metadata=files.meta_genbank,
         cols = ["strain", "accession", "country", "place", "region", "subgenogroup", "lineage", "date", "collection_yr", "gender", "age_yrs", "age_mo", "diagnosis", "isolation", "origin", "doi"],
     log:
@@ -355,7 +355,10 @@ rule deduplicate:
         metadata = rules.add_metadata.output.metadata
     params:
         id_field = config["id_field"],
-        threshold = 0.995 # percent identity threshold to consider sequences as duplicates
+        threshold = 0.995, # percent identity threshold to consider sequences as duplicates
+        relaxed_threshold = 0.95 # lower threshold used when country & year both match
+    log:
+        "logs/deduplicate.{seg}.log"
     output:
         sequences = "{seg}/results/deduplicated_sequences.fasta",
     shell:
@@ -365,7 +368,9 @@ rule deduplicate:
             --metadata {input.metadata} \
             --id-field {params.id_field} \
             --threshold {params.threshold} \
-            --out-sequences {output.sequences} 
+            --relaxed-threshold {params.relaxed_threshold} \
+            --out-sequences {output.sequences} \
+            --log-file {log}
         """
 
 
