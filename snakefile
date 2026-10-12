@@ -1080,7 +1080,7 @@ rule colors:
 
         echo -e '\n{params.column}\tXXXX-XX-XX\t#a6acaf' >> {output.colors}
 
-        cat {output.colors} {input.colors} >> {output.final_colors}
+        cat {output.colors} {input.colors} > {output.final_colors}
         """
 
 #########################
@@ -1192,14 +1192,14 @@ rule clean:
 rule upload: ## make sure you're logged in to Nextstrain
     message: "Uploading auspice JSONs to Nextstrain"
     input:
-        jsons = ["auspice/enterovirus_A71_vp1.json","auspice/enterovirus_A71_P1.json", "auspice/enterovirus_A71_whole-genome.json"]
-        # "auspice/enterovirus_A71_gene_-vp1.json", "auspice/enterovirus_A71_gene_-3D.json"]
+        jsons = expand("auspice/enterovirus_A71_{segs}.json", segs=segments)
     params:
         remote_group=REMOTE_GROUP,
         date=UPLOAD_DATE,
+        USERNAME=os.getenv("NEXTSTRAIN_USERNAME"),
     shell:
         """
-        nextstrain login
+        nextstrain login --username {params.USERNAME}
         nextstrain remote upload \
             nextstrain.org/groups/{params.remote_group}/ \
             {input.jsons}
