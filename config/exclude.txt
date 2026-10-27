@@ -127,7 +127,7 @@ JX025559 	# temperature-resistant
 HQ188292
 
 ## eight viruses constructed with reverse genetics
-KT354866	# DOI: https://doi.org/10.1128/jvi.02035-15
+KT354866	# DOI: https://doi.org/10128/jvi.02035-15
 KT354867
 KT354868
 KT354869
@@ -147,7 +147,7 @@ LC506516 #mouse
 #cDNA clone pEV71
 KF312457
 
-# Netherlands 10.1099/vir.0.019695-0
+# Netherlands 10099/vir.0.019695-0
 # replicated sequences (same strain name), keeping the longest one
 AB552972
 AB552973
@@ -270,7 +270,7 @@ OP672354
 OP672347
 
 # temperature-adapted strains
-# https://doi.org/10.1016/j.meegid.2018.10.012
+# https://doi.org/10016/j.meegid.20180.012
 MH511185
 MH511207
 MH511187
@@ -441,3 +441,19 @@ KP274876
 
 # CVA8
 PZ583202
+
+# CVA6
+PZ583197
+PZ583198
+PZ583199
+PZ583200
+PZ583201
+
+#many Ns
+PZ583229
+PZ583230
+PZ583214
+PZ583213
+
+#recombinant
+PZ583208

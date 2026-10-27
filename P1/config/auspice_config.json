@@ -156,7 +156,6 @@
     "color_by": "clade_membership",
     "geo_resolution": "country",
     "distance_measure": "num_date",
-    "branch_label": "aa",
     "tip_label": "strain",
     "map_triplicate": true
   },
