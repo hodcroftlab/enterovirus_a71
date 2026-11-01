@@ -1,13 +1,13 @@
 augur refine is using TreeTime version 0.12.1
 
-36.12	###TreeTime.run: INITIAL ROUND
+11.57	###TreeTime.run: INITIAL ROUND
 
-184.06	###TreeTime.run: ITERATION 1 out of 2 iterations
+57.87	###TreeTime.run: ITERATION 1 out of 2 iterations
 
-387.26	###TreeTime.run: ITERATION 2 out of 2 iterations
+98.48	###TreeTime.run: ITERATION 2 out of 2 iterations
 
-1202.83	###TreeTime.run: FINAL ROUND - confidence estimation via marginal
-       	reconstruction
+294.47	###TreeTime.run: FINAL ROUND - confidence estimation via marginal
+      	reconstruction
 
 Inferred a time resolved phylogeny using TreeTime:
 	Sagulenko et al. TreeTime: Maximum-likelihood phylodynamic analysis

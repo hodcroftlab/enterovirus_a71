@@ -1,3 +1,4 @@
+WARNING: 25 of 2073 tips have no sequence in 'P1/results/translations/cds_VP4.translation.fasta' and are treated as fully ambiguous for 'VP4': MT747902, MT747901, MT747904, MT747903, MT747899, ...
 Validating schema of 'P1/results/muts.json'...
 
 Inferred ancestral sequence states using TreeTime:
@@ -7,84 +8,6 @@ Inferred ancestral sequence states using TreeTime:
 augur ancestral is using TreeTime version 0.12.1
 Read in 5 features from reference sequence file
 Processing gene: VP4
-
-1.54	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747902'
-
-1.58	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747901'
-
-1.61	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747904'
-
-1.63	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747903'
-
-1.65	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747899'
-
-1.67	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747895'
-
-1.70	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747891'
-
-1.72	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747897'
-
-1.74	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747892'
-
-1.76	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747893'
-
-1.80	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747894'
-
-1.84	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747896'
-
-1.87	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747898'
-
-1.90	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'PQ284506'
-
-1.93	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747881'
-
-1.97	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747882'
-
-2.01	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747885'
-
-2.04	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747886'
-
-2.10	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747890'
-
-2.12	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747884'
-
-2.14	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747883'
-
-2.16	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747889'
-
-2.18	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747888'
-
-2.21	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747887'
-
-2.26	***WARNING: TreeAnc._check_alignment_tree_gtr_consistency: NO SEQUENCE FOR
-    	LEAF: 'MT747900'
-
-2.30	***WARNING: TreeAnc: 25 nodes don't have a matching sequence in the
-    	alignment. POSSIBLE ERROR.
 Processing gene: VP2
 Processing gene: VP3
 Processing gene: VP1
