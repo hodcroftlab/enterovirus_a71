@@ -1,8 +1,8 @@
-14360 strains were dropped during filtering
+14362 strains were dropped during filtering
 	1 had no metadata
-	14242 had no sequence data
-	115 were dropped because they were in config/exclude.txt
+	14243 had no sequence data
+	116 were dropped because they were in config/exclude.txt
 	11 were dropped because they were earlier than 1975.0 or missing a date
 	24 were added back because they were in whole_genome/results/include.txt
 	15 were dropped because of subsampling criteria
-1861 strains passed all filters
+1860 strains passed all filters
