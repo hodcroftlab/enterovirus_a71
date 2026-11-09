@@ -73,7 +73,6 @@ jobs:
         run: |
           cd ingest
           snakemake --cores 10 all \
-            --use-conda \
             --rerun-incomplete \
             --printshellcmds
           cd ../
@@ -85,7 +84,6 @@ jobs:
           ENTREZ_EMAIL: ${{ secrets.ENTREZ_EMAIL }}
         run: |
           snakemake --cores 10 all \
-            --use-conda \
             --rerun-incomplete \
             --printshellcmds
         shell: micromamba-shell {0}
