@@ -323,10 +323,10 @@ rule add_metadata:
         new_data=rules.curate.output.meta,
         regions=ancient(files.regions),
         C1like_accn = "data/list_C1like_accn.txt",
-        EV_A = "data/EV_A_conversion.csv"
+        EV_A = "data/EV_A_conversion.csv",
+        last_updated = files.last_updated_file,
     params:
         strain_id_field=config["id_field"],
-        last_updated = files.last_updated_file,
         local_accn = files.local_accn_file,
     output:
         metadata="data/all_metadata.tsv"
@@ -337,7 +337,7 @@ rule add_metadata:
             --add {input.new_data} \
             --local {params.local_accn} \
             --C1like {input.C1like_accn} \
-            --update {params.last_updated}\
+            --update {input.last_updated}\
             --regions {input.regions} \
             --id {params.strain_id_field} \
             --output {output.metadata}

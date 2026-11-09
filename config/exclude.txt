@@ -457,3 +457,6 @@ PZ583213
 
 #recombinant
 PZ583208
+
+# probably not C1.3
+HQ456305

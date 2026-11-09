@@ -1,4 +1,4 @@
-name: grouping
+name: nextstrain
 channels:
   - conda-forge
   - bioconda
